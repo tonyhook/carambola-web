@@ -1,0 +1,18 @@
+<mat-list-item [ngStyle]="{'padding-left': (depth() * 24) + 'px'}" (click)="onItemSelected()">
+  <div class="item-wrapper" [ngClass]="{'active': active(), 'onpath': onpath(), 'disabled': disabled()}">
+    <mat-icon class="item-icon">{{ item().icon }}</mat-icon>
+    @if (drawerService.contentMode() !== 'icon') {
+      <div class="item-name">{{ item().name }}</div>
+    }
+    @if (item().children.length > 0 && drawerService.contentMode() !== 'icon') {
+      <mat-icon class="item-icon" [@indicatorRotate]="expanded ? 'expanded': 'collapsed'">expand_more</mat-icon>
+    }
+  </div>
+</mat-list-item>
+@if (item().children.length > 0 && expanded && (drawerService.contentMode() !== 'icon')) {
+  <div>
+    @for (child of item().children; track child.id) {
+      <carambola-admin-menu-item [item]="child" [depth]="depth() + 1" />
+    }
+  </div>
+}

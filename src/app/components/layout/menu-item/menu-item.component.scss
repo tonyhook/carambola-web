@@ -1,0 +1,28 @@
+.mat-mdc-list-item {
+  padding: 0;
+  border-radius: 0;
+}
+.item-wrapper {
+  display: flex;
+  width: 100%;
+  padding: 12px 0;
+}
+.item-wrapper.onpath {
+  background-color: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+}
+.item-wrapper.active {
+  background-color: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+}
+.item-wrapper.disabled {
+  color: var(--mat-sys-outline-variant);
+}
+.item-icon {
+  padding: 0 8px;
+}
+.item-name {
+  flex-grow: 1;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}

@@ -1,11 +1,18 @@
 <mat-toolbar class="expanded-toolbar">
   <div class="expanded-toolbar">
+    <button class="header-sm" mat-icon-button (click)="drawerService.toggle()">
+      <mat-icon>menu</mat-icon>
+    </button>
+    <button class="header-xs" mat-icon-button (click)="drawerService.toggle()">
+      <mat-icon>menu</mat-icon>
+    </button>
     <button class="header-gt-sm" mat-icon-button routerLink="/admin">
       <mat-icon>home</mat-icon>
     </button>
     <button class="header-gt-sm" mat-button>{{ title }}</button>
     <button class="header-sm" mat-button>{{ title }}</button>
   </div>
+  <button class="header-xs" mat-button>{{ title }}</button>
   <div class="header-gt-sm">
     @if (authService.credential() === null) {
       <button mat-button routerLink="/admin/login">
@@ -20,6 +27,9 @@
     }
   </div>
   <button class="header-sm" mat-icon-button [mat-menu-trigger-for]="menu">
+    <mat-icon>menu</mat-icon>
+  </button>
+  <button class="header-xs" mat-icon-button [mat-menu-trigger-for]="menu">
     <mat-icon>menu</mat-icon>
   </button>
 </mat-toolbar>
