@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+
 import { MatIconRegistry } from '@angular/material/icon';
 
 @Component({
@@ -9,7 +10,6 @@ import { MatIconRegistry } from '@angular/material/icon';
   styleUrl: './app.component.scss'
 })
 export class AppComponent implements OnInit {
-  title = 'web';
 
   constructor(
     private matIconReg: MatIconRegistry
