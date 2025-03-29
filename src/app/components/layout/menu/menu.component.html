@@ -1,0 +1,5 @@
+<mat-nav-list>
+  @for (item of menuService.menuItems(); track item.id) {
+    <carambola-admin-menu-item [item]="item"></carambola-admin-menu-item>
+  }
+</mat-nav-list>

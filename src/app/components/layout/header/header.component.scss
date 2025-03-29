@@ -21,3 +21,11 @@
     display: flex;
   }
 }
+.header-xs {
+  display: none;
+}
+@media screen and (width < 600px) {
+  .header-xs {
+    display: flex;
+  }
+}
