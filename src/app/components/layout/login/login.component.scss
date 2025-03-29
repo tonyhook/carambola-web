@@ -1,0 +1,42 @@
+.login-wrapper {
+  min-height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.box {
+  position: relative;
+  top: 0;
+  opacity: 1;
+  float: left;
+  padding: 32px;
+  width: 100%;
+  border-radius: 10px;
+  transform: scale(1);
+  z-index: 5;
+  max-width: 500px;
+}
+.login-wrapper .form {
+  min-width: 100%;
+  max-width: 300px;
+  width: 100%;
+}
+.login-wrapper .full-width {
+  width: 100%;
+}
+.login-wrapper .btn-block {
+  height: 54px;
+  margin: 16px 0;
+}
+.login-wrapper mat-card-header {
+  text-align: center;
+  display: block;
+  font-weight: 700;
+}
+.login-wrapper mat-card-header mat-card-title {
+  font-size: 30px;
+  margin: 20px 0;
+}
+.login-wrapper .mat-mdc-card {
+  padding: 40px 70px 50px;
+}

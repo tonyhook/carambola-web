@@ -1,0 +1,23 @@
+.expanded-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+}
+.header-gt-sm {
+  display: none;
+}
+@media screen and (width >= 960px) {
+  .header-gt-sm {
+    display: flex;
+  }
+}
+.header-sm {
+  display: none;
+}
+@media screen and (width < 960px) and (width >= 600px) {
+  .header-sm {
+    display: flex;
+  }
+}

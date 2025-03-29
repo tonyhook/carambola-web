@@ -1,0 +1,42 @@
+<mat-toolbar class="expanded-toolbar">
+  <div class="expanded-toolbar">
+    <button class="header-gt-sm" mat-icon-button routerLink="/admin">
+      <mat-icon>home</mat-icon>
+    </button>
+    <button class="header-gt-sm" mat-button>{{ title }}</button>
+    <button class="header-sm" mat-button>{{ title }}</button>
+  </div>
+  <div class="header-gt-sm">
+    @if (authService.credential() === null) {
+      <button mat-button routerLink="/admin/login">
+        <mat-icon>power_settings_new</mat-icon>
+        Login
+      </button>
+    } @else {
+      <button mat-button routerLink="/admin/logout">
+        <mat-icon>exit_to_app</mat-icon>
+        Logout
+      </button>
+    }
+  </div>
+  <button class="header-sm" mat-icon-button [mat-menu-trigger-for]="menu">
+    <mat-icon>menu</mat-icon>
+  </button>
+</mat-toolbar>
+<mat-menu x-position="before" #menu="matMenu">
+  <button mat-menu-item routerLink="/admin">
+    <mat-icon>home</mat-icon>
+    Home
+  </button>
+  @if (authService.credential() === null) {
+    <button mat-menu-item routerLink="/admin/login">
+      <mat-icon>power_settings_new</mat-icon>
+      Login
+    </button>
+  } @else {
+    <button mat-menu-item routerLink="/admin/logout">
+      <mat-icon>exit_to_app</mat-icon>
+      Logout
+    </button>
+  }
+</mat-menu>

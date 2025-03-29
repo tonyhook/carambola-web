@@ -1,0 +1,27 @@
+<div class="login-wrapper">
+
+  <mat-card class="box">
+    <mat-card-header>
+      <mat-card-title>Login</mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form class="form" [formGroup]="formGroup" (ngSubmit)="login()">
+        <mat-form-field class="full-width">
+          <mat-label>Username</mat-label>
+          <input placeholder="Username" matInput formControlName="username" />
+        </mat-form-field>
+        <mat-form-field class="full-width">
+          <mat-label>Password</mat-label>
+          <input placeholder="Password" matInput formControlName="password" [type]="hide ? 'password' : 'text'" />
+          <button type="button" mat-icon-button matIconSuffix (click)="hide = !hide">
+            <mat-icon>{{ hide ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+        </mat-form-field>
+        <mat-checkbox class="full-width-input" formControlName="rememberMe">Remember Me</mat-checkbox>
+        <button type="submit" class="btn-block full-width" mat-stroked-button>Login</button>
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+</div>
