@@ -5,7 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatToolbarModule } from '@angular/material/toolbar';
 
-import { AuthService } from '../../../services';
+import { AuthService, DrawerService } from '../../../services';
 
 @Component({
   selector: 'carambola-admin-header',
@@ -24,6 +24,7 @@ export class HeaderComponent {
 
   constructor(
     public authService: AuthService,
+    public drawerService: DrawerService,
   ) { }
 
 }

@@ -1,0 +1,8 @@
+<mat-drawer-container autosize="true" [@.disabled]="true" (backdropClick)="drawerService.close()" [hasBackdrop]="drawerService.hasBackdrop()">
+  <mat-drawer #appDrawer disableClose [ngClass]="{'full': drawerService.contentMode() === 'full'}" [mode]="drawerService.getMode()" [opened]="drawerService.isOpen()">
+    <carambola-admin-menu></carambola-admin-menu>
+  </mat-drawer>
+  <mat-drawer-content [ngClass]="{'padded': drawerService.screenMode() === 'medium' && drawerService.contentMode() === 'full'}">
+    <router-outlet></router-outlet>
+  </mat-drawer-content>
+</mat-drawer-container>
