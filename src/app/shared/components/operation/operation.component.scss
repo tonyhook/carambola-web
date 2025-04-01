@@ -1,0 +1,17 @@
+@use '../../styles/management.scss';
+
+form {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 0.5rem;
+  min-width: max-content;
+}
+
+:host {
+  display: inline-flex;
+}
+
+:host(.saving) {
+  opacity: 0.55;
+}

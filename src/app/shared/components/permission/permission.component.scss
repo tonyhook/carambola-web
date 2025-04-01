@@ -1,0 +1,20 @@
+@use '../../styles/management.scss';
+
+.mat-column-roleId {
+  flex: 0 0 150px;
+}
+.no-permission {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  height: var(--mat-table-row-item-container-height, 52px);
+}
+.card {
+  margin: 1rem;
+  width: calc(100% - 2rem);
+  overflow: hidden;
+  .mat-mdc-card-content {
+    overflow: hidden;
+  }
+}
