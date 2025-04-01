@@ -1,0 +1,53 @@
+@use '../../styles/management.scss';
+
+.tree-node {
+  padding-top: 10px;
+  padding-bottom: 10px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  flex: 1 0 auto;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+.tree-node-info {
+  display: flex;
+  align-items: center;
+}
+.tree-node:hover {
+  background-color: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+}
+.tree-node.selected {
+  background-color: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+}
+.tree-node.drop-above {
+  border-top: 10px solid var(--mat-sys-primary);
+  padding-top: 0;
+  background-color: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+}
+.tree-node.drop-center {
+  background-color: var(--mat-sys-primary);
+  color: var(--mat-sys-on-primary);
+}
+.tree-node.drop-below {
+  border-bottom: 10px solid var(--mat-sys-primary);
+  padding-bottom: 0;
+  background-color: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+}
+.tree-node.drop-above .mat-icon {
+  background-color: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+}
+.tree-node.drop-center .mat-icon {
+  background-color: var(--mat-sys-primary);
+  color: var(--mat-sys-on-primary);
+}
+.tree-node.drop-below .mat-icon {
+  background-color: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+}

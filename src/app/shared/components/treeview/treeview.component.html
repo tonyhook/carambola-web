@@ -1,0 +1,72 @@
+<mat-tree [dataSource]="dataSource" [childrenAccessor]="childrenAccessor" #tree>
+  <mat-nested-tree-node *matTreeNodeDef="let node; when: hasNoContent" [ngStyle]="{'padding-left': node.parent ? '40px' : '0'}">
+    <button mat-icon-button disabled><mat-icon>fiber_new</mat-icon></button>
+    <mat-form-field subscriptSizing="dynamic">
+      <mat-label>Name</mat-label>
+      <input placeholder="New item..." matInput #itemValue />
+    </mat-form-field>
+    <button mat-icon-button (click)="saveNode($event, node, itemValue.value)">
+      <mat-icon>done</mat-icon>
+    </button>
+    <button mat-icon-button (click)="cancelNode($event, node)">
+      <mat-icon>close</mat-icon>
+    </button>
+  </mat-nested-tree-node>
+
+  <mat-nested-tree-node *matTreeNodeDef="let node" [ngStyle]="{'padding-left': node.parent ? '40px' : '0'}">
+    <div class="tree-node"
+      [draggable]="!readOnly()"
+      [ngClass]="{
+        'drop-above': dragNodeExpandOverArea === 'above' && dragNodeExpandOverNode === node,
+        'drop-below': dragNodeExpandOverArea === 'below' && dragNodeExpandOverNode === node,
+        'drop-center': dragNodeExpandOverArea === 'center' && dragNodeExpandOverNode === node,
+        'selected': selectedNode?.id === node.id
+      }"
+      (dragstart)="handleDragStart($event, node)"
+      (dragend)="handleDragEnd()"
+      (dragover)="handleDragOver($event, node)"
+      (drop)="handleDrop($event, node)"
+      (click)="selectNode(node, true)"
+      (keyup.enter)="selectNode(node, true)"
+      tabindex="0">
+      <div class="tree-node-info">
+        @if (node.expandable) {
+          <button mat-icon-button matTreeNodeToggle>
+            <mat-icon>
+              @if (tree.isExpanded(node)) {
+                expand_more
+              } @else {
+                chevron_right
+              }
+            </mat-icon>
+          </button>
+        } @else {
+          <button mat-icon-button>
+            <mat-icon>
+              menu
+            </mat-icon>
+          </button>
+        }
+        {{ node.name }}
+      </div>
+      <div>
+        @if (!readOnly()) {
+          <button mat-icon-button (click)="addNode($event, node)"><mat-icon>add</mat-icon></button>
+          <button mat-icon-button (click)="removeNode($event, node)"><mat-icon>remove</mat-icon></button>
+        }
+      </div>
+    </div>
+
+    @if (tree.isExpanded(node)) {
+      <div style="display: flex; flex-direction: column">
+        <ng-container matTreeNodeOutlet>
+        </ng-container>
+      </div>
+    }
+  </mat-nested-tree-node>
+</mat-tree>
+@if (!readOnly()) {
+  <button mat-icon-button (click)="addNode($event, null)"><mat-icon>add</mat-icon></button>
+}
+
+<span #emptyNode></span>
