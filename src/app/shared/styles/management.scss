@@ -1,0 +1,90 @@
+:host {
+  height: 100%;
+}
+.container {
+  display: flex;
+  height: 100%;
+  min-height: 100%;
+}
+
+.form-dialog {
+  height: 80vh,
+}
+.card-in-container {
+  height: calc(100% - 2rem);
+  width: calc(100% - 2rem);
+  overflow: hidden;
+  margin: 1rem;
+  .mat-mdc-card-content {
+    overflow: hidden;
+  }
+}
+.tab-in-card {
+  height: 100%;
+  width: 100%;
+  overflow-y: auto;
+}
+.form-in-tab {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-items: center;
+  align-content: flex-start;
+  margin: 1rem;
+}
+.form-in-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-items: center;
+  align-content: flex-start;
+  margin: 0.25rem 1rem;
+}
+.full-width-input {
+  width: 100%;
+  margin: 0 0 1rem 0;
+}
+.full-width-input:last-child {
+  margin: 0 0 0 0;
+}
+.full-width-input.flex {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 1vw;
+}
+.full-width-input.wrapper {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+.half-width-input {
+  width: 49.5%;
+}
+.third-width-input {
+  width: 32.66%;
+}
+.form-button.new {
+  background-color: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+}
+.form-button.delete {
+  background-color: var(--mat-sys-error);
+  color: var(--mat-sys-on-error);
+}
+.form-button.cancel {
+  background-color: var(--mat-sys-surface-variant);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.cdk-table {
+  width: 100%;
+  border-width: 1px;
+}
+.cdk-header-cell, .cdk-cell, .cdk-footer-cell {
+  overflow-wrap: break-word;
+  word-break: break-all;
+}

@@ -1,0 +1,77 @@
+<ng-container>
+  @if (item() !== null) {
+    <mat-card class="card">
+      <mat-card-header>
+        <mat-card-title>Basic Information</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <mat-list role="list">
+          <mat-list-item>Type: {{ itemType() }}</mat-list-item>
+          <mat-list-item>ID: {{ item()?.id }}</mat-list-item>
+          <mat-list-item>Owner: {{ item()?.ownerId! | getUserName | async }}</mat-list-item>
+        </mat-list>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="card">
+      <mat-card-header>
+        <mat-card-title>Permission List</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <form [formGroup]="formGroup">
+          <mat-checkbox formControlName="inherited" (change)="toggleInherited()">
+            <span>Inherite permission from </span>
+            @if (hasProperty('parentId') && getProperty('parentId') === null) {
+              <span>class</span>
+            }
+            @if (hasProperty('parentId') && getProperty('parentId') !== null) {
+              <span>parent</span>
+            }
+            @if (hasProperty('containerId')) {
+              <span>container</span>
+            }
+            <span>.</span>
+          </mat-checkbox>
+        </form>
+
+        <mat-table [dataSource]="itemPermissionRoleIds">
+          <ng-container matColumnDef="roleId">
+            <mat-header-cell *matHeaderCellDef>Role</mat-header-cell>
+            <mat-cell *matCellDef="let role">{{ role | getRoleName | async }}</mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="permission">
+            <mat-header-cell *matHeaderCellDef>Permission</mat-header-cell>
+            <mat-cell *matCellDef="let role">
+              <carambola-operation
+                [permission]="itemPermissionMap.get(role)?.permission!"
+                [basePermission]="inheritedPermissionMap.get(role)?.permission!"
+                (permissionChange)="togglePermission($event, role)" />
+            </mat-cell>
+          </ng-container>
+
+          <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+          <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
+        </mat-table>
+        @if (itemPermissionRoleIds.length === 0) {
+          <div class="no-permission">No permission rule</div>
+        }
+
+        <h4>Add a new permission rule</h4>
+        <form [formGroup]="permissionFormGroup">
+          <div class="full-width-input flex">
+            <mat-form-field subscriptSizing="dynamic">
+              <mat-select formControlName="roleid">
+                @for (role of roles; track role.id) {
+                  <mat-option [value]="role.id">{{ role.name }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+            <carambola-operation [permission]="permissionFormGroup.value.permission" [basePermission]="''" (permissionChange)="preparePermission($event)" />
+            <button type="button" class="form-button" mat-stroked-button [disabled]="permissionFormGroup.value.permission.length === 0" (click)="addPermission()">Submit</button>
+          </div>
+        </form>
+      </mat-card-content>
+    </mat-card>
+  }
+</ng-container>
