@@ -1,0 +1,40 @@
+<div class="container">
+  <carambola-tree-view class="tree" [items]="menus()" [item]="menu()" [readOnly]="false"
+    (itemChange)="changeMenuItem($event)"
+    (itemSelect)="selectMenuItem($event)"
+    (itemCreate)="newMenuItem($event)"
+    (itemDelete)="deleteMenuItem($event)">
+  </carambola-tree-view>
+  <mat-divider [vertical]="true"></mat-divider>
+  <div class="setting">
+    @if (menu()) {
+      <mat-tab-group class="tab-in-card">
+        <mat-tab label="Properties">
+          <form class="form-in-tab" [formGroup]="formGroup">
+            <mat-form-field class="full-width-input" subscriptSizing="dynamic">
+              <mat-label>Name</mat-label>
+              <input placeholder="Name" matInput formControlName="name" />
+            </mat-form-field>
+            <mat-form-field class="full-width-input" subscriptSizing="dynamic">
+              <mat-label>Icon</mat-label>
+              <input placeholder="Icon" matInput formControlName="icon" />
+            </mat-form-field>
+            <mat-form-field class="full-width-input" subscriptSizing="dynamic">
+              <mat-label>Link</mat-label>
+              <input placeholder="Link" matInput formControlName="link" />
+            </mat-form-field>
+            <div class="full-width-input flex">
+              <mat-checkbox class="full-width-input" formControlName="disabled">Disabled</mat-checkbox>
+            </div>
+            <div class="full-width-input flex">
+              <button type="button" class="form-button" mat-stroked-button (click)="updateMenuItem()">Submit</button>
+            </div>
+          </form>
+        </mat-tab>
+        <mat-tab label="Permission">
+          <carambola-permission [item]="menu()" [itemType]="'menu'"></carambola-permission>
+        </mat-tab>
+      </mat-tab-group>
+    }
+  </div>
+</div>

@@ -9,6 +9,8 @@ import { LogoutComponent } from './components/layout/logout/logout.component';
 import { MainComponent } from './components/layout/main/main.component';
 import { PendingComponent } from './components/layout/pending/pending.component';
 
+import { MenuManagerComponent } from './components/management/backend/menu/menu.component';
+
 export const routes: Routes = [
   {
     path: 'admin',
@@ -18,6 +20,16 @@ export const routes: Routes = [
         path: '',
         component: MainComponent,
         canActivate: [ AuthGuard ],
+        children: [
+          {
+            path: 'backend/menu',
+            component: MenuManagerComponent,
+          },
+          {
+            path: 'backend/menu/:id',
+            component: MenuManagerComponent,
+          },
+        ],
       },
       {
         path: 'pending',
