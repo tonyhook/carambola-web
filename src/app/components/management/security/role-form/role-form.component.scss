@@ -1,0 +1,10 @@
+@use '../../../../shared/styles/management.scss';
+
+.mat-column-type {
+  flex: 0 0 30%;
+}
+
+.mat-column-permission {
+  flex: 1 1 auto;
+  min-width: 0;
+}

@@ -10,6 +10,9 @@ import { MainComponent } from './components/layout/main/main.component';
 import { PendingComponent } from './components/layout/pending/pending.component';
 
 import { MenuManagerComponent } from './components/management/backend/menu/menu.component';
+import { AuthorityManagerComponent } from './components/management/security/authority/authority.component';
+import { RoleManagerComponent } from './components/management/security/role/role.component';
+import { UserManagerComponent } from './components/management/security/user/user.component';
 
 export const routes: Routes = [
   {
@@ -28,6 +31,18 @@ export const routes: Routes = [
           {
             path: 'backend/menu/:id',
             component: MenuManagerComponent,
+          },
+          {
+            path: 'security/authority',
+            component: AuthorityManagerComponent,
+          },
+          {
+            path: 'security/role',
+            component: RoleManagerComponent,
+          },
+          {
+            path: 'security/user',
+            component: UserManagerComponent,
           },
         ],
       },
