@@ -14,7 +14,7 @@ export class UserAPI {
     private http: HttpClient
   ) { }
 
-  getRoleList(query?: Query<User>): Observable<User[]> {
+  getUserList(query?: Query<User>): Observable<User[]> {
     let params = new HttpParams();
     if (query) {
       params = params.append('query', JSON.stringify(query));

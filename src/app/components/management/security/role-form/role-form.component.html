@@ -1,0 +1,61 @@
+<ng-container>
+  <mat-card class="card-in-container">
+    <mat-card-content>
+      <mat-tab-group class="tab-in-card">
+        <mat-tab label="Properties">
+          <form class="form-in-tab" [formGroup]="formGroup">
+            <mat-form-field class="full-width-input" subscriptSizing="dynamic">
+              <mat-label>Name</mat-label>
+              <input placeholder="Name" matInput formControlName="name" />
+            </mat-form-field>
+            <div class="full-width-input flex">
+              @if (role() === null) {
+                <button type="button" class="form-button" mat-stroked-button (click)="addRole()">Create</button>
+                <button type="button" class="form-button" mat-stroked-button (click)="cancelRole()">Cancel</button>
+              }
+              @if (role() !== null) {
+                <button type="button" class="form-button" mat-stroked-button (click)="updateRole()">Modify</button>
+                <button type="button" class="form-button" mat-stroked-button (click)="cancelRole()">Cancel</button>
+                <button type="button" class="form-button delete" mat-stroked-button (click)="removeRole()">Delete</button>
+              }
+            </div>
+          </form>
+        </mat-tab>
+
+        @if (role() !== null) {
+          <mat-tab label="Authorities">
+            <mat-table [dataSource]="authorities()">
+              <ng-container matColumnDef="name">
+                <mat-header-cell *matHeaderCellDef>Authority</mat-header-cell>
+                <mat-cell *matCellDef="let element">
+                  <mat-checkbox [checked]="roleAuthoritySet().has(element)" (change)="toggleAuthority(element, $event)">{{ element.name }}</mat-checkbox>
+                </mat-cell>
+              </ng-container>
+
+              <mat-header-row *matHeaderRowDef="displayedAuthorityColumns"></mat-header-row>
+              <mat-row *matRowDef="let row; columns: displayedAuthorityColumns;"></mat-row>
+            </mat-table>
+          </mat-tab>
+
+          <mat-tab label="Permissions">
+            <mat-table [dataSource]="resourcesTypes()">
+              <ng-container matColumnDef="type">
+                <mat-header-cell *matHeaderCellDef>Resource Type</mat-header-cell>
+                <mat-cell *matCellDef="let element">{{ element }}</mat-cell>
+              </ng-container>
+              <ng-container matColumnDef="permission">
+                <mat-header-cell *matHeaderCellDef>Default Permission</mat-header-cell>
+                <mat-cell *matCellDef="let element">
+                  <carambola-operation [permission]="getPermission(element)" [basePermission]="''" (permissionChange)="togglePermission(element, $event)" />
+                </mat-cell>
+              </ng-container>
+
+              <mat-header-row *matHeaderRowDef="displayedResourceTypeColumns"></mat-header-row>
+              <mat-row *matRowDef="let row; columns: displayedResourceTypeColumns;"></mat-row>
+            </mat-table>
+          </mat-tab>
+        }
+      </mat-tab-group>
+    </mat-card-content>
+  </mat-card>
+</ng-container>
