@@ -1,0 +1,50 @@
+<ng-container>
+  <mat-card class="card-in-container">
+    <mat-card-content>
+      <mat-tab-group class="tab-in-card">
+        <mat-tab label="Properties">
+          <form class="form-in-tab" [formGroup]="formGroup">
+            <mat-form-field class="full-width-input" subscriptSizing="dynamic">
+              <mat-label>Username</mat-label>
+              <input placeholder="Username" matInput formControlName="username" />
+            </mat-form-field>
+            <mat-form-field class="full-width-input" subscriptSizing="dynamic">
+              <mat-label>Password</mat-label>
+              <input type="password" placeholder="Password" matInput formControlName="password" (focus)="touchPassword()" />
+            </mat-form-field>
+            <div class="full-width-input flex">
+              <mat-checkbox formControlName="enabled">Enabled</mat-checkbox>
+            </div>
+            <div class="full-width-input flex">
+              @if (user() === null) {
+                <button type="button" class="form-button" mat-stroked-button (click)="addUser()">Create</button>
+                <button type="button" class="form-button" mat-stroked-button (click)="cancelUser()">Cancel</button>
+              }
+              @if (user() !== null) {
+                <button type="button" class="form-button" mat-stroked-button (click)="updateUser()">Modify</button>
+                <button type="button" class="form-button" mat-stroked-button (click)="cancelUser()">Cancel</button>
+                <button type="button" class="form-button delete" mat-stroked-button (click)="removeUser()">Delete</button>
+              }
+            </div>
+          </form>
+        </mat-tab>
+
+        @if (user() !== null) {
+          <mat-tab label="Authorities">
+            <mat-table [dataSource]="roles()">
+              <ng-container matColumnDef="name">
+                <mat-header-cell *matHeaderCellDef>Role</mat-header-cell>
+                <mat-cell *matCellDef="let element">
+                  <mat-checkbox [checked]="userRoleSet().has(element)" (change)="toggleRole(element, $event)">{{ element.name }}</mat-checkbox>
+                </mat-cell>
+              </ng-container>
+
+              <mat-header-row *matHeaderRowDef="displayedRoleColumns"></mat-header-row>
+              <mat-row *matRowDef="let row; columns: displayedRoleColumns;"></mat-row>
+            </mat-table>
+          </mat-tab>
+        }
+      </mat-tab-group>
+    </mat-card-content>
+  </mat-card>
+</ng-container>

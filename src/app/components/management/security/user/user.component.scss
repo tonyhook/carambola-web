@@ -1,0 +1,12 @@
+@use '../../../../shared/styles/management.scss';
+
+.container {
+  flex-direction: column;
+  justify-content: flex-start;
+}
+.mat-column-actions {
+  justify-content: flex-end;
+  align-items: center;
+  flex: 0 0 80px;
+  min-width: 100px;
+}
