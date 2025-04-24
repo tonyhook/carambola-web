@@ -1,0 +1,68 @@
+@use '../../styles/management.scss';
+
+.container {
+  position: relative;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.port {
+  display: flex;
+  flex-direction: column;
+  margin: 16px;
+  width: 320px;
+  height: 241px;
+}
+.port.enabled {
+  background-color: light-dark(#c8e6c9, #2e7d32);
+  color: light-dark(#2e7d32, #c8e6c9);
+}
+.port.disabled {
+  background-color: light-dark(#f8bbd0, #52082f);
+  color: light-dark(#52082f, #f8bbd0);
+}
+.port-info {
+  flex-shrink: 0;
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.port-tag {
+  display: flex;
+  width: 288px;
+  flex-shrink: 0;
+  flex-grow: 0;
+  justify-content: space-between;
+}
+
+.port-property-row {
+  overflow-wrap: break-word;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+.port-property-row.sub {
+  font-size: 80%;
+  color: var(--mat-sys-outline);
+}
+.port-property-row.main {
+  cursor: pointer;
+  text-decoration: underline;
+}
+.port-action-wrapper {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+.port-property-text {
+  max-width: 264px;
+  overflow-wrap: break-word;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}

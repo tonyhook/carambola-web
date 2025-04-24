@@ -5,9 +5,9 @@ import { Pipe, PipeTransform } from '@angular/core';
 })
 export class IsNewPipe implements PipeTransform {
 
-  transform(timeStr: string | null) {
+  transform(timeStr: string | null | undefined) {
     const now = new Date();
-    if (timeStr === null) {
+    if (timeStr === null || timeStr === undefined || timeStr === '') {
       return '';
     } else {
       const time = new Date(timeStr);
@@ -18,6 +18,8 @@ export class IsNewPipe implements PipeTransform {
         return '';
       }
     }
+
+    return '';
   }
 
 }

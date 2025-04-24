@@ -1,0 +1,9 @@
+@use '../../styles/management.scss';
+
+::ng-deep.mat-select-search-inner-row {
+  background-color: var(--mat-sys-surface-container);
+}
+.additional-selection {
+  font: var(--mat-sys-body-small);
+  opacity: 0.75;
+}
