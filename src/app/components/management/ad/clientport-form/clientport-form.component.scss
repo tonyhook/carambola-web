@@ -1,0 +1,17 @@
+@use '../../../../shared/styles/management.scss';
+
+.rule-action {
+  margin-left: 1rem;
+}
+
+::ng-deep.q-rule {
+  background-color: var(--mat-sys-surface-variant) !important;
+  color: var(--mat-sys-on-surface-variant) !important;
+}
+
+.connection-list {
+  display: grid;
+  justify-content: space-around;
+  grid-template-columns: repeat(auto-fill, 352px);
+  margin: 0 16px;
+}

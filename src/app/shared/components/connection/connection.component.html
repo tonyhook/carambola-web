@@ -1,0 +1,81 @@
+<div class="container">
+  @if (mode() === 'empty') {
+    <mat-card class="port">
+      <mat-card-content class="port-info">
+        没有连接
+      </mat-card-content>
+    </mat-card>
+  }
+
+  @if (mode() === 'add') {
+    <mat-card class="port">
+      <mat-card-content class="port-info">
+        <button mat-fab extended (click)="create()">
+          <mat-icon>add_link</mat-icon>创建一个连接
+        </button>
+      </mat-card-content>
+    </mat-card>
+  }
+
+  @if (mode() === 'client' || mode() === 'vendor') {
+    <mat-card class="port" [ngClass]="{'enabled': connection && connection.enabled, 'disabled': connection && !connection.enabled}">
+      <mat-card-content>
+        <div class="port-property-row" [ngClass]="{'main': mode() === 'vendor'}" (click)="pair('client')" (keyup.enter)="pair('client')" tabindex="0">
+          {{ clientPortFull?.name }}
+        </div>
+        <div class="port-property-row sub">
+          {{ clientPortFull?.tagId!.split('|')[0] }}
+        </div>
+        <div class="port-property-row sub">
+          {{ clientPortFull?.client?.name }} | {{ clientPortFull?.clientMedia?.name }}
+        </div>
+        <mat-divider></mat-divider>
+        <div class="port-property-row" [ngClass]="{'main': mode() === 'client'}" (click)="pair('vendor')" (keyup.enter)="pair('vendor')" tabindex="1">
+          {{ vendorPortFull?.name }}
+        </div>
+        <div class="port-property-row sub">
+          {{ vendorPortFull?.tagId }}
+        </div>
+        <div class="port-property-row sub">
+          {{ vendorPortFull?.vendor?.name }} | {{ vendorPortFull?.vendorMedia?.name }}
+        </div>
+        @if (connection) {
+          <mat-divider></mat-divider>
+          <div class="port-property-row">
+            有效期：{{ connection.validFrom | date: 'yy-MM-dd' }} - {{ connection.validTo | date: 'yy-MM-dd' }}
+            @if ((connection.validFrom | date: 'yyyy-MM-dd')! > now) {
+              （未开始）
+            }
+            @if ((connection.validTo | date: 'yyyy-MM-dd')! < now) {
+              （已过期）
+            }
+          </div>
+          <div class="port-property-row">
+            下游成本比例：{{ connection.downstreamRatio | percent: '0.2-2' }}
+          </div>
+          <div class="port-property-row">
+            底价：{{ (connection.defaultPrice / 100) | number: '0.2-2' }}元
+          </div>
+        }
+        <div class="port-action-wrapper">
+          @if (!readonly() && connection && !connection.enabled) {
+            <button type="button" class="port-action" mat-icon-button (click)="remove()"><mat-icon>delete</mat-icon></button>
+          }
+          @if (!readonly() && connection && connection.enabled) {
+            <button type="button" class="port-action" mat-icon-button (click)="pause()"><mat-icon>pause</mat-icon></button>
+          }
+          @if (!readonly() && connection && !connection.enabled) {
+            <button type="button" class="port-action" mat-icon-button (click)="resume()"><mat-icon>play_arrow</mat-icon></button>
+          }
+
+          @if (!readonly() && connection) {
+            <button type="button" class="port-action" mat-icon-button (click)="popup()"><mat-icon>settings</mat-icon></button>
+          }
+          @if (readonly() && connection) {
+            <button type="button" class="port-action" mat-icon-button (click)="popup()"><mat-icon>visibility</mat-icon></button>
+          }
+        </div>
+      </mat-card-content>
+    </mat-card>
+  }
+</div>

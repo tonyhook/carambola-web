@@ -26,6 +26,7 @@ export class HttpErrorInterceptor implements HttpInterceptor {
           } else {
             errorMessage = error.message;
           }
+          errorMessage = '后台服务错误';
 
           if (error.status === 401) {
             if (request.url.indexOf('/api/managed/') >= 0) {

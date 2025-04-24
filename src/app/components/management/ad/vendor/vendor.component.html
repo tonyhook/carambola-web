@@ -1,0 +1,50 @@
+<div class="container">
+  <form class="form-in-tab" [formGroup]="formGroupQuery">
+    <div class="full-width-input flex">
+      <mat-form-field subscriptSizing="dynamic">
+        <mat-label>流量主名称</mat-label>
+        <input placeholder="搜索" matInput formControlName="search" />
+        @if (formGroupQuery.value.search.length > 0) {
+          <button type="button" matSuffix mat-icon-button (click)="clear($event, 'search', '')">
+            <mat-icon>clear</mat-icon>
+          </button>
+        }
+      </mat-form-field>
+      <button type="button" class="form-button" mat-stroked-button (click)="query()">搜索</button>
+      @if (canCreateVendor()) {
+        <button type="button" class="form-button new" mat-stroked-button (click)="newVendor()">新建</button>
+      }
+    </div>
+  </form>
+
+  <mat-table matSort [dataSource]="dataSource">
+    <ng-container matColumnDef="name">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>
+        流量主
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <carambola-ad-entity type="vendor" mode="brief" [vendor]="row" />
+      </mat-cell>
+    </ng-container>
+    <ng-container matColumnDef="actions">
+      <mat-header-cell *matHeaderCellDef></mat-header-cell>
+      <mat-cell *matCellDef="let row;" class="actions">
+        @if (hoverRow === row) {
+          @if (canCreateMedia(row)) {
+            <button mat-icon-button matTooltip="去创建下游媒体" matTooltipShowDelay="500" (click)="createMedia(row, $event)">
+              <mat-icon>launch</mat-icon>
+            </button>
+          }
+          <button mat-icon-button (click)="modifyVendor(row)">
+            <mat-icon>settings</mat-icon>
+          </button>
+        }
+      </mat-cell>
+    </ng-container>
+
+    <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+    <mat-row *matRowDef="let row; columns: displayedColumns" (mouseenter)="mouseenter(row)" (mouseleave)="mouseleave()"></mat-row>
+  </mat-table>
+
+  <mat-paginator [hidePageSize]="'false'" [pageSize]="50" [pageSizeOptions]="[10, 30, 50]" [showFirstLastButtons]="'true'"></mat-paginator>
+</div>

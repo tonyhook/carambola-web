@@ -1,0 +1,96 @@
+<mat-card>
+  <mat-card-content>
+    <form class="form-in-tab" [formGroup]="formGroupPort">
+      <div class="full-width-input wrapper">
+        <mat-form-field class="third-width-input" subscriptSizing="dynamic">
+          <mat-label>广告主</mat-label>
+          <carambola-filtered-select-client formControlName="client" required [options]="clients" />
+        </mat-form-field>
+        <mat-form-field class="third-width-input" subscriptSizing="dynamic">
+          <mat-label>上游媒体</mat-label>
+          <carambola-filtered-select-clientmedia formControlName="clientMedia" required [options]="validClientMedias" />
+        </mat-form-field>
+        <mat-form-field class="third-width-input" subscriptSizing="dynamic">
+          <mat-label>上游广告位</mat-label>
+          <carambola-filtered-select-clientport formControlName="clientPort" required [options]="validClientPorts" />
+        </mat-form-field>
+      </div>
+      <div class="full-width-input wrapper">
+        <mat-form-field class="third-width-input" subscriptSizing="dynamic">
+          <mat-label>流量主</mat-label>
+          <carambola-filtered-select-vendor formControlName="vendor" required [options]="vendors" />
+        </mat-form-field>
+        <mat-form-field class="third-width-input" subscriptSizing="dynamic">
+          <mat-label>下游媒体</mat-label>
+          <carambola-filtered-select-vendormedia formControlName="vendorMedia" required [options]="validVendorMedias" />
+        </mat-form-field>
+        <mat-form-field class="third-width-input" subscriptSizing="dynamic">
+          <mat-label>下游广告位</mat-label>
+          <carambola-filtered-select-vendorport formControlName="vendorPort" required [options]="validVendorPorts" />
+        </mat-form-field>
+      </div>
+    </form>
+
+    <form class="form-in-tab" [formGroup]="formGroupConnection">
+      @if (formGroupPort.getRawValue().clientPort?.mode !== PortType.PORT_TYPE_DIRECT) {
+        <mat-checkbox class="full-width-input" formControlName="test">连接上游测试环境</mat-checkbox>
+      }
+      <mat-form-field class="full-width-input" subscriptSizing="dynamic">
+        <mat-label>连接有效时间</mat-label>
+        <mat-date-range-input [rangePicker]="picker">
+          <input matStartDate formControlName="validFrom" placeholder="生效日期">
+          <input matEndDate formControlName="validTo" placeholder="失效日期">
+        </mat-date-range-input>
+        <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+        <mat-date-range-picker #picker></mat-date-range-picker>
+      </mat-form-field>
+      @if (formGroupPort.getRawValue().clientPort?.mode !== PortType.PORT_TYPE_DIRECT) {
+        <div class="full-width-input wrapper">
+          <mat-form-field class="half-width-input" subscriptSizing="dynamic">
+            @if (formGroupPort.getRawValue().clientPort?.mode === PortType.PORT_TYPE_SHARE) {
+              <mat-label>默认上游结算价格（单位：分）</mat-label>
+            }
+            @if (formGroupPort.getRawValue().clientPort?.mode === PortType.PORT_TYPE_BIDDING && formGroupPort.getRawValue().vendorPort?.mode === PortType.PORT_TYPE_SHARE) {
+              <mat-label>上游RTB底价（单位：分）</mat-label>
+            }
+            @if (formGroupPort.getRawValue().clientPort?.mode === PortType.PORT_TYPE_BIDDING && formGroupPort.getRawValue().vendorPort?.mode === PortType.PORT_TYPE_BIDDING) {
+              <mat-label>上游RTB默认底价（单位：分）</mat-label>
+            }
+            <input type="number" min="1" placeholder="默认价格（单位：分）" matInput formControlName="defaultPrice" />
+          </mat-form-field>
+          <mat-form-field class="half-width-input" subscriptSizing="dynamic">
+            <mat-label>连接优先级</mat-label>
+            <input type="number" placeholder="连接优先级" matInput formControlName="priority" />
+          </mat-form-field>
+        </div>
+      }
+      <div class="full-width-input wrapper">
+        <mat-form-field class="third-width-input" subscriptSizing="dynamic">
+          <mat-label>上游成本比例（上游平台）</mat-label>
+          <input type="number" min="0" max="100" class="input-percentage" placeholder="上游成本比例" matInput formControlName="upstreamRatio" />
+          <span matTextSuffix>%</span>
+        </mat-form-field>
+        <mat-form-field class="third-width-input" subscriptSizing="dynamic">
+          <mat-label>上游返点比例（上游采购）</mat-label>
+          <input type="number" min="0" max="100" class="input-percentage" placeholder="上游返点比例" matInput formControlName="rebateRatio" />
+          <span matTextSuffix>%</span>
+        </mat-form-field>
+        <mat-form-field class="third-width-input" subscriptSizing="dynamic">
+          <mat-label>平台利润比例</mat-label>
+          <input type="number" min="0" max="100" class="input-percentage" placeholder="分成比例" matInput formControlName="platformRatio" />
+          <span matTextSuffix>%</span>
+        </mat-form-field>
+      </div>
+      <div class="full-width-input flex">
+        @if (!this.readonly) {
+          <button type="button" class="form-button" mat-stroked-button (click)="confirm()">提交</button>
+          <button type="button" class="form-button cencel" mat-stroked-button (click)="cancel()">取消</button>
+        }
+        @if (this.readonly) {
+          <button type="button" class="form-button" mat-stroked-button (click)="cancel()">关闭</button>
+        }
+      </div>
+    </form>
+
+  </mat-card-content>
+</mat-card>

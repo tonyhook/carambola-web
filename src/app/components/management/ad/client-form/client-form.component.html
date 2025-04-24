@@ -1,0 +1,81 @@
+<ng-container>
+  <mat-card class="card-in-container">
+    <mat-card-content>
+      <mat-tab-group class="tab-in-card">
+        <mat-tab label="广告主属性">
+          <form class="form-in-tab" [formGroup]="formGroup">
+            <mat-form-field class="full-width-input" subscriptSizing="dynamic">
+              <mat-label>广告主</mat-label>
+              <input placeholder="广告主" matInput formControlName="name" />
+            </mat-form-field>
+            <mat-form-field class="full-width-input" subscriptSizing="dynamic">
+              <mat-label>上游观察员（客户接口人）</mat-label>
+               @if (!readonly) {
+                <mat-chip-grid #chipGridUpstream formControlName="upstream">
+                  @for (user of formGroup.value.upstream; track user.username) {
+                    <mat-chip-row [value]="user" (removed)="remove(user, ctrlUpstream, formGroup.value.upstream)">
+                      {{ user.username }}
+                      <button matChipRemove>
+                        <mat-icon>cancel</mat-icon>
+                      </button>
+                    </mat-chip-row>
+                  }
+                </mat-chip-grid>
+                <input placeholder="增加用户" #inputUpstream matInput [formControl]="ctrlUpstream"
+                  [matChipInputFor]="chipGridUpstream" [matAutocomplete]="autoUpstream"
+                  [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+                  (matChipInputTokenEnd)="add($event, ctrlUpstream, formGroup.value.upstream)" />
+                <mat-autocomplete #autoUpstream="matAutocomplete" (optionSelected)="select($event, inputUpstream, ctrlUpstream, formGroup.value.upstream)">
+                  @for (user of filteredUpstream | async; track user.username) {
+                    <mat-option [value]="user.username">
+                      {{ user.username }}
+                    </mat-option>
+                  }
+                </mat-autocomplete>
+              } @else {
+                <mat-chip-grid #chipGridUpstream formControlName="upstream" [disabled]="true">
+                  @for (user of formGroup.value.upstream; track user.username) {
+                    <mat-chip-row [value]="user">
+                      {{ user.username }}
+                    </mat-chip-row>
+                  }
+                </mat-chip-grid>
+                <input #inputUpstream matInput [formControl]="ctrlUpstream" [readonly]="true" [matChipInputFor]="chipGridUpstream" />
+              }
+            </mat-form-field>
+            @if (mode() === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
+              <mat-form-field class="full-width-input" subscriptSizing="dynamic">
+                <mat-label>投放引擎代码</mat-label>
+                <input placeholder="广告主代码" matInput formControlName="code" />
+              </mat-form-field>
+              <mat-form-field class="full-width-input" subscriptSizing="dynamic">
+                <mat-label>协议字段（用逗号分隔）</mat-label>
+                <input placeholder="协议字段" matInput formControlName="protocolKey" />
+              </mat-form-field>
+            }
+            <mat-form-field class="full-width-input" subscriptSizing="dynamic">
+              <mat-label>备注</mat-label>
+              <textarea matInput placeholder="备注" formControlName="remark"></textarea>
+            </mat-form-field>
+
+            <div class="full-width-input flex">
+              @if (client() === null) {
+                <button type="button" class="form-button" mat-stroked-button (click)="addClient()">创建</button>
+                <button type="button" class="form-button cancel" mat-stroked-button (click)="cancelClient()">取消</button>
+              }
+              @if (client() !== null) {
+                @if (!readonly) {
+                  <button type="button" class="form-button" mat-stroked-button (click)="updateClient()">修改</button>
+                }
+                <button type="button" class="form-button cancel" mat-stroked-button (click)="cancelClient()">取消</button>
+                @if (!readonly) {
+                  <button type="button" class="form-button delete" mat-stroked-button (click)="removeClient()">删除</button>
+                }
+              }
+            </div>
+          </form>
+        </mat-tab>
+      </mat-tab-group>
+    </mat-card-content>
+  </mat-card>
+</ng-container>

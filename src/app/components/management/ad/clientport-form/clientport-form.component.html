@@ -1,0 +1,229 @@
+<ng-container>
+  <mat-card class="card-in-container">
+    <mat-card-content>
+      <mat-tab-group class="tab-in-card" [selectedIndex]="selectedIndex">
+        <mat-tab label="上游广告位属性">
+          <ng-template mat-tab-label>
+            <mat-icon>description</mat-icon>上游广告位属性
+          </ng-template>
+          <form class="form-in-tab" [formGroup]="formGroup">
+            <mat-form-field class="full-width-input" subscriptSizing="dynamic">
+              <mat-label>广告主</mat-label>
+              <carambola-filtered-select-client formControlName="client" required [multiple]="false" [options]="managedClients()" />
+            </mat-form-field>
+            <mat-form-field class="full-width-input" subscriptSizing="dynamic">
+              <mat-label>上游媒体</mat-label>
+              <carambola-filtered-select-clientmedia formControlName="clientMedia" required [multiple]="false" [options]="managedClientMedias()" />
+            </mat-form-field>
+            <mat-form-field class="full-width-input" subscriptSizing="dynamic">
+              <mat-label>广告位名称</mat-label>
+              <input placeholder="广告位名称" matInput formControlName="name" />
+            </mat-form-field>
+            <div class="full-width-input flex">
+              <mat-button-toggle-group formControlName="format">
+                <mat-button-toggle [value]="'banner'">横幅</mat-button-toggle>
+                <mat-button-toggle [value]="'interstitial'">插屏</mat-button-toggle>
+                <mat-button-toggle [value]="'splash'">开屏</mat-button-toggle>
+                <mat-button-toggle [value]="'feeds'">信息流</mat-button-toggle>
+                <mat-button-toggle [value]="'video'">视频</mat-button-toggle>
+              </mat-button-toggle-group>
+            </div>
+            @if (formClientId() > 0) {
+              <div class="full-width-input wrapper">
+                @for (key of formProtocolKey; track key) {
+                  <mat-form-field class="half-width-input" subscriptSizing="dynamic">
+                    <mat-label>{{ "协议关键字 - " + key }}</mat-label>
+                    <input [placeholder]="key" matInput [formControlName]="key" />
+                  </mat-form-field>
+                }
+              </div>
+            }
+            <div class="full-width-input flex">
+              <mat-button-toggle-group formControlName="mode">
+                @if (mode() === PartnerType.PARTNER_TYPE_DIRECT) {
+                  <mat-button-toggle [value]="PortType.PORT_TYPE_DIRECT">直通模式</mat-button-toggle>
+                }
+                @if (mode() === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
+                  <mat-button-toggle [value]="PortType.PORT_TYPE_SHARE">分成模式</mat-button-toggle>
+                  <mat-button-toggle [value]="PortType.PORT_TYPE_BIDDING">竞价模式</mat-button-toggle>
+                }
+              </mat-button-toggle-group>
+            </div>
+            @if (mode() === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
+              <div class="full-width-input wrapper">
+                <mat-form-field class="half-width-input" subscriptSizing="dynamic">
+                  <mat-label>Encryption Key</mat-label>
+                  <input placeholder="Encryption Key" matInput formControlName="ekey" />
+                </mat-form-field>
+                <mat-form-field class="half-width-input" subscriptSizing="dynamic">
+                  <mat-label>Integrity Key</mat-label>
+                  <input placeholder="Integrity Ke" matInput formControlName="ikey" />
+                </mat-form-field>
+              </div>
+              <div class="full-width-input flex">
+                <mat-checkbox class="full-width-input" formControlName="filter">启用字段过滤</mat-checkbox>
+              </div>
+              @if (formGroup.value.filter) {
+                <div class="full-width-input wrapper">
+                  <query-builder [(ngModel)]="query" [ngModelOptions]="{standalone: true}" [config]="config" [emptyMessage]="'规则组至少要有一条规则，请增加一条规则，或彻底删除这个规则组'">
+                    <ng-container *queryButtonGroup="let ruleset; let addRule=addRule; let addRuleSet=addRuleSet; let removeRuleSet=removeRuleSet">
+                      <button class="form-button rule-action" mat-stroked-button (click)="addRule()">增加一条规则</button>
+                      @if (addRuleSet) {
+                        <button class="form-button rule-action" mat-stroked-button (click)="addRuleSet()">增加一组规则</button>
+                      }
+                      @if (removeRuleSet) {
+                        <button class="form-button rule-action" mat-stroked-button (click)="removeRuleSet()">删除一组规则</button>
+                      }
+                    </ng-container>
+                    <ng-container *queryArrowIcon>
+                      <mat-icon ngClass="mat-arrow-icon">chevron_right</mat-icon>
+                    </ng-container>
+                    <ng-container *queryRemoveButton="let rule; let removeRule=removeRule">
+                      <button type="button" mat-icon-button (click)="removeRule(rule)">
+                        <mat-icon>remove</mat-icon>
+                      </button>
+                    </ng-container>
+                    <ng-container *querySwitchGroup="let ruleset; let onChange=onChange">
+                      @if (ruleset) {
+                        <mat-radio-group [(ngModel)]="ruleset.condition" [ngModelOptions]="{standalone: true}" (ngModelChange)="onChange($event)">
+                          <mat-radio-button [style.padding.px]="10" value="and">以下条件均需要满足</mat-radio-button>
+                          <mat-radio-button [style.padding.px]="10" value="or">以下条件至少满足其中一项</mat-radio-button>
+                        </mat-radio-group>
+                      }
+                    </ng-container>
+                    <ng-container *queryEntity="let rule; let entities=entities; let onChange=onChange">
+                      <mat-form-field subscriptSizing="dynamic">
+                        <mat-select [(ngModel)]="rule.entity" [ngModelOptions]="{standalone: true}" (ngModelChange)="onChange($event, rule)">
+                          @for (entity of entities; track entity.value) {
+                            <mat-option [value]="entity.value">
+                              {{ entity.name }}
+                            </mat-option>
+                          }
+                        </mat-select>
+                      </mat-form-field>
+                    </ng-container>
+                    <ng-container *queryField="let rule; let fields=fields; let onChange=onChange; let getFields = getFields">
+                      <mat-form-field [style.width.px]="300" subscriptSizing="dynamic">
+                        <mat-select [(ngModel)]="rule.field" [ngModelOptions]="{standalone: true}" (ngModelChange)="onChange($event, rule)">
+                          @for (field of getFields(rule.entity); track field.value) {
+                            <mat-option [value]="field.value">
+                              {{ field.name }}
+                            </mat-option>
+                          }
+                        </mat-select>
+                      </mat-form-field>
+                    </ng-container>
+                    <ng-container *queryOperator="let rule; let operators=operators; let onChange=onChange">
+                      @if (operators.length > 1) {
+                        <mat-form-field [style.width.px]="180" subscriptSizing="dynamic">
+                          <mat-select [(ngModel)]="rule.operator" [ngModelOptions]="{standalone: true}" (ngModelChange)="onChange(rule)">
+                            @for (value of operators; track value) {
+                              <mat-option [value]="value">
+                                {{ getOperator(value) }}
+                              </mat-option>
+                            }
+                          </mat-select>
+                        </mat-form-field>
+                      }
+                    </ng-container>
+                    <ng-container *queryInput="let rule; let field=field; type: 'boolean'; let onChange=onChange">
+                      <mat-form-field [style.width.px]="180" subscriptSizing="dynamic">
+                        <mat-select [(ngModel)]="rule.value" [ngModelOptions]="{standalone: true}" (ngModelChange)="onChange()">
+                          <mat-option [value]="true">true</mat-option>
+                          <mat-option [value]="false">false</mat-option>
+                        </mat-select>
+                      </mat-form-field>
+                    </ng-container>
+                    <ng-container *queryInput="let rule; let field=field; let options=options; type: 'category'; let onChange=onChange">
+                      <mat-form-field [style.width.px]="400" subscriptSizing="dynamic">
+                        <mat-select [(ngModel)]="rule.value" [ngModelOptions]="{standalone: true}" (ngModelChange)="onChange()">
+                          @for (opt of options; track opt.value) {
+                            <mat-option [value]="opt.value">
+                              {{ opt.name }}
+                            </mat-option>
+                          }
+                        </mat-select>
+                      </mat-form-field>
+                    </ng-container>
+                    <ng-container *queryInput="let rule; type: 'date'; let onChange=onChange">
+                      <mat-form-field [style.width.px]="400" subscriptSizing="dynamic">
+                        <input matInput [matDatepicker]="picker" [(ngModel)]="rule.value" [ngModelOptions]="{standalone: true}" (ngModelChange)="onChange()">
+                        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                        <mat-datepicker #picker></mat-datepicker>
+                      </mat-form-field>
+                    </ng-container>
+                    <ng-container *queryInput="let rule; let options=options; type: 'multiselect'; let onChange=onChange">
+                      <mat-form-field [style.width.px]="400" subscriptSizing="dynamic">
+                        <mat-select [(ngModel)]="rule.value" [ngModelOptions]="{standalone: true}" multiple (ngModelChange)="onChange()">
+                          @for (opt of options; track opt.value) {
+                            <mat-option [value]="opt.value">
+                              {{ opt.name }}
+                            </mat-option>
+                          }
+                        </mat-select>
+                      </mat-form-field>
+                    </ng-container>
+                    <ng-container *queryInput="let rule; let field=field; type: 'number'; let onChange=onChange">
+                      <mat-form-field [style.width.px]="400" subscriptSizing="dynamic">
+                        <input matInput [(ngModel)]="rule.value" [ngModelOptions]="{standalone: true}" type="number" (ngModelChange)="onChange()">
+                      </mat-form-field>
+                    </ng-container>
+                    <ng-container *queryInput="let rule; let field=field; type: 'string'; let onChange=onChange">
+                      <mat-form-field [style.width.px]="400" subscriptSizing="dynamic">
+                        <input matInput [(ngModel)]="rule.value" [ngModelOptions]="{standalone: true}" (ngModelChange)="onChange()">
+                      </mat-form-field>
+                    </ng-container>
+                    <ng-container *queryInput="let rule; let field=field; type: 'textarea'; let onChange=onChange">
+                      <mat-form-field [style.width.px]="400" subscriptSizing="dynamic">
+                        <textarea matInput [(ngModel)]="rule.value" [ngModelOptions]="{standalone: true}" (ngModelChange)="onChange()">
+                        </textarea>
+                      </mat-form-field>
+                    </ng-container>
+                  </query-builder>
+                </div>
+              }
+            }
+            <mat-form-field class="full-width-input" subscriptSizing="dynamic">
+              <mat-label>备注</mat-label>
+              <textarea matInput placeholder="备注" formControlName="remark"></textarea>
+            </mat-form-field>
+
+            <div class="full-width-input flex">
+              @if (clientPort() === null) {
+                <button type="button" class="form-button" mat-stroked-button (click)="addClientPort()">创建</button>
+                <button type="button" class="form-button cancel" mat-stroked-button (click)="cancelClientPort()">取消</button>
+              }
+              @if (clientPort() !== null) {
+                @if (!readonly) {
+                  <button type="button" class="form-button" mat-stroked-button (click)="updateClientPort()">修改</button>
+                }
+                <button type="button" class="form-button cancel" mat-stroked-button (click)="cancelClientPort()">取消</button>
+                @if (!readonly) {
+                  <button type="button" class="form-button delete" mat-stroked-button (click)="removeClientPort()">删除</button>
+                }
+              }
+            </div>
+          </form>
+        </mat-tab>
+        @if (isConnectionObserver && clientPort() !== null) {
+          <mat-tab label="流量对接">
+            <ng-template mat-tab-label>
+              <mat-icon>cable</mat-icon>流量对接
+            </ng-template>
+            <div class="connection-list">
+              @for (connection of connections; track connection.id) {
+                <carambola-connection [clientPort]="connection.clientPort" [vendorPort]="connection.vendorPort" [mode]="'client'" [readonly]="!isConnectionManager" (connectionChanged)="connectionChanged()"></carambola-connection>
+              }
+              @if (isConnectionManager) {
+                <carambola-connection [clientPort]="clientPortFull" [mode]="'add'" (connectionChanged)="connectionChanged()"></carambola-connection>
+              }
+              @if (!isConnectionManager && connections.length === 0) {
+                <carambola-connection [mode]="'empty'"></carambola-connection>
+              }
+            </div>
+          </mat-tab>
+        }
+      </mat-tab-group>
+    </mat-card-content>
+  </mat-card>
+</ng-container>

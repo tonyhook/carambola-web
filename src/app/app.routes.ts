@@ -16,6 +16,14 @@ import { RoleManagerComponent } from './components/management/security/role/role
 import { UserManagerComponent } from './components/management/security/user/user.component';
 import { LogManagerComponent } from './components/management/audit/log/log.component';
 
+import { TenantManagerComponent } from './components/management/ad/tenant/tenant.component';
+import { ClientManagerComponent } from './components/management/ad/client/client.component';
+import { ClientMediaManagerComponent } from './components/management/ad/clientmedia/clientmedia.component';
+import { ClientPortManagerComponent } from './components/management/ad/clientport/clientport.component';
+import { VendorManagerComponent } from './components/management/ad/vendor/vendor.component';
+import { VendorMediaManagerComponent } from './components/management/ad/vendormedia/vendormedia.component';
+import { VendorPortManagerComponent } from './components/management/ad/vendorport/vendorport.component';
+
 export const routes: Routes = [
   {
     path: 'admin',
@@ -53,6 +61,34 @@ export const routes: Routes = [
           {
             path: 'audit/log',
             component: LogManagerComponent,
+          },
+          {
+            path: 'ad/tenant',
+            component: TenantManagerComponent,
+          },
+          {
+            path: 'ad/client',
+            component: ClientManagerComponent,
+          },
+          {
+            path: 'ad/clientmedia',
+            component: ClientMediaManagerComponent,
+          },
+          {
+            path: 'ad/clientport',
+            component: ClientPortManagerComponent,
+          },
+          {
+            path: 'ad/vendor',
+            component: VendorManagerComponent,
+          },
+          {
+            path: 'ad/vendormedia',
+            component: VendorMediaManagerComponent,
+          },
+          {
+            path: 'ad/vendorport',
+            component: VendorPortManagerComponent,
           },
         ],
       },

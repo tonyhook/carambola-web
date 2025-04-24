@@ -20,6 +20,20 @@
         登录
       </button>
     } @else {
+      @if (tenantService.tenant()) {
+        <button mat-button [matMenuTriggerFor]="menu">
+          <mat-icon>groups</mat-icon>
+          {{ tenantService.tenant()!.name }}
+        </button>
+        <mat-menu #menu="matMenu">
+          @for (tenant of tenantService.tenants(); track tenant.name) {
+            <button mat-menu-item (click)="switchTenant(tenant)">
+              <mat-icon>groups</mat-icon>
+              {{ tenant.name }}
+            </button>
+          }
+        </mat-menu>
+      }
       <button mat-button routerLink="/admin/me">
         {{ authService.credential()!.username }}
       </button>
@@ -47,6 +61,20 @@
       登录
     </button>
   } @else {
+    @if (tenantService.tenant()) {
+      <button mat-menu-item [matMenuTriggerFor]="menu">
+        <mat-icon>groups</mat-icon>
+        {{ tenantService.tenant()!.name }}
+      </button>
+      <mat-menu #menu="matMenu">
+        @for (tenant of tenantService.tenants(); track tenant.name) {
+          <button mat-menu-item (click)="switchTenant(tenant)">
+            <mat-icon>groups</mat-icon>
+            {{ tenant.name }}
+          </button>
+        }
+      </mat-menu>
+    }
     <button mat-menu-item routerLink="/admin/me">
       <mat-icon>id_card</mat-icon>
       {{ authService.credential()!.username }}
