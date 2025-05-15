@@ -19,3 +19,5 @@ export * from './vendormedia-form/vendormedia-form.component';
 export * from './vendorport/vendorport.component';
 export * from './vendorport-dialog/vendorport-dialog.component';
 export * from './vendorport-form/vendorport-form.component';
+export * from './performance/performance.component';
+export * from './bundle-dialog/bundle-dialog.component';
