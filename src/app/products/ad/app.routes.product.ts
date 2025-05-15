@@ -7,6 +7,7 @@ import { ClientPortManagerComponent } from '@app/products/ad/components/clientpo
 import { VendorManagerComponent } from '@app/products/ad/components/vendor/vendor.component';
 import { VendorMediaManagerComponent } from '@app/products/ad/components/vendormedia/vendormedia.component';
 import { VendorPortManagerComponent } from '@app/products/ad/components/vendorport/vendorport.component';
+import { PerformanceComponent } from '@app/products/ad/components/performance/performance.component';
 
 export const adManagementRoutes: Routes = [
   {
@@ -36,6 +37,10 @@ export const adManagementRoutes: Routes = [
   {
     path: 'ad/vendorport',
     component: VendorPortManagerComponent,
+  },
+  {
+    path: 'ad/performance',
+    component: PerformanceComponent,
   },
 ];
 
