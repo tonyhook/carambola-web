@@ -1,0 +1,127 @@
+<mat-card class="card">
+  <mat-card-header>
+    <mat-card-title>
+      包拆解分析
+    </mat-card-title>
+  </mat-card-header>
+  <mat-card-content class="card-body">
+    <div class="full-width-input flex">
+      <mat-form-field subscriptSizing="dynamic">
+        <input matInput (keyup)="applyFilter($event)" placeholder="包名过滤">
+      </mat-form-field>
+      <button class="form-button" mat-stroked-button (click)="download()">下载</button>
+    </div>
+    @if (fetching) {
+        <button mat-button>正在获取数据...</button>
+    }
+    <div class="table-container">
+      <mat-table matSort [dataSource]="dataSource">
+        <ng-container matColumnDef="client" [sticky]="true">
+          <mat-header-cell *matHeaderCellDef mat-sort-header>
+            上游
+          </mat-header-cell>
+          <mat-cell *matCellDef="let row">
+            @if (direction() === 'vendor' && row.client === -1) {
+              <button mat-button>无响应，上游不明</button>
+            } @else {
+              <carambola-ad-entity type="client" mode="tiny" [client]="clientMap.get(row.client)"></carambola-ad-entity>
+              <carambola-ad-entity type="clientPort" mode="tiny" [clientPort]="clientPortMap.get(row.clientPort)"></carambola-ad-entity>
+            }
+          </mat-cell>
+        </ng-container>
+        <ng-container matColumnDef="vendor" [sticky]="true">
+          <mat-header-cell *matHeaderCellDef mat-sort-header>
+            下游
+          </mat-header-cell>
+          <mat-cell *matCellDef="let row">
+            <carambola-ad-entity type="vendor" mode="tiny" [vendor]="vendorMap.get(row.vendor)"></carambola-ad-entity>
+            <carambola-ad-entity type="vendorPort" mode="tiny" [vendorPort]="vendorPortMap.get(row.vendorPort)"></carambola-ad-entity>
+          </mat-cell>
+        </ng-container>
+        <ng-container matColumnDef="bundle" [sticky]="true">
+          <mat-header-cell *matHeaderCellDef mat-sort-header>
+            包名
+          </mat-header-cell>
+          <mat-cell *matCellDef="let row">
+            {{ row.bundle }}
+          </mat-cell>
+        </ng-container>
+        <ng-container matColumnDef="request">
+          <mat-header-cell *matHeaderCellDef mat-sort-header>
+            请求
+          </mat-header-cell>
+          <mat-cell *matCellDef="let row">
+            {{ row.request | number }}
+          </mat-cell>
+        </ng-container>
+        <ng-container matColumnDef="response">
+          <mat-header-cell *matHeaderCellDef mat-sort-header>
+            响应
+          </mat-header-cell>
+          <mat-cell *matCellDef="let row">
+            {{ row.response | number }}
+          </mat-cell>
+        </ng-container>
+        <ng-container matColumnDef="gfr">
+          <mat-header-cell *matHeaderCellDef mat-sort-header>
+            填充率
+          </mat-header-cell>
+          <mat-cell *matCellDef="let row">
+            {{ row.response / row.request | percent: '0.2-2' }}
+          </mat-cell>
+        </ng-container>
+        <ng-container matColumnDef="impression">
+          <mat-header-cell *matHeaderCellDef mat-sort-header>
+            展现
+          </mat-header-cell>
+          <mat-cell *matCellDef="let row">
+            {{ row.impression | number }}
+          </mat-cell>
+        </ng-container>
+        <ng-container matColumnDef="click">
+          <mat-header-cell *matHeaderCellDef mat-sort-header>
+            点击
+          </mat-header-cell>
+          <mat-cell *matCellDef="let row">
+            {{ row.click | number }}
+          </mat-cell>
+        </ng-container>
+        <ng-container matColumnDef="er">
+          <mat-header-cell *matHeaderCellDef mat-sort-header>
+            展现率
+          </mat-header-cell>
+          <mat-cell *matCellDef="let row">
+            {{ row.impression / row.response | percent: '0.2-2' }}
+          </mat-cell>
+        </ng-container>
+        <ng-container matColumnDef="ctr">
+          <mat-header-cell *matHeaderCellDef mat-sort-header>
+            点击率
+          </mat-header-cell>
+          <mat-cell *matCellDef="let row">
+            {{ row.click / row.impression | percent: '0.2-2' }}
+          </mat-cell>
+        </ng-container>
+        <ng-container matColumnDef="rv">
+          <mat-header-cell *matHeaderCellDef mat-sort-header>
+            请求价值
+          </mat-header-cell>
+          <mat-cell *matCellDef="let row">
+            {{ row.income / row.request / 10 | number: '0.2-2' }}
+          </mat-cell>
+        </ng-container>
+        <ng-container matColumnDef="actions">
+          <mat-header-cell *matHeaderCellDef>
+            QPS设定
+          </mat-header-cell>
+          <mat-cell *matCellDef="let row">
+            <input class="qps" placeholder="开放" matInput [value]="getQps(row.clientPort, row.vendorPort, row.bundle)" (keyup)="setQps($event, row.clientPort, row.vendorPort, row.bundle)" (focus)="getFocus()" (blur)="setQps($event, row.clientPort, row.vendorPort, row.bundle)"/>
+          </mat-cell>
+        </ng-container>
+
+        <mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></mat-header-row>
+        <mat-row *matRowDef="let row; columns: displayedColumns" [ngStyle]="{'min-width': '1730px'}"></mat-row>
+      </mat-table>
+    </div>
+  </mat-card-content>
+</mat-card>
