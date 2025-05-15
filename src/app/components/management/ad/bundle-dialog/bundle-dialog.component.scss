@@ -1,0 +1,60 @@
+@use '../../../../shared/styles/management.scss';
+
+.card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+.card-body {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.table-container {
+  width: 100%;
+  overflow: auto;
+}
+
+.mat-mdc-table-sticky {
+  background-color: var(--mat-sys-outline-variant);
+  color: var(--mat-sys-on-outline-variant);
+  opacity: 1;
+}
+
+.cdk-header-row, .cdk-footer-row, .cdk-row {
+  min-height: 44px;
+  max-height: 44px;
+}
+.mat-column-client.cdk-header-cell,
+.mat-column-vendor.cdk-header-cell,
+.mat-column-client.cdk-cell,
+.mat-column-vendor.cdk-cell {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  min-width: 250px;
+  flex: 0 0 250px;
+}
+.mat-column-client.cdk-cell,
+.mat-column-vendor.cdk-cell {
+  font-size: 80%;
+}
+.mat-column-bundle.cdk-header-cell,
+.mat-column-bundle.cdk-cell {
+  min-width: 150px;
+  flex: 0 0 150px;
+}
+.cdk-header-cell, .cdk-cell {
+  min-width: 120px;
+  flex: 1 0 120px;
+}
+
+.block {
+  color: light-dark(#c62828, #ffcdd2);
+}
+.qps {
+  width: 40px;
+}
