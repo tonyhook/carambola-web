@@ -8,6 +8,21 @@ import { routes } from './app.routes';
 import { provideCarambolaDateAdapter } from './shared';
 import { CarambolaMatPaginatorIntl, HttpErrorInterceptor } from './shared';
 
+export const CARAMBOLA_FORMATS = {
+  parse: {
+    dateInput: 'YYYY-MM-DD',
+    timeInput: 'HH:mm',
+  },
+  display: {
+    dateInput: 'YYYY-MM-DD',
+    monthYearLabel: 'YYYY-MM',
+    dateA11yLabel: 'YYYY-MM-DD',
+    monthYearA11yLabel: 'YYYY-MM',
+    timeInput: 'HH:mm',
+    timeOptionLabel: 'HH:mm',
+  },
+};
+
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
