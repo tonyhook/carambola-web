@@ -12,12 +12,10 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { forkJoin } from 'rxjs';
 
-import { Client, ClientAPI, ClientMedia, ClientMediaAPI, ClientPort, ClientPortAPI, Connection, PartnerType, PortType, Vendor, VendorAPI, VendorMedia, VendorMediaAPI, VendorPort, VendorPortAPI } from '../../../core';
+import { Client, ClientAPI, ClientMedia, ClientPort, ClientPortAPI, Connection, PartnerType, PortType, Vendor, VendorAPI, VendorMedia, VendorPort, VendorPortAPI } from '../../../core';
 import { FilteredSelectClientComponent } from '../filtered-select-client/filtered-select-client.component';
-import { FilteredSelectClientMediaComponent } from '../filtered-select-clientmedia/filtered-select-clientmedia.component';
 import { FilteredSelectClientPortComponent } from '../filtered-select-clientport/filtered-select-clientport.component';
 import { FilteredSelectVendorComponent } from '../filtered-select-vendor/filtered-select-vendor.component';
-import { FilteredSelectVendorMediaComponent } from '../filtered-select-vendormedia/filtered-select-vendormedia.component';
 import { FilteredSelectVendorPortComponent } from '../filtered-select-vendorport/filtered-select-vendorport.component';
 
 export interface ConnectionDialogData {
@@ -38,10 +36,8 @@ export interface ConnectionDialogData {
     MatFormFieldModule,
     MatInputModule,
     FilteredSelectClientComponent,
-    FilteredSelectClientMediaComponent,
     FilteredSelectClientPortComponent,
     FilteredSelectVendorComponent,
-    FilteredSelectVendorMediaComponent,
     FilteredSelectVendorPortComponent,
   ],
   templateUrl: './connection-dialog.component.html',
@@ -51,18 +47,14 @@ export class ConnectionDialogComponent implements OnInit, AfterViewInit {
   PortType = PortType;
 
   client: Client | null = null;
-  clientMedia: ClientMedia | null = null;
   clientPort: ClientPort | null = null;
   vendor: Vendor | null = null;
-  vendorMedia: VendorMedia | null = null;
   vendorPort: VendorPort | null = null;
   connection: Connection | null = null;
 
   clients: Client[] = [];
-  clientMedias: ClientMedia[] = [];
   clientPorts: ClientPort[] = [];
   vendors: Vendor[] = [];
-  vendorMedias: VendorMedia[] = [];
   vendorPorts: VendorPort[] = [];
 
   validClientMedias: ClientMedia[] = [];
@@ -79,10 +71,8 @@ export class ConnectionDialogComponent implements OnInit, AfterViewInit {
     private formBuilder: UntypedFormBuilder,
     private route: ActivatedRoute,
     private clientAPI: ClientAPI,
-    private clientMediaAPI: ClientMediaAPI,
     private clientPortAPI: ClientPortAPI,
     private vendorAPI: VendorAPI,
-    private vendorMediaAPI: VendorMediaAPI,
     private vendorPortAPI: VendorPortAPI,
     private snackBar: MatSnackBar,
     public dialogRef: MatDialogRef<ConnectionDialogComponent>,
@@ -90,10 +80,8 @@ export class ConnectionDialogComponent implements OnInit, AfterViewInit {
   ) {
     this.formGroupPort = this.formBuilder.group({
       'client': [null, Validators.required],
-      'clientMedia': [null, Validators.required],
       'clientPort': [null, Validators.required],
       'vendor': [null, Validators.required],
-      'vendorMedia': [null, Validators.required],
       'vendorPort': [null, Validators.required],
     });
 
@@ -114,9 +102,6 @@ export class ConnectionDialogComponent implements OnInit, AfterViewInit {
           this.client = clientPort.client;
           this.clients = [clientPort.client];
           this.formGroupPort.setControl('client', this.formBuilder.control({value: this.client, disabled: true}, Validators.required), {emitEvent: false,});
-          this.clientMedia = clientPort.clientMedia;
-          this.validClientMedias = [clientPort.clientMedia];
-          this.formGroupPort.setControl('clientMedia', this.formBuilder.control({value: this.clientMedia, disabled: true}, Validators.required), {emitEvent: false,});
         });
         this.clientPort = data.clientPort;
 
@@ -128,9 +113,6 @@ export class ConnectionDialogComponent implements OnInit, AfterViewInit {
           this.vendor = vendorPort.vendor;
           this.vendors = [vendorPort.vendor];
           this.formGroupPort.setControl('vendor', this.formBuilder.control({value: this.vendor, disabled: true}, Validators.required), {emitEvent: false,});
-          this.vendorMedia = vendorPort.vendorMedia;
-          this.validVendorMedias = [vendorPort.vendorMedia];
-          this.formGroupPort.setControl('vendorMedia', this.formBuilder.control({value: this.vendorMedia, disabled: true}, Validators.required), {emitEvent: false,});
         });
         this.vendorPort = data.vendorPort;
 
@@ -143,18 +125,12 @@ export class ConnectionDialogComponent implements OnInit, AfterViewInit {
           this.client = clientPort.client;
           this.clients = [clientPort.client];
           this.formGroupPort.setControl('client', this.formBuilder.control({value: this.client, disabled: true}, Validators.required), {emitEvent: false,});
-          this.clientMedia = clientPort.clientMedia;
-          this.validClientMedias = [clientPort.clientMedia];
-          this.formGroupPort.setControl('clientMedia', this.formBuilder.control({value: this.clientMedia, disabled: true}, Validators.required), {emitEvent: false,});
         });
         this.clientPort = data.connection.clientPort;
         this.vendorPortAPI.getVendorPort(data.connection.vendorPort.id!).subscribe(vendorPort => {
           this.vendor = vendorPort.vendor;
           this.vendors = [vendorPort.vendor];
           this.formGroupPort.setControl('vendor', this.formBuilder.control({value: this.vendor, disabled: true}, Validators.required), {emitEvent: false,});
-          this.vendorMedia = vendorPort.vendorMedia;
-          this.validVendorMedias = [vendorPort.vendorMedia];
-          this.formGroupPort.setControl('vendorMedia', this.formBuilder.control({value: this.vendorMedia, disabled: true}, Validators.required), {emitEvent: false,});
         });
         this.vendorPort = data.connection.vendorPort;
 
@@ -175,16 +151,8 @@ export class ConnectionDialogComponent implements OnInit, AfterViewInit {
     this.formGroupPort.valueChanges.subscribe(() => {
       if (this.formGroupPort.getRawValue().client !== null && this.formGroupPort.getRawValue().client !== this.client) {
         this.client = this.formGroupPort.getRawValue().client;
-        this.clientMedia = null;
         this.clientPort = null;
-        this.validClientMedias = this.clientMedias.filter(clientMedia => clientMedia.client.id === this.formGroupPort.getRawValue().client.id);
-        this.formGroupPort.setControl('clientMedia', this.formBuilder.control({value: this.clientMedia, disabled: false}, Validators.required), {emitEvent: false,});
-        this.formGroupPort.setControl('clientPort', this.formBuilder.control({value: this.clientPort, disabled: true}, Validators.required), {emitEvent: false,});
-      }
-      if (this.formGroupPort.getRawValue().clientMedia !== null && this.formGroupPort.getRawValue().clientMedia !== this.clientMedia) {
-        this.clientMedia = this.formGroupPort.getRawValue().clientMedia;
-        this.clientPort = null;
-        this.validClientPorts = this.clientPorts.filter(clientPort => clientPort.clientMedia.id === this.formGroupPort.getRawValue().clientMedia.id);
+        this.validClientPorts = this.clientPorts.filter(clientPort => clientPort.client.id === this.formGroupPort.getRawValue().client.id);
         this.formGroupPort.setControl('clientPort', this.formBuilder.control({value: this.clientPort, disabled: false}, Validators.required), {emitEvent: false,});
       }
       if (this.formGroupPort.getRawValue().clientPort !== null && this.formGroupPort.getRawValue().clientPort !== this.clientPort) {
@@ -192,16 +160,8 @@ export class ConnectionDialogComponent implements OnInit, AfterViewInit {
       }
       if (this.formGroupPort.getRawValue().vendor !== null && this.formGroupPort.getRawValue().vendor !== this.vendor) {
         this.vendor = this.formGroupPort.getRawValue().vendor;
-        this.vendorMedia = null;
         this.vendorPort = null;
-        this.validVendorMedias = this.vendorMedias.filter(vendorMedia => vendorMedia.vendor.id === this.formGroupPort.getRawValue().vendor.id);
-        this.formGroupPort.setControl('vendorMedia', this.formBuilder.control({value: this.vendorMedia, disabled: false}, Validators.required), {emitEvent: false,});
-        this.formGroupPort.setControl('vendorPort', this.formBuilder.control({value: this.vendorPort, disabled: true}, Validators.required), {emitEvent: false,});
-      }
-      if (this.formGroupPort.getRawValue().vendorMedia !== null && this.formGroupPort.getRawValue().vendorMedia !== this.vendorMedia) {
-        this.vendorMedia = this.formGroupPort.getRawValue().vendorMedia;
-        this.vendorPort = null;
-        this.validVendorPorts = this.vendorPorts.filter(vendorPort => vendorPort.vendorMedia.id === this.formGroupPort.getRawValue().vendorMedia.id);
+        this.validVendorPorts = this.vendorPorts.filter(vendorPort => vendorPort.vendor.id === this.formGroupPort.getRawValue().vendor.id);
         this.formGroupPort.setControl('vendorPort', this.formBuilder.control({value: this.vendorPort, disabled: false}, Validators.required), {emitEvent: false,});
       }
       if (this.formGroupPort.getRawValue().vendorPort !== null && this.formGroupPort.getRawValue().vendorPort !== this.vendorPort) {
@@ -228,13 +188,6 @@ export class ConnectionDialogComponent implements OnInit, AfterViewInit {
             searchKey: [],
             searchValue: '',
           }),
-          this.clientMediaAPI.getClientMediaList({
-            filter: {
-              clientMode: [String(mode)],
-            },
-            searchKey: [],
-            searchValue: '',
-          }),
           this.clientPortAPI.getClientPortList({
             filter: {
               clientMode: [String(mode)],
@@ -244,21 +197,17 @@ export class ConnectionDialogComponent implements OnInit, AfterViewInit {
           }),
         ]).subscribe(results => {
           this.clients = results[0].filter(client => !client.deleted);
-          this.clientMedias = results[1].filter(clientMedia => !clientMedia.deleted);
-          this.clientPorts = results[2].filter(clientPort => !clientPort.deleted);
+          this.clientPorts = results[1].filter(clientPort => !clientPort.deleted);
 
           this.formGroupPort.setControl('client', this.formBuilder.control({value: null, disabled: this.readonly}, Validators.required), {emitEvent: false,});
-          this.formGroupPort.setControl('clientMedia', this.formBuilder.control({value: null, disabled: true}, Validators.required), {emitEvent: false,});
           this.formGroupPort.setControl('clientPort', this.formBuilder.control({value: null, disabled: true}, Validators.required), {emitEvent: false,});
         });
       } else {
         setTimeout(() => {
           this.clients = [this.client!];
-          this.validClientMedias = [this.clientMedia!];
           this.validClientPorts = [this.clientPort!];
 
           this.formGroupPort.setControl('client', this.formBuilder.control({value: this.client, disabled: true}, Validators.required), {emitEvent: false,});
-          this.formGroupPort.setControl('clientMedia', this.formBuilder.control({value: this.clientMedia, disabled: true}, Validators.required), {emitEvent: false,});
           this.formGroupPort.setControl('clientPort', this.formBuilder.control({value: this.clientPort, disabled: true}, Validators.required), {emitEvent: false,});
         }, 0);
       }
@@ -272,13 +221,6 @@ export class ConnectionDialogComponent implements OnInit, AfterViewInit {
             searchKey: [],
             searchValue: '',
           }),
-          this.vendorMediaAPI.getVendorMediaList({
-            filter: {
-              vendorMode: [String(mode)],
-            },
-            searchKey: [],
-            searchValue: '',
-          }),
           this.vendorPortAPI.getVendorPortList({
             filter: {
               vendorMode: [String(mode)],
@@ -288,21 +230,17 @@ export class ConnectionDialogComponent implements OnInit, AfterViewInit {
           }),
         ]).subscribe(results => {
           this.vendors = results[0].filter(vendor => !vendor.deleted);
-          this.vendorMedias = results[1].filter(vendorMedia => !vendorMedia.deleted);
-          this.vendorPorts = results[2].filter(vendorPort => !vendorPort.deleted);
+          this.vendorPorts = results[1].filter(vendorPort => !vendorPort.deleted);
 
           this.formGroupPort.setControl('vendor', this.formBuilder.control({value: null, disabled: this.readonly}, Validators.required), {emitEvent: false,});
-          this.formGroupPort.setControl('vendorMedia', this.formBuilder.control({value: null, disabled: true}, Validators.required), {emitEvent: false,});
           this.formGroupPort.setControl('vendorPort', this.formBuilder.control({value: null, disabled: true}, Validators.required), {emitEvent: false,});
         });
       } else {
         setTimeout(() => {
           this.vendors = [this.vendor!];
-          this.validVendorMedias = [this.vendorMedia!];
           this.validVendorPorts = [this.vendorPort!];
 
           this.formGroupPort.setControl('vendor', this.formBuilder.control({value: this.vendor, disabled: true}, Validators.required), {emitEvent: false,});
-          this.formGroupPort.setControl('vendorMedia', this.formBuilder.control({value: this.vendorMedia, disabled: true}, Validators.required), {emitEvent: false,});
           this.formGroupPort.setControl('vendorPort', this.formBuilder.control({value: this.vendorPort, disabled: true}, Validators.required), {emitEvent: false,});
         }, 0);
       }
