@@ -1,0 +1,15 @@
+<mat-card class="card-in-container">
+  <mat-card-header>Change Password</mat-card-header>
+
+  <mat-card-content>
+    <form class="form-in-tab" [formGroup]="formGroup">
+      <mat-form-field class="full-width-input" subscriptSizing="dynamic">
+        <mat-label>New Password</mat-label>
+        <input type="password" placeholder="New Password" matInput formControlName="password" />
+      </mat-form-field>
+      <div class="full-width-input flex">
+        <button type="button" class="form-button" mat-stroked-button (click)="updatePassword()">Change</button>
+      </div>
+    </form>
+  </mat-card-content>
+</mat-card>

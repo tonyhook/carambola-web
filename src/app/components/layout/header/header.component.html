@@ -20,6 +20,9 @@
         Login
       </button>
     } @else {
+      <button mat-button routerLink="/admin/me">
+        {{ authService.credential()!.username }}
+      </button>
       <button mat-button routerLink="/admin/logout">
         <mat-icon>exit_to_app</mat-icon>
         Logout
@@ -44,6 +47,10 @@
       Login
     </button>
   } @else {
+    <button mat-menu-item routerLink="/admin/me">
+      <mat-icon>id_card</mat-icon>
+      {{ authService.credential()!.username }}
+    </button>
     <button mat-menu-item routerLink="/admin/logout">
       <mat-icon>exit_to_app</mat-icon>
       Logout

@@ -9,6 +9,7 @@ import { LogoutComponent } from './components/layout/logout/logout.component';
 import { MainComponent } from './components/layout/main/main.component';
 import { PendingComponent } from './components/layout/pending/pending.component';
 
+import { MeComponent } from './components/layout/me/me.component';
 import { MenuManagerComponent } from './components/management/backend/menu/menu.component';
 import { AuthorityManagerComponent } from './components/management/security/authority/authority.component';
 import { RoleManagerComponent } from './components/management/security/role/role.component';
@@ -25,6 +26,10 @@ export const routes: Routes = [
         component: MainComponent,
         canActivate: [ AuthGuard ],
         children: [
+          {
+            path: 'me',
+            component: MeComponent,
+          },
           {
             path: 'backend/menu',
             component: MenuManagerComponent,
