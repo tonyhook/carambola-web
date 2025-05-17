@@ -13,6 +13,7 @@ import { MenuManagerComponent } from './components/management/backend/menu/menu.
 import { AuthorityManagerComponent } from './components/management/security/authority/authority.component';
 import { RoleManagerComponent } from './components/management/security/role/role.component';
 import { UserManagerComponent } from './components/management/security/user/user.component';
+import { LogManagerComponent } from './components/management/audit/log/log.component';
 
 export const routes: Routes = [
   {
@@ -43,6 +44,10 @@ export const routes: Routes = [
           {
             path: 'security/user',
             component: UserManagerComponent,
+          },
+          {
+            path: 'audit/log',
+            component: LogManagerComponent,
           },
         ],
       },
