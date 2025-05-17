@@ -2,29 +2,21 @@
   <mat-card-content>
     <form class="form-in-tab" [formGroup]="formGroupPort">
       <div class="full-width-input wrapper">
-        <mat-form-field class="third-width-input" subscriptSizing="dynamic">
+        <mat-form-field class="half-width-input" subscriptSizing="dynamic">
           <mat-label>广告主</mat-label>
           <carambola-filtered-select-client formControlName="client" required [options]="clients" />
         </mat-form-field>
-        <mat-form-field class="third-width-input" subscriptSizing="dynamic">
-          <mat-label>上游媒体</mat-label>
-          <carambola-filtered-select-clientmedia formControlName="clientMedia" required [options]="validClientMedias" />
-        </mat-form-field>
-        <mat-form-field class="third-width-input" subscriptSizing="dynamic">
+        <mat-form-field class="half-width-input" subscriptSizing="dynamic">
           <mat-label>上游广告位</mat-label>
           <carambola-filtered-select-clientport formControlName="clientPort" required [options]="validClientPorts" />
         </mat-form-field>
       </div>
       <div class="full-width-input wrapper">
-        <mat-form-field class="third-width-input" subscriptSizing="dynamic">
+        <mat-form-field class="half-width-input" subscriptSizing="dynamic">
           <mat-label>流量主</mat-label>
           <carambola-filtered-select-vendor formControlName="vendor" required [options]="vendors" />
         </mat-form-field>
-        <mat-form-field class="third-width-input" subscriptSizing="dynamic">
-          <mat-label>下游媒体</mat-label>
-          <carambola-filtered-select-vendormedia formControlName="vendorMedia" required [options]="validVendorMedias" />
-        </mat-form-field>
-        <mat-form-field class="third-width-input" subscriptSizing="dynamic">
+        <mat-form-field class="half-width-input" subscriptSizing="dynamic">
           <mat-label>下游广告位</mat-label>
           <carambola-filtered-select-vendorport formControlName="vendorPort" required [options]="validVendorPorts" />
         </mat-form-field>
