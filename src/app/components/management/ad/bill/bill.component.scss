@@ -99,7 +99,6 @@
 }
 .cdk-row.element-row {
   min-height: 44px;
-  max-height: 44px;
 }
 .cdk-row.detail-row {
   min-height: 0;
@@ -131,6 +130,35 @@
   background-color: light-dark(#2e7d32, #c8e6c9);
   height: 4px;
   z-index: 1;
+}
+
+.dual {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-end;
+}
+.platform {
+  font-size: 70%;
+  line-height: 10px;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+}
+.gap {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+}
+.less {
+  color: light-dark(#c62828, #ffcdd2);
+}
+.greater {
+  color: light-dark(#2e7d32, #c8e6c9);
 }
 
 input[type="file"] {

@@ -201,7 +201,27 @@
           预估收益
         </mat-header-cell>
         <mat-cell class="number" *matCellDef="let row">
-          {{ row.cost !== null ? (row.cost / 100000 | number: '0.2-2') : '-' }}
+          <div class="dual">
+            <div>
+              {{ row.cost !== null ? (row.cost / 100000 | number: '0.2-2') : '-' }}
+            </div>
+            @if (mode() === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
+              <div class="platform">
+                {{ getPerformanceData(row)?.income !== null ? (getPerformanceData(row)?.income! / 100000 | number: '0.2-2') : '-' }}
+                @if (row.cost !== null && row.cost !== 0 && getPerformanceData(row) !== null && getPerformanceData(row)?.income !== null) {
+                  (<div class="gap">
+                    <div [class.less]="getPerformanceData(row)?.income! < row.cost" [class.greater]="getPerformanceData(row)?.income! > row.cost">
+                      {{
+                        (row.cost > getPerformanceData(row)?.income! ? '+' : '')
+                        +
+                        ((row.cost - getPerformanceData(row)?.income!) / getPerformanceData(row)?.income! | percent: '0.2-2')
+                      }}
+                    </div>
+                  </div>)
+                }
+              </div>
+            }
+          </div>
         </mat-cell>
         <mat-footer-cell class="number" *matFooterCellDef>
           {{ billViewTotal.cost !== null ? (billViewTotal.cost / 100000 | number: '0.2-2') : '-' }}
@@ -212,7 +232,27 @@
           展现
         </mat-header-cell>
         <mat-cell class="number" *matCellDef="let row">
-          {{ row.impression !== null ? (row.impression | number) : '-' }}
+          <div class="dual">
+            <div>
+              {{ row.impression !== null ? (row.impression | number) : '-' }}
+            </div>
+            @if (mode() === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
+              <div class="platform">
+                {{ getPerformanceData(row)?.impression !== null ? (getPerformanceData(row)?.impression | number) : '-' }}
+                @if (row.impression !== null && row.impression !== 0 && getPerformanceData(row) !== null && getPerformanceData(row)?.impression !== null) {
+                  (<div class="gap">
+                    <div [class.less]="getPerformanceData(row)?.impression! < row.impression" [class.greater]="getPerformanceData(row)?.impression! > row.impression">
+                      {{
+                        (row.impression > getPerformanceData(row)?.impression! ? '+' : '')
+                        +
+                        ((row.impression - getPerformanceData(row)?.impression!) / getPerformanceData(row)?.impression! | percent: '0.2-2')
+                      }}
+                    </div>
+                  </div>)
+                }
+              </div>
+            }
+          </div>
         </mat-cell>
         <mat-footer-cell class="number" *matFooterCellDef>
           {{ billViewTotal.impression !== null ? (billViewTotal.impression | number) : '-' }}
@@ -223,7 +263,27 @@
           点击
         </mat-header-cell>
         <mat-cell class="number" *matCellDef="let row">
-          {{ row.click !== null ? (row.click | number) : '-' }}
+          <div class="dual">
+            <div>
+              {{ row.click !== null ? (row.click | number) : '-' }}
+            </div>
+            @if (mode() === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
+              <div class="platform">
+                {{ getPerformanceData(row)?.click !== null ? (getPerformanceData(row)?.click | number) : '-' }}
+                @if (row.click !== null && row.click !== 0 && getPerformanceData(row) !== null && getPerformanceData(row)?.click !== null) {
+                  (<div class="gap">
+                    <div [class.less]="getPerformanceData(row)?.click! < row.click" [class.greater]="getPerformanceData(row)?.click! > row.click">
+                      {{
+                        (row.click > getPerformanceData(row)?.click! ? '+' : '')
+                        +
+                        ((row.click - getPerformanceData(row)?.click!) / getPerformanceData(row)?.click! | percent: '0.2-2')
+                      }}
+                    </div>
+                  </div>)
+                }
+              </div>
+            }
+          </div>
         </mat-cell>
         <mat-footer-cell class="number" *matFooterCellDef>
           {{ billViewTotal.click !== null ? (billViewTotal.click | number) : '-' }}
@@ -256,7 +316,27 @@
           请求
         </mat-header-cell>
         <mat-cell class="number" *matCellDef="let row">
-          {{ row.request !== null ? (row.request | number) : '-' }}
+          <div class="dual">
+            <div>
+              {{ row.request !== null ? (row.request | number) : '-' }}
+            </div>
+            @if (mode() === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
+              <div class="platform">
+                {{ getPerformanceData(row)?.request !== null ? (getPerformanceData(row)?.request | number) : '-' }}
+                @if (row.request !== null && row.request !== 0 && getPerformanceData(row) !== null && getPerformanceData(row)?.request !== null) {
+                  (<div class="gap">
+                    <div [class.less]="getPerformanceData(row)?.request! < row.request" [class.greater]="getPerformanceData(row)?.request! > row.request">
+                      {{
+                        (row.request > getPerformanceData(row)?.request! ? '+' : '')
+                        +
+                        ((row.request - getPerformanceData(row)?.request!) / getPerformanceData(row)?.request! | percent: '0.2-2')
+                      }}
+                    </div>
+                  </div>)
+                }
+              </div>
+            }
+          </div>
         </mat-cell>
         <mat-footer-cell class="number" *matFooterCellDef>
           {{ billViewTotal.request !== null ? (billViewTotal.request | number) : '-' }}
@@ -267,7 +347,27 @@
           响应
         </mat-header-cell>
         <mat-cell class="number" *matCellDef="let row">
-          {{ row.response !== null ? (row.response | number) : '-' }}
+          <div class="dual">
+            <div>
+              {{ row.response !== null ? (row.response | number) : '-' }}
+            </div>
+            @if (mode() === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
+              <div class="platform">
+                {{ getPerformanceData(row)?.response !== null ? (getPerformanceData(row)?.response | number) : '-' }}
+                @if (row.response !== null && row.response !== 0 && getPerformanceData(row) !== null && getPerformanceData(row)?.response !== null) {
+                  (<div class="gap">
+                    <div [class.less]="getPerformanceData(row)?.response! < row.response" [class.greater]="getPerformanceData(row)?.response! > row.response">
+                      {{
+                        (row.response > getPerformanceData(row)?.response! ? '+' : '')
+                        +
+                        ((row.response - getPerformanceData(row)?.response!) / getPerformanceData(row)?.response! | percent: '0.2-2')
+                      }}
+                    </div>
+                  </div>)
+                }
+              </div>
+            }
+          </div>
         </mat-cell>
         <mat-footer-cell class="number" *matFooterCellDef>
           {{ billViewTotal.response !== null ? (billViewTotal.response | number) : '-' }}
