@@ -22,7 +22,7 @@ import { CdkMenuModule } from '@angular/cdk/menu';
 import { asyncScheduler, catchError, debounceTime, forkJoin, scheduled, Subject, switchMap } from 'rxjs';
 
 import { AdQuery } from '../..';
-import { Bill, BillAPI, BillStatus, BillView, BillViewStatus, Client, ClientAPI, ClientMedia, ClientMediaAPI, ClientPort, ClientPortAPI, ConnectionAPI, Medium, PartnerType, PerformanceAPI, PerformancePartner, PerformancePlaceholder, PortType, TimedPairedVendorPortMap, Vendor, VendorAPI, VendorMedia, VendorMediaAPI, VendorPort, VendorPortAPI } from '../..';
+import { Bill, BillAPI, BillStatus, BillView, BillViewStatus, Client, ClientAPI, ClientMedia, ClientMediaAPI, ClientPort, ClientPortAPI, ConnectionAPI, Medium, PartnerType, PerformanceAPI, PerformancePartner, PerformancePlaceholder, PerformanceView, PortType, TimedPairedVendorPortMap, Vendor, VendorAPI, VendorMedia, VendorMediaAPI, VendorPort, VendorPortAPI } from '../..';
 import { TenantService } from '../..';
 import { ConfirmDialogComponent } from '../../../../shared';
 import { AdEntityComponent, FilteredSelectClientComponent, FilteredSelectClientMediaComponent } from '../..';
@@ -149,6 +149,8 @@ export class BillComponent implements OnInit, AfterViewInit, DoCheck {
   };
   mediumData: Medium[] = [];
   performanceData: PerformancePartner[] = [];
+  performanceViewData: PerformanceView[] = [];
+  performanceViewMap: Map<string, PerformanceView> = new Map<string, PerformanceView>();
   billViewDataSub: BillView[] = [];
   billViewMapSub: Map<string, BillView> = new Map<string, BillView>();
 
@@ -925,6 +927,8 @@ export class BillComponent implements OnInit, AfterViewInit, DoCheck {
       billKeys.add(this.toISOStringWithTimezone(new Date(bill.date)).substring(0, 10).replace('T', ' ') + '|' + bill.clientPort);
     }
 
+    this.performanceViewData.length = 0;
+    this.performanceViewMap.clear();
     for (const performance of this.performanceData) {
       if (this.minTimestamp > new Date(performance.time)) {
         this.minTimestamp = new Date(performance.time);
@@ -951,6 +955,74 @@ export class BillComponent implements OnInit, AfterViewInit, DoCheck {
       if (this.billAggregateUpstream === 'clientport') {
         key += 'CP' + performance.clientPort + '|';
       }
+
+      if (!this.performanceViewMap.has(key)) {
+        const performanceView: PerformanceView = {
+          time: time,
+          start: new Date(performance.time),
+          end: new Date(performance.time),
+          client: this.billAggregateUpstream === 'client' || this.billAggregateUpstream === 'clientport'
+            ? performance.clientPort === -1 ?
+                -1
+                :
+                this.clientPortMap.get(performance.clientPort)?.client.id
+                  ?? 0
+            : 0,
+          clientMedia: this.billAggregateUpstream === 'clientport'
+            ? performance.clientPort === -1 ?
+                -1
+                :
+                this.clientPortMap.get(performance.clientPort)?.clientMedia.id
+                  ?? 0
+            : 0,
+          clientPort: this.billAggregateUpstream === 'clientport' ? performance.clientPort : 0,
+          vendor: 0,
+          vendorMedia: 0,
+          vendorPort: 0,
+          request: 0,
+          requestv: 0,
+          response: 0,
+          responsev: 0,
+          impression: 0,
+          click: 0,
+          income: 0,
+          outcomeUpstream: 0,
+          outcomeRebate: 0,
+          outcomeDownstream: 0,
+        };
+
+        this.performanceViewData.push(performanceView);
+        this.performanceViewMap.set(key, performanceView);
+      }
+
+      const performanceView = this.performanceViewMap.get(key)!;
+      if (performanceView.start > new Date(performance.time)) {
+        performanceView.start = new Date(performance.time);
+      }
+      if (performanceView.end < new Date(performance.time)) {
+        performanceView.end = new Date(performance.time);
+      }
+      performanceView.request +=
+        performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE +
+        performance.eventF + performance.eventG + performance.eventH + performance.eventK + performance.eventL +
+        performance.eventM;
+      performanceView.requestv +=
+        performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventK;
+      performanceView.response +=
+        performance.eventD + performance.eventE + performance.eventK;
+      performanceView.responsev +=
+        performance.eventD + performance.eventE;
+      performanceView.impression += performance.impression;
+      performanceView.click += performance.click;
+      if (this.clientPortMap.get(performance.clientPort)?.mode == PortType.PORT_TYPE_BIDDING) {
+        performanceView.income += performance.income;
+      }
+      if (this.clientPortMap.get(performance.clientPort)?.mode == PortType.PORT_TYPE_SHARE) {
+        performanceView.income = this.billViewMap.get(key) ? this.billViewMap.get(key)!.cost! : 0;
+      }
+      performanceView.outcomeUpstream += performance.outcomeUpstream;
+      performanceView.outcomeRebate += performance.outcomeRebate;
+      performanceView.outcomeDownstream += performance.outcomeDownstream;
 
       if (this.billAggregateUpstream !== 'clientport' || this.billInterval !== 'day' || this.billStatusFilter.indexOf(BillViewStatus.BILL_STATUS_UNBILLED) >= 0) {
         if (billKeys.has(this.toISOStringWithTimezone(new Date(performance.time)).substring(0, 10).replace('T', ' ') + '|' + performance.clientPort)) {
@@ -1528,6 +1600,18 @@ export class BillComponent implements OnInit, AfterViewInit, DoCheck {
         });
       }
     });
+  }
+
+  getPerformanceData(row: BillView): PerformanceView | null {
+    let key = row.time + '|';
+    if (this.billAggregateUpstream === 'client' || this.billAggregateUpstream === 'clientport') {
+      key += 'C' + row.client + '|';
+    }
+    if (this.billAggregateUpstream === 'clientport') {
+      key += 'CP' + row.clientPort + '|';
+    }
+
+    return this.performanceViewMap.get(key) ?? null;
   }
 
   onTableScroll(event: Event) {
