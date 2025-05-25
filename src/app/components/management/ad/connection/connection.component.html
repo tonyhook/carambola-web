@@ -1,0 +1,33 @@
+<div class="container">
+
+  <mat-table matSort [dataSource]="dataSource">
+    <ng-container matColumnDef="client">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>
+        上游
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <div class="partner">
+          <carambola-ad-entity type="client" mode="tiny" [client]="clientPortMap.get(row.clientPort.id)!.client" [debug]="true"></carambola-ad-entity>
+          <carambola-ad-entity type="clientMedia" mode="tiny" [clientMedia]="clientPortMap.get(row.clientPort.id)!.clientMedia" [debug]="true"></carambola-ad-entity>
+          <carambola-ad-entity type="clientPort" mode="tiny" [clientPort]="clientPortMap.get(row.clientPort.id)" [debug]="true"></carambola-ad-entity>
+        </div>
+      </mat-cell>
+    </ng-container>
+    <ng-container matColumnDef="vendor">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>
+        下游
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <div class="partner">
+          <carambola-ad-entity type="vendor" mode="tiny" [vendor]="vendorPortMap.get(row.vendorPort.id)!.vendor" [debug]="true"></carambola-ad-entity>
+          <carambola-ad-entity type="vendorMedia" mode="tiny" [vendorMedia]="vendorPortMap.get(row.vendorPort.id)!.vendorMedia" [debug]="true"></carambola-ad-entity>
+          <carambola-ad-entity type="vendorPort" mode="tiny" [vendorPort]="vendorPortMap.get(row.vendorPort.id)" [debug]="true"></carambola-ad-entity>
+        </div>
+      </mat-cell>
+    </ng-container>
+
+    <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+    <mat-row *matRowDef="let row; columns: displayedColumns" class="element-row"></mat-row>
+  </mat-table>
+
+</div>
