@@ -28,3 +28,4 @@ export * from './sign-dialog/sign-dialog.component';
 export * from './downstream-manager/downstream-manager.component';
 export * from './upstream-observer/upstream-observer.component';
 export * from './summary/summary.component';
+export * from './connection/connection.component';
