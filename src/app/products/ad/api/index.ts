@@ -9,3 +9,4 @@ export * from './vendorport.api';
 export * from './performance.api';
 export * from './bill.api';
 export * from './traffic-control.api';
+export * from './server.api';
