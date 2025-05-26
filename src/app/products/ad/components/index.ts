@@ -29,3 +29,6 @@ export * from './downstream-manager/downstream-manager.component';
 export * from './upstream-observer/upstream-observer.component';
 export * from './summary/summary.component';
 export * from './connection/connection.component';
+export * from './server/server.component';
+export * from './server-dialog/server-dialog.component';
+export * from './server-form/server-form.component';

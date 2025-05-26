@@ -1,0 +1,63 @@
+@use '../../../../shared/styles/management.scss';
+
+.container {
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.cdk-header-cell, .cdk-cell {
+  justify-content: center;
+  align-items: center;
+}
+.mat-column-status {
+  flex: 0 0 80px;
+  min-width: 80px;
+}
+.mat-column-node {
+  flex: 1 0 80px;
+  min-width: 80px;
+}
+.mat-column-domain {
+  flex-direction: column;
+  flex: 1 0 180px;
+  min-width: 180px;
+}
+.mat-column-servingTimestamp, .mat-column-trackingTimestamp {
+  flex: 1 0 180px;
+  min-width: 180px;
+}
+.mat-column-serverAction {
+  flex: 1 0 150px;
+  min-width: 150px;
+}
+.mat-column-servingAction, .mat-column-trackingAction {
+  justify-content: space-around;
+  flex: 1 0 240px;
+  min-width: 240px;
+}
+.mat-column-node {
+  flex: 0 0 120px;
+  min-width: 120px;
+}
+.mat-column-actions {
+  justify-content: flex-end;
+  flex: 0 0 80px;
+  min-width: 80px;
+}
+
+.ok {
+  color: green;
+}
+.error {
+  color: red;
+}
+.service {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+}
+.service .version {
+  font-size: 80%;
+  color: #808080;
+}
