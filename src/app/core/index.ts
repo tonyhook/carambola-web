@@ -18,6 +18,7 @@ export * from './api/managed/vendorport.api';
 export * from './api/managed/performance.api';
 export * from './api/managed/traffic-control.api';
 export * from './api/managed/bill.api';
+export * from './api/managed/server.api';
 
 export * from './datasource/paginated-data-source';
 export * from './datasource/query';
@@ -57,6 +58,7 @@ export * from './entity/ad/bill';
 export * from './entity/ad/medium';
 export * from './entity/ad/sign';
 export * from './entity/ad/bill-view';
+export * from './entity/ad/server';
 
 export enum PartnerType {
   PARTNER_TYPE_UNKNOWN      = -1,
