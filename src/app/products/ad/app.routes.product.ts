@@ -14,6 +14,7 @@ import { SummaryComponent } from '@app/products/ad/components/summary/summary.co
 import { UpstreamObserverComponent } from '@app/products/ad/components/upstream-observer/upstream-observer.component';
 import { DownstreamManagerComponent } from '@app/products/ad/components/downstream-manager/downstream-manager.component';
 import { ConnectionManagerComponent } from '@app/products/ad/components/connection/connection.component';
+import { ServerManagerComponent } from '@app/products/ad/components/server/server.component';
 import { EncryptComponent } from '@app/products/ad/components/encrypt/encrypt.component';
 
 export const adManagementRoutes: Routes = [
@@ -76,6 +77,10 @@ export const adManagementRoutes: Routes = [
   {
     path: 'ad/connection',
     component: ConnectionManagerComponent,
+  },
+  {
+    path: 'ad/server',
+    component: ServerManagerComponent,
   },
 ];
 

@@ -1,0 +1,44 @@
+<ng-container>
+  <mat-card class="card-in-container">
+    <mat-card-content>
+      <mat-tab-group class="tab-in-card">
+        <mat-tab label="服务器属性">
+          <form class="form-in-tab" [formGroup]="formGroup">
+            <mat-form-field class="full-width-input" subscriptSizing="dynamic">
+              <mat-label>域名</mat-label>
+              <input placeholder="域名" matInput formControlName="domain" />
+            </mat-form-field>
+            <mat-form-field class="full-width-input" subscriptSizing="dynamic">
+              <mat-label>地址</mat-label>
+              <input placeholder="地址" matInput formControlName="address" />
+            </mat-form-field>
+            <mat-form-field class="full-width-input" subscriptSizing="dynamic">
+              <mat-label>节点编号</mat-label>
+              <input placeholder="节点编号" matInput formControlName="node" />
+            </mat-form-field>
+            <mat-form-field class="full-width-input" subscriptSizing="dynamic">
+              <mat-label>用户名</mat-label>
+              <input placeholder="用户名" matInput formControlName="username" />
+            </mat-form-field>
+            <mat-form-field class="full-width-input" subscriptSizing="dynamic">
+              <mat-label>密码</mat-label>
+              <input placeholder="密码" matInput formControlName="password" />
+            </mat-form-field>
+
+            <div class="full-width-input flex">
+              @if (server() === null) {
+                <button type="button" class="form-button" mat-stroked-button (click)="addServer()">创建</button>
+                <button type="button" class="form-button cancel" mat-stroked-button (click)="cancelServer()">取消</button>
+              }
+              @if (server() !== null) {
+                <button type="button" class="form-button" mat-stroked-button (click)="updateServer()">修改</button>
+                <button type="button" class="form-button cancel" mat-stroked-button (click)="cancelServer()">取消</button>
+                <button type="button" class="form-button delete" mat-stroked-button (click)="removeServer()">删除</button>
+              }
+            </div>
+          </form>
+        </mat-tab>
+      </mat-tab-group>
+    </mat-card-content>
+  </mat-card>
+</ng-container>
