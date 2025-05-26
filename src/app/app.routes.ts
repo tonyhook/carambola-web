@@ -31,6 +31,7 @@ import { EncryptComponent } from './components/open/encrypt/encrypt.component';
 import { UpstreamObserverComponent } from './components/management/ad/upstream-observer/upstream-observer.component';
 import { DownstreamManagerComponent } from './components/management/ad/downstream-manager/downstream-manager.component';
 import { ConnectionManagerComponent } from './components/management/ad/connection/connection.component';
+import { ServerManagerComponent } from './components/management/ad/server/server.component';
 
 export const routes: Routes = [
   {
@@ -125,6 +126,10 @@ export const routes: Routes = [
           {
             path: 'ad/connection',
             component: ConnectionManagerComponent,
+          },
+          {
+            path: 'ad/server',
+            component: ServerManagerComponent,
           },
         ],
       },
