@@ -10,6 +10,8 @@ import { VendorPortManagerComponent } from '@app/products/ad/components/vendorpo
 import { PerformanceComponent } from '@app/products/ad/components/performance/performance.component';
 import { BillComponent } from '@app/products/ad/components/bill/bill.component';
 import { SignComponent } from '@app/products/ad/components/sign/sign.component';
+import { UpstreamObserverComponent } from '@app/products/ad/components/upstream-observer/upstream-observer.component';
+import { DownstreamManagerComponent } from '@app/products/ad/components/downstream-manager/downstream-manager.component';
 
 export const adManagementRoutes: Routes = [
   {
@@ -51,6 +53,14 @@ export const adManagementRoutes: Routes = [
   {
     path: 'ad/sign',
     component: SignComponent,
+  },
+  {
+    path: 'ad/observer',
+    component: UpstreamObserverComponent,
+  },
+  {
+    path: 'ad/manager',
+    component: DownstreamManagerComponent,
   },
 ];
 

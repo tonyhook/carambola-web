@@ -25,3 +25,5 @@ export * from './bill/bill.component';
 export * from './bill-dialog/bill-dialog.component';
 export * from './sign/sign.component';
 export * from './sign-dialog/sign-dialog.component';
+export * from './downstream-manager/downstream-manager.component';
+export * from './upstream-observer/upstream-observer.component';
