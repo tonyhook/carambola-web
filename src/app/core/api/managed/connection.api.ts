@@ -3,7 +3,10 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 import { environment } from '../../../../environments/environment';
-import { Page, PageRequest, Connection } from '../..';
+import { Connection, Page, PageRequest, PerformancePlaceholder, Query } from '../..';
+
+export type TimedPairedClientPortMap = Record<number, Record<number, number[]>>;
+export type TimedPairedVendorPortMap = Record<number, Record<number, number[]>>;
 
 @Injectable({
   providedIn: 'root',
@@ -41,6 +44,28 @@ export class ConnectionAPI {
 
   removeConnection(id: number): Observable<unknown> {
     return this.http.delete(environment.apipath + '/api/managed/connection/' + id, { withCredentials: true });
+  }
+
+  getPairedClientPortMap(start: string, end: string, query?: Query<PerformancePlaceholder>): Observable<TimedPairedClientPortMap> {
+    let params = new HttpParams()
+      .set('start', start)
+      .set('end', end);
+    if (query) {
+      params = params.append('query', JSON.stringify(query));
+    }
+
+    return this.http.get<TimedPairedClientPortMap>(environment.apipath + '/api/managed/connection/paired/client', { params: params, withCredentials: true });
+  }
+
+  getPairedVendorPortMap(start: string, end: string, query?: Query<PerformancePlaceholder>): Observable<TimedPairedVendorPortMap> {
+    let params = new HttpParams()
+      .set('start', start)
+      .set('end', end);
+    if (query) {
+      params = params.append('query', JSON.stringify(query));
+    }
+
+    return this.http.get<TimedPairedVendorPortMap>(environment.apipath + '/api/managed/connection/paired/vendor', { params: params, withCredentials: true });
   }
 
 }
