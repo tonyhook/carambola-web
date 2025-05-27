@@ -1,0 +1,802 @@
+<div class="container">
+  <form class="form-in-header" [formGroup]="formGroupQuery">
+    <div class="full-width-input flex">
+      <mat-form-field subscriptSizing="dynamic">
+        <mat-label>广告主</mat-label>
+        <carambola-filtered-select-client formControlName="client" [multiple]="true" [options]="clients" />
+        @if (formGroupQuery.value.client && formGroupQuery.value.client.length > 0) {
+          <button type="button" matSuffix mat-icon-button (click)="clear($event, 'client', [])">
+            <mat-icon>clear</mat-icon>
+          </button>
+        }
+      </mat-form-field>
+      <mat-form-field subscriptSizing="dynamic">
+        <mat-label>上游媒体</mat-label>
+        <carambola-filtered-select-clientmedia formControlName="clientMedia" [multiple]="true" [options]="clientMedias" />
+        @if (formGroupQuery.value.clientMedia && formGroupQuery.value.clientMedia.length > 0) {
+          <button type="button" matSuffix mat-icon-button (click)="clear($event, 'clientMedia', [])">
+            <mat-icon>clear</mat-icon>
+          </button>
+        }
+      </mat-form-field>
+      <mat-form-field subscriptSizing="dynamic">
+        <mat-label>上游广告位名称，ID</mat-label>
+        <input placeholder="搜索" matInput formControlName="searchUpstream" />
+        @if (formGroupQuery.value.searchUpstream.length > 0) {
+          <button type="button" matSuffix mat-icon-button (click)="clear($event, 'searchUpstream', '')">
+            <mat-icon>clear</mat-icon>
+          </button>
+        }
+      </mat-form-field>
+      <mat-form-field subscriptSizing="dynamic">
+        <mat-label>流量主</mat-label>
+        <carambola-filtered-select-vendor formControlName="vendor" [multiple]="true" [options]="vendors" />
+        @if (formGroupQuery.value.vendor && formGroupQuery.value.vendor.length > 0) {
+          <button type="button" matSuffix mat-icon-button (click)="clear($event, 'vendor', [])">
+            <mat-icon>clear</mat-icon>
+          </button>
+        }
+      </mat-form-field>
+      <mat-form-field subscriptSizing="dynamic">
+        <mat-label>下游媒体</mat-label>
+        <carambola-filtered-select-vendormedia formControlName="vendorMedia" [multiple]="true" [options]="vendorMedias" />
+        @if (formGroupQuery.value.vendorMedia && formGroupQuery.value.vendorMedia.length > 0) {
+          <button type="button" matSuffix mat-icon-button (click)="clear($event, 'vendorMedia', [])">
+            <mat-icon>clear</mat-icon>
+          </button>
+        }
+      </mat-form-field>
+      <mat-form-field subscriptSizing="dynamic">
+        <mat-label>下游广告位名称，ID</mat-label>
+        <input placeholder="搜索" matInput formControlName="searchDownstream" />
+        @if (formGroupQuery.value.searchDownstream.length > 0) {
+          <button type="button" matSuffix mat-icon-button (click)="clear($event, 'searchDownstream', '')">
+            <mat-icon>clear</mat-icon>
+          </button>
+        }
+      </mat-form-field>
+    </div>
+  </form>
+  <form class="form-in-header" [formGroup]="range">
+    <div class="full-width-input flex">
+      <button type="button" class="form-button" mat-button>时间颗粒度</button>
+      <mat-button-toggle-group [value]="summaryInterval" (change)="changeSummaryInterval($event)">
+        <mat-button-toggle [value]="'day'">日</mat-button-toggle>
+        <mat-button-toggle [value]="'month'">月</mat-button-toggle>
+        <mat-button-toggle [value]="'year'">年</mat-button-toggle>
+      </mat-button-toggle-group>
+      <mat-form-field subscriptSizing="dynamic">
+        <mat-label>请输入日期范围</mat-label>
+        <mat-date-range-input [rangePicker]="picker">
+          <input matStartDate formControlName="start" placeholder="起始日期">
+          <input matEndDate formControlName="end" placeholder="结束日期">
+        </mat-date-range-input>
+        <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+        <mat-date-range-picker #picker></mat-date-range-picker>
+
+        @if (range.controls['start'].hasError('matStartDateInvalid')) {
+          <mat-error>起始日期无效</mat-error>
+        }
+        @if (range.controls['end'].hasError('matEndDateInvalid')) {
+          <mat-error>结束日期无效</mat-error>
+        }
+      </mat-form-field>
+      <button type="button" class="form-button" mat-button>上游聚合颗粒度</button>
+      <mat-button-toggle-group [value]="summaryAggregateUpstream" (change)="changeSummaryAggregateUpstream($event)">
+        <mat-button-toggle [value]="'all'">全部</mat-button-toggle>
+        <mat-button-toggle [value]="'client'">广告主</mat-button-toggle>
+        <mat-button-toggle [value]="'clientport'">上游广告位</mat-button-toggle>
+      </mat-button-toggle-group>
+      <button type="button" class="form-button" mat-button>下游聚合颗粒度</button>
+      <mat-button-toggle-group [value]="summaryAggregateDownstream" (change)="changeSummaryAggregateDownstream($event)">
+        <mat-button-toggle [value]="'all'">全部</mat-button-toggle>
+        <mat-button-toggle [value]="'vendor'">流量主</mat-button-toggle>
+        <mat-button-toggle [value]="'vendorport'">下游广告位</mat-button-toggle>
+      </mat-button-toggle-group>
+      <form [formGroup]="formGroupColumn">
+        <mat-form-field subscriptSizing="dynamic">
+          <mat-label>显示列</mat-label>
+          <mat-select multiple formControlName="column">
+            @for (key of candidateColumns.keys(); track key) {
+              <mat-option [value]="key">{{ candidateColumns.get(key) }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </form>
+    </div>
+  </form>
+
+  <div class="form-in-header">
+    <div class="full-width-input flex">
+      <mat-icon>control_point</mat-icon>
+      <button type="button" class="form-button" mat-stroked-button (click)="query()">刷新</button>
+      <button type="button" class="form-button" mat-stroked-button (click)="download()"><mat-icon>download</mat-icon>下载综合数据</button>
+      <button type="button" class="form-button" mat-stroked-button (click)="downloadTemplate()"><mat-icon>view_list</mat-icon>下载模版</button>
+      <mat-icon>arrow_circle_up</mat-icon>
+      <button type="button" class="form-button" mat-stroked-button (click)="downloadBill()"><mat-icon>download</mat-icon>下载上游账单</button>
+      <button type="button" class="form-button" mat-stroked-button (click)="fileUpstream.click()"><mat-icon>upload</mat-icon>上传上游账单</button>
+      <input type="file" #fileUpstream accept="*/*" (change)="uploadBill($event.target)" (click)="fileUpstream.value = ''" />
+      <mat-icon>arrow_circle_down</mat-icon>
+      <button type="button" class="form-button" mat-stroked-button (click)="downloadSign()"><mat-icon>download</mat-icon>下载下游账单</button>
+      <button type="button" class="form-button" mat-stroked-button (click)="fileDownstream.click()"><mat-icon>upload</mat-icon>上传下游账单</button>
+      <input type="file" #fileDownstream accept="*/*" (change)="uploadSign($event.target)" (click)="fileDownstream.value = ''" />
+    </div>
+  </div>
+
+  <mat-paginator [hidePageSize]="'false'" [pageSize]="50" [pageSizeOptions]="[10, 30, 50]" [showFirstLastButtons]="'true'"></mat-paginator>
+
+  <div class="table-container" (scroll)="onTableScroll($event)" (scrollEnd)="onTableScroll($event)" #table>
+    <mat-table matSort multiTemplateDataRows [dataSource]="dataSource">
+      <ng-container matColumnDef="time" [sticky]="true">
+        <mat-header-cell class="time" *matHeaderCellDef mat-sort-header>
+          时间
+        </mat-header-cell>
+        <mat-cell class="time" *matCellDef="let row">
+          {{ row.time }}
+        </mat-cell>
+        <mat-footer-cell class="time" *matFooterCellDef>
+        </mat-footer-cell>
+      </ng-container>
+      <ng-container matColumnDef="upstream" [sticky]="true">
+        <mat-header-cell class="partner" *matHeaderCellDef mat-sort-header>
+          上游
+        </mat-header-cell>
+        <mat-cell class="partner" *matCellDef="let row">
+          @if (summaryAggregateUpstream === 'client') {
+            <div class="partner-cover">
+              <carambola-ad-entity type="client" mode="tiny" [client]="clientMap.get(row.client)"></carambola-ad-entity>
+            </div>
+          }
+          @if (summaryAggregateUpstream === 'clientport') {
+            <div class="partner-cover" [cdkContextMenuTriggerFor]="clientPortMenu" [cdkContextMenuTriggerData]="{$implicit: clientPortMap.get(row.clientPort)}">
+              <carambola-ad-entity type="client" mode="tiny" [client]="clientMap.get(row.client)"></carambola-ad-entity>
+              <carambola-ad-entity type="clientPort" mode="tiny" [clientPort]="clientPortMap.get(row.clientPort)"></carambola-ad-entity>
+            </div>
+          }
+        </mat-cell>
+        <mat-footer-cell class="partner" *matFooterCellDef>
+        </mat-footer-cell>
+      </ng-container>
+      <ng-container matColumnDef="downstream" [sticky]="true">
+        <mat-header-cell class="partner" *matHeaderCellDef mat-sort-header>
+          下游
+        </mat-header-cell>
+        <mat-cell class="partner" *matCellDef="let row">
+          @if (summaryAggregateDownstream === 'vendor') {
+            <div class="partner-cover">
+              <carambola-ad-entity type="vendor" mode="tiny" [vendor]="vendorMap.get(row.vendor)"></carambola-ad-entity>
+            </div>
+          }
+          @if (summaryAggregateDownstream === 'vendorport') {
+            <div class="partner-cover" [cdkContextMenuTriggerFor]="vendorPortMenu" [cdkContextMenuTriggerData]="{$implicit: vendorPortMap.get(row.vendorPort)}">
+              <carambola-ad-entity type="vendor" mode="tiny" [vendor]="vendorMap.get(row.vendor)"></carambola-ad-entity>
+              <carambola-ad-entity type="vendorPort" mode="tiny" [vendorPort]="vendorPortMap.get(row.vendorPort)"></carambola-ad-entity>
+            </div>
+          }
+        </mat-cell>
+        <mat-footer-cell class="partner" *matFooterCellDef>
+        </mat-footer-cell>
+      </ng-container>
+      <ng-container matColumnDef="cost">
+        <mat-header-cell class="number" *matHeaderCellDef mat-sort-header>
+          预估收益
+        </mat-header-cell>
+        <mat-cell class="number" *matCellDef="let row">
+          <div class="dual">
+            <div class="upstream">
+              @if (getMediumData(row) !== null && getMediumData(row)?.cost !== null) {
+                {{ getMediumData(row)?.cost! / 100000 | number: '0.2-2' }}
+              } @else {
+                --
+              }
+            </div>
+            @if (mode() === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
+              <div>
+                {{ row.income / 100000 | number: '0.2-2' }}
+              </div>
+            }
+            <div class="downstream">
+              @if (getSignData(row) !== null && getSignData(row)?.cost !== null) {
+                {{ getSignData(row)?.cost! / 100000 | number: '0.2-2' }}
+              } @else {
+                --
+              }
+            </div>
+            <div>
+              @if (row.income !== null && row.income !== 0 && getMediumData(row) !== null && getMediumData(row)?.cost !== null) {
+                <div class="gap">
+                  <div [class.less]="getMediumData(row)?.cost! < row.income" [class.greater]="getMediumData(row)?.cost! > row.income">
+                    {{
+                      (getMediumData(row)?.cost! > row.income ? '+' : '')
+                      +
+                      ((getMediumData(row)?.cost! - row.income) / row.income | percent: '0.2-2')
+                    }}
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </mat-cell>
+        <mat-footer-cell class="number" *matFooterCellDef>
+          <div class="dual">
+            <div class="upstream">
+              {{ mediumViewTotal.income / 100000 | number: '0.2-2' }}
+            </div>
+            @if (mode() === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
+              <div>
+                {{ performanceViewTotal.income / 100000 | number: '0.2-2' }}
+              </div>
+            }
+            <div class="downstream">
+              {{ signViewTotal.outcomeDownstream / 100000 | number: '0.2-2' }}
+            </div>
+          </div>
+        </mat-footer-cell>
+      </ng-container>
+      <ng-container matColumnDef="impression">
+        <mat-header-cell class="number" *matHeaderCellDef mat-sort-header>
+          展现
+        </mat-header-cell>
+        <mat-cell class="number" *matCellDef="let row">
+          <div class="dual">
+            <div class="upstream">
+              @if (getMediumData(row) !== null && getMediumData(row)?.impression !== null) {
+                {{ getMediumData(row)?.impression! | number }}
+              } @else {
+                --
+              }
+            </div>
+            @if (mode() === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
+              <div>
+                {{ row.impression | number }}
+              </div>
+            }
+            <div class="downstream">
+              @if (getSignData(row) !== null && getSignData(row)?.impression !== null) {
+                {{ getSignData(row)?.impression! | number }}
+              } @else {
+                --
+              }
+            </div>
+            <div>
+              @if (row.impression !== null && row.impression !== 0 && getMediumData(row) !== null && getMediumData(row)?.impression !== null) {
+                <div class="gap">
+                  <div [class.less]="getMediumData(row)?.impression! < row.impression" [class.greater]="getMediumData(row)?.impression! > row.impression">
+                    {{
+                      (getMediumData(row)?.impression! > row.impression ? '+' : '')
+                      +
+                      ((getMediumData(row)?.impression! - row.impression) / row.impression | percent: '0.2-2')
+                    }}
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </mat-cell>
+        <mat-footer-cell class="number" *matFooterCellDef>
+          <div class="dual">
+            <div class="upstream">
+              {{ mediumViewTotal.impression | number }}
+            </div>
+            @if (mode() === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
+              <div>
+                {{ performanceViewTotal.impression | number }}
+              </div>
+            }
+            <div class="downstream">
+              {{ signViewTotal.impression | number }}
+            </div>
+          </div>
+        </mat-footer-cell>
+      </ng-container>
+      <ng-container matColumnDef="click">
+        <mat-header-cell class="number" *matHeaderCellDef mat-sort-header>
+          点击
+        </mat-header-cell>
+        <mat-cell class="number" *matCellDef="let row">
+          <div class="dual">
+            <div class="upstream">
+              @if (getMediumData(row) !== null && getMediumData(row)?.click !== null) {
+                {{ getMediumData(row)?.click! | number }}
+              } @else {
+                --
+              }
+            </div>
+            @if (mode() === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
+              <div>
+                {{ row.click | number }}
+              </div>
+            }
+            <div class="downstream">
+              @if (getSignData(row) !== null && getSignData(row)?.click !== null) {
+                {{ getSignData(row)?.click! | number }}
+              } @else {
+                --
+              }
+            </div>
+            <div>
+              @if (row.click !== null && row.click !== 0 && getMediumData(row) !== null && getMediumData(row)?.click !== null) {
+                <div class="gap">
+                  <div [class.less]="getMediumData(row)?.click! < row.click" [class.greater]="getMediumData(row)?.click! > row.click">
+                    {{
+                      (getMediumData(row)?.click! > row.click ? '+' : '')
+                      +
+                      ((getMediumData(row)?.click! - row.click) / row.click | percent: '0.2-2')
+                    }}
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </mat-cell>
+        <mat-footer-cell class="number" *matFooterCellDef>
+          <div class="dual">
+            <div class="upstream">
+              {{ mediumViewTotal.click | number }}
+            </div>
+            @if (mode() === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
+              <div>
+                {{ performanceViewTotal.click | number }}
+              </div>
+            }
+            <div class="downstream">
+              {{ signViewTotal.click | number }}
+            </div>
+          </div>
+        </mat-footer-cell>
+      </ng-container>
+      <ng-container matColumnDef="ctr">
+        <mat-header-cell class="number" *matHeaderCellDef mat-sort-header>
+          点击率
+        </mat-header-cell>
+        <mat-cell class="number" *matCellDef="let row">
+          <div class="dual">
+            <div class="upstream">
+              @if (getMediumData(row) !== null && getMediumData(row)?.impression !== null && getMediumData(row)?.click !== null) {
+                {{ getMediumData(row)?.impression !== 0 ? (getMediumData(row)?.click! / getMediumData(row)?.impression! | percent: '0.2-2') : '-' }}
+              } @else {
+                --
+              }
+            </div>
+            @if (mode() === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
+              <div>
+                {{ row.impression ? (row.click / row.impression | percent: '0.2-2') : '-' }}
+              </div>
+            }
+            <div class="downstream">
+              @if (getSignData(row) !== null && getSignData(row)?.impression !== null && getSignData(row)?.click !== null) {
+                {{ getSignData(row)?.impression !== 0 ? (getSignData(row)?.click! / getSignData(row)?.impression! | percent: '0.2-2') : '-' }}
+              } @else {
+                --
+              }
+            </div>
+          </div>
+        </mat-cell>
+        <mat-footer-cell class="number" *matFooterCellDef>
+          <div class="dual">
+            <div class="upstream">
+              {{ mediumViewTotal.impression ? (mediumViewTotal.click / mediumViewTotal.impression | percent: '0.2-2') : '-' }}
+            </div>
+            @if (mode() === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
+              <div>
+                {{ performanceViewTotal.impression ? (performanceViewTotal.click / performanceViewTotal.impression | percent: '0.2-2') : '-' }}
+              </div>
+            }
+            <div class="downstream">
+              {{ signViewTotal.impression ? (signViewTotal.click / signViewTotal.impression | percent: '0.2-2') : '-' }}
+            </div>
+          </div>
+        </mat-footer-cell>
+      </ng-container>
+      <ng-container matColumnDef="ecpm">
+        <mat-header-cell class="number" *matHeaderCellDef mat-sort-header>
+          eCPM
+        </mat-header-cell>
+        <mat-cell class="number" *matCellDef="let row">
+          <div class="dual">
+            <div class="upstream">
+              @if (getMediumData(row) !== null && getMediumData(row)?.impression !== null && getMediumData(row)?.cost !== null) {
+                {{ getMediumData(row)?.impression !== 0 ? (getMediumData(row)?.cost! / 100 / getMediumData(row)?.impression! | number: '0.2-2') : '-' }}
+              } @else {
+                --
+              }
+            </div>
+            @if (mode() === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
+              <div>
+                {{ row.impression ? (row.income / 100 / row.impression | number: '0.2-2') : '-' }}
+              </div>
+            }
+            <div class="downstream">
+              @if (getSignData(row) !== null && getSignData(row)?.impression !== null && getSignData(row)?.cost !== null) {
+                {{ getSignData(row)?.impression !== 0 ? (getSignData(row)?.cost! / 100 / getSignData(row)?.impression! | number: '0.2-2') : '-' }}
+              } @else {
+                --
+              }
+            </div>
+          </div>
+        </mat-cell>
+        <mat-footer-cell class="number" *matFooterCellDef>
+          <div class="dual">
+            <div class="upstream">
+              {{ mediumViewTotal.impression ? (mediumViewTotal.income / 100 / mediumViewTotal.impression | number: '0.2-2') : '-' }}
+            </div>
+            @if (mode() === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
+              <div>
+                {{ performanceViewTotal.impression ? (performanceViewTotal.income / 100 / performanceViewTotal.impression | number: '0.2-2') : '-' }}
+              </div>
+            }
+            <div class="downstream">
+              {{ signViewTotal.impression ? (signViewTotal.outcomeDownstream / 100 / signViewTotal.impression | number: '0.2-2') : '-' }}
+            </div>
+          </div>
+        </mat-footer-cell>
+      </ng-container>
+      <ng-container matColumnDef="request">
+        <mat-header-cell class="number" *matHeaderCellDef mat-sort-header>
+          请求
+        </mat-header-cell>
+        <mat-cell class="number" *matCellDef="let row">
+          <div class="dual">
+            <div class="upstream">
+              @if (getMediumData(row) !== null && getMediumData(row)?.request !== null) {
+                {{ getMediumData(row)?.request! | number }}
+              } @else {
+                --
+              }
+            </div>
+            @if (mode() === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
+              <div>
+                {{ row.request | number }}
+              </div>
+            }
+            <div class="downstream">
+              @if (getSignData(row) !== null && getSignData(row)?.request !== null) {
+                {{ getSignData(row)?.request! | number }}
+              } @else {
+                --
+              }
+            </div>
+            <div>
+              @if (row.request !== null && row.request !== 0 && getMediumData(row) !== null && getMediumData(row)?.request !== null) {
+                <div class="gap">
+                  <div [class.less]="getMediumData(row)?.request! < row.request" [class.greater]="getMediumData(row)?.request! > row.request">
+                    {{
+                      (getMediumData(row)?.request! > row.request ? '+' : '')
+                      +
+                      ((getMediumData(row)?.request! - row.request) / row.request | percent: '0.2-2')
+                    }}
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </mat-cell>
+        <mat-footer-cell class="number" *matFooterCellDef>
+          <div class="dual">
+            <div class="upstream">
+              {{ mediumViewTotal.request | number }}
+            </div>
+            @if (mode() === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
+              <div>
+                {{ performanceViewTotal.request | number }}
+              </div>
+            }
+            <div class="downstream">
+              {{ signViewTotal.request | number }}
+            </div>
+          </div>
+        </mat-footer-cell>
+      </ng-container>
+      <ng-container matColumnDef="response">
+        <mat-header-cell class="number" *matHeaderCellDef mat-sort-header>
+          响应
+        </mat-header-cell>
+        <mat-cell class="number" *matCellDef="let row">
+          <div class="dual">
+            <div class="upstream">
+              @if (getMediumData(row) !== null && getMediumData(row)?.response !== null) {
+                {{ getMediumData(row)?.response! | number }}
+              } @else {
+                --
+              }
+            </div>
+            @if (mode() === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
+              <div>
+                {{ row.response | number }}
+              </div>
+            }
+            <div class="downstream">
+              @if (getSignData(row) !== null && getSignData(row)?.response !== null) {
+                {{ getSignData(row)?.response! | number }}
+              } @else {
+                --
+              }
+            </div>
+            <div>
+              @if (row.response !== null && row.response !== 0 && getMediumData(row) !== null && getMediumData(row)?.response !== null) {
+                <div class="gap">
+                  <div [class.less]="getMediumData(row)?.response! < row.response" [class.greater]="getMediumData(row)?.response! > row.response">
+                    {{
+                      (getMediumData(row)?.response! > row.response ? '+' : '')
+                      +
+                      ((getMediumData(row)?.response! - row.response) / row.response | percent: '0.2-2')
+                    }}
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </mat-cell>
+        <mat-footer-cell class="number" *matFooterCellDef>
+          <div class="dual">
+            <div class="upstream">
+              {{ mediumViewTotal.response | number }}
+            </div>
+            @if (mode() === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
+              <div>
+                {{ performanceViewTotal.response | number }}
+              </div>
+            }
+            <div class="downstream">
+              {{ signViewTotal.response | number }}
+            </div>
+          </div>
+        </mat-footer-cell>
+      </ng-container>
+      <ng-container matColumnDef="gfr">
+        <mat-header-cell class="number" *matHeaderCellDef mat-sort-header>
+          填充率
+        </mat-header-cell>
+        <mat-cell class="number" *matCellDef="let row">
+          <div class="dual">
+            <div class="upstream">
+              @if (getMediumData(row) !== null && getMediumData(row)?.request !== null && getMediumData(row)?.response !== null) {
+                {{ getMediumData(row)?.request !== 0 ? (getMediumData(row)?.response! / getMediumData(row)?.request! | percent: '0.2-2') : '-' }}
+              } @else {
+                --
+              }
+            </div>
+            @if (mode() === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
+              <div>
+                {{ row.requestv ? (row.response / row.requestv | percent: '0.2-2') : '-' }}
+              </div>
+            }
+            <div class="downstream">
+              @if (getSignData(row) !== null && getSignData(row)?.request !== null && getSignData(row)?.response !== null) {
+                {{ getSignData(row)?.request !== 0 ? (getSignData(row)?.response! / getSignData(row)?.request! | percent: '0.2-2') : '-' }}
+              } @else {
+                --
+              }
+            </div>
+          </div>
+        </mat-cell>
+        <mat-footer-cell class="number" *matFooterCellDef>
+          <div class="dual">
+            <div class="upstream">
+              {{ mediumViewTotal.request ? (mediumViewTotal.response / mediumViewTotal.request | percent: '0.2-2') : '-' }}
+            </div>
+            @if (mode() === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
+              <div>
+                {{ performanceViewTotal.request ? (performanceViewTotal.response / performanceViewTotal.request | percent: '0.2-2') : '-' }}
+              </div>
+            }
+            <div class="downstream">
+              {{ signViewTotal.request ? (signViewTotal.response / signViewTotal.request | percent: '0.2-2') : '-' }}
+            </div>
+          </div>
+        </mat-footer-cell>
+      </ng-container>
+      <ng-container matColumnDef="gfrv">
+        <mat-header-cell class="number" *matHeaderCellDef mat-sort-header>
+          有效填充率
+        </mat-header-cell>
+        <mat-cell class="number" *matCellDef="let row">
+          <div class="dual">
+            <div class="upstream">
+              @if (getMediumData(row) !== null && getMediumData(row)?.request !== null && getMediumData(row)?.response !== null) {
+                {{ getMediumData(row)?.request !== 0 ? (getMediumData(row)?.response! / getMediumData(row)?.request! | percent: '0.2-2') : '-' }}
+              } @else {
+                --
+              }
+            </div>
+            @if (mode() === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
+              <div>
+                {{ row.requestv ? (row.responsev / row.requestv | percent: '0.2-2') : '-' }}
+              </div>
+            }
+            <div class="downstream">
+              @if (getSignData(row) !== null && getSignData(row)?.request !== null && getSignData(row)?.response !== null) {
+                {{ getSignData(row)?.request !== 0 ? (getSignData(row)?.response! / getSignData(row)?.request! | percent: '0.2-2') : '-' }}
+              } @else {
+                --
+              }
+            </div>
+          </div>
+        </mat-cell>
+        <mat-footer-cell class="number" *matFooterCellDef>
+          <div class="dual">
+            <div class="upstream">
+              {{ mediumViewTotal.request ? (mediumViewTotal.response / mediumViewTotal.request | percent: '0.2-2') : '-' }}
+            </div>
+            @if (mode() === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
+              <div>
+                {{ performanceViewTotal.request ? (performanceViewTotal.response / performanceViewTotal.request | percent: '0.2-2') : '-' }}
+              </div>
+            }
+            <div class="downstream">
+              {{ signViewTotal.request ? (signViewTotal.response / signViewTotal.request | percent: '0.2-2') : '-' }}
+            </div>
+          </div>
+        </mat-footer-cell>
+      </ng-container>
+      <ng-container matColumnDef="er">
+        <mat-header-cell class="number" *matHeaderCellDef mat-sort-header>
+          展现率
+        </mat-header-cell>
+        <mat-cell class="number" *matCellDef="let row">
+          <div class="dual">
+            <div class="upstream">
+              @if (getMediumData(row) !== null && getMediumData(row)?.response !== null && getMediumData(row)?.impression !== null) {
+                {{ getMediumData(row)?.response !== 0 ? (getMediumData(row)?.impression! / getMediumData(row)?.response! | percent: '0.2-2') : '-' }}
+              } @else {
+                --
+              }
+            </div>
+            @if (mode() === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
+              <div>
+                {{ row.response ? (row.impression / row.response | percent: '0.2-2') : '-' }}
+              </div>
+            }
+            <div class="downstream">
+              @if (getSignData(row) !== null && getSignData(row)?.response !== null && getSignData(row)?.impression !== null) {
+                {{ getSignData(row)?.response !== 0 ? (getSignData(row)?.impression! / getSignData(row)?.response! | percent: '0.2-2') : '-' }}
+              } @else {
+                --
+              }
+            </div>
+          </div>
+        </mat-cell>
+        <mat-footer-cell class="number" *matFooterCellDef>
+          <div class="dual">
+            <div class="upstream">
+              {{ mediumViewTotal.response ? (mediumViewTotal.impression / mediumViewTotal.response | percent: '0.2-2') : '-' }}
+            </div>
+            @if (mode() === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
+              <div>
+                {{ performanceViewTotal.response ? (performanceViewTotal.impression / performanceViewTotal.response | percent: '0.2-2') : '-' }}
+              </div>
+            }
+            <div class="downstream">
+              {{ signViewTotal.response ? (signViewTotal.impression / signViewTotal.response | percent: '0.2-2') : '-' }}
+            </div>
+          </div>
+        </mat-footer-cell>
+      </ng-container>
+      <ng-container matColumnDef="rv">
+        <mat-header-cell class="number" *matHeaderCellDef mat-sort-header>
+          请求价值
+        </mat-header-cell>
+        <mat-cell class="number" *matCellDef="let row">
+          <div class="dual">
+            <div class="upstream">
+              @if (getMediumData(row) !== null && getMediumData(row)?.request !== null && getMediumData(row)?.cost !== null) {
+                {{ getMediumData(row)?.request !== 0 ? (getMediumData(row)?.cost! / getMediumData(row)?.request! / 10 | number: '0.2-2') : '-' }}
+              } @else {
+                --
+              }
+            </div>
+            @if (mode() === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
+              <div>
+                {{ row.requestv && row.income !== null ? (row.income / row.requestv / 10 | number: '0.2-2') : '-' }}
+              </div>
+            }
+            <div class="downstream">
+              @if (getSignData(row) !== null && getSignData(row)?.request !== null && getSignData(row)?.cost !== null) {
+                {{ getSignData(row)?.request !== 0 ? (getSignData(row)?.cost! / getSignData(row)?.request! / 10 | number: '0.2-2') : '-' }}
+              } @else {
+                --
+              }
+            </div>
+          </div>
+        </mat-cell>
+        <mat-footer-cell class="number" *matFooterCellDef>
+          <div class="dual">
+            <div class="upstream">
+              {{ mediumViewTotal.request ? (mediumViewTotal.income / mediumViewTotal.request / 10 | number: '0.2-2') : '-' }}
+            </div>
+            @if (mode() === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
+              <div>
+                {{ performanceViewTotal.request ? (performanceViewTotal.income / performanceViewTotal.request / 10 | number: '0.2-2') : '-' }}
+              </div>
+            }
+            <div class="downstream">
+              {{ signViewTotal.request ? (signViewTotal.outcomeDownstream / signViewTotal.request / 10 | number: '0.2-2') : '-' }}
+            </div>
+          </div>
+        </mat-footer-cell>
+      </ng-container>
+      <ng-container matColumnDef="profit">
+        <mat-header-cell class="number" *matHeaderCellDef mat-sort-header>
+          利润
+        </mat-header-cell>
+        <mat-cell class="number" *matCellDef="let row">
+          <div class="dual">
+            @if (mode() === PartnerType.PARTNER_TYPE_DIRECT) {
+              <div class="estimated">
+                @if (getMediumData(row) !== null && getMediumData(row)?.cost !== null && getSignData(row) !== null && getSignData(row)?.cost) {
+                  {{ (getMediumData(row)?.cost! - getSignData(row)?.cost!) / 100000 | number: '0.2-2' }}
+                }
+              </div>
+            }
+            @if (mode() === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
+              <div class="estimated">
+                {{ (row.income - row.outcomeUpstream - row.outcomeRebate - row.outcomeDownstream) / 100000 | number: '0.2-2' }}
+              </div>
+              <div class="achieved">
+                @if (getMediumData(row) !== null && getMediumData(row)?.cost !== null && getSignData(row) !== null && getSignData(row)?.cost) {
+                  {{ ((getMediumData(row)?.cost! - getSignData(row)?.cost!) / 100000 | number: '0.2-2') }}<span class="greater"> ✔</span>
+                }
+              </div>
+            }
+          </div>
+        </mat-cell>
+        <mat-footer-cell class="number" *matFooterCellDef>
+          @if (mode() === PartnerType.PARTNER_TYPE_DIRECT) {
+            <div class="estimated">
+              {{ (mediumViewTotal.income - signViewTotal.outcomeDownstream) / 100000 | number: '0.2-2' }}
+            </div>
+          }
+          @if (mode() === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
+            <div class="dual">
+              <div class="estimated">
+                {{ (performanceViewTotal.income - performanceViewTotal.outcomeUpstream - performanceViewTotal.outcomeRebate - performanceViewTotal.outcomeDownstream) / 100000 | number: '0.2-2' }}
+              </div>
+              <div class="achieved">
+                {{ ((mediumViewTotal.income - signViewTotal.outcomeDownstream) / 100000 | number: '0.2-2') }}<span class="greater"> ✔</span>
+              </div>
+            </div>
+          }
+        </mat-footer-cell>
+      </ng-container>
+
+      <mat-header-row *matHeaderRowDef="displayedColumns; sticky: true" [ngStyle]="{'min-width': displayedColumnsWidth + 'px'}"></mat-header-row>
+      <mat-row *matRowDef="let row; columns: displayedColumns" class="element-row" [ngStyle]="{'min-width': displayedColumnsWidth + 'px'}"></mat-row>
+      <mat-footer-row *matFooterRowDef="displayedColumns; sticky: true" [ngStyle]="{'min-width': displayedColumnsWidth + 'px'}"></mat-footer-row>
+    </mat-table>
+  </div>
+</div>
+
+<ng-template #clientPortMenu let-clientPort>
+  <div class="port-menu" cdkMenu>
+    <mat-card>
+      <mat-card-content>
+        <button mat-icon-button cdkMenuItem (click)="popupClientPort(clientPort, 'connection')">
+          <mat-icon>cable</mat-icon>
+        </button>
+        <button mat-icon-button cdkMenuItem (click)="popupClientPort(clientPort, 'property')">
+          <mat-icon>settings</mat-icon>
+        </button>
+        <button mat-icon-button cdkMenuItem (click)="popupClientPort(clientPort, 'traffic')">
+          <mat-icon>trending_up</mat-icon>
+        </button>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</ng-template>
+<ng-template #vendorPortMenu let-vendorPort>
+  <div class="port-menu" cdkMenu>
+    <mat-card>
+      <mat-card-content>
+        <button mat-icon-button cdkMenuItem (click)="popupVendorPort(vendorPort, 'connection')">
+          <mat-icon>cable</mat-icon>
+        </button>
+        <button mat-icon-button cdkMenuItem (click)="popupVendorPort(vendorPort, 'property')">
+          <mat-icon>settings</mat-icon>
+        </button>
+        <button mat-icon-button cdkMenuItem (click)="popupVendorPort(vendorPort, 'traffic')">
+          <mat-icon>trending_up</mat-icon>
+        </button>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</ng-template>

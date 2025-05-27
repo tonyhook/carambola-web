@@ -142,4 +142,21 @@ export class BillAPI {
     return this.http.get(environment.apipath + '/api/managed/sign/download', { params: params, responseType: 'blob', withCredentials: true });
   }
 
+  downloadSummary(interval: string, aggregateUpstream: string, aggregateDownstream: string, start: string, end: string, queryUpstream?: Query<PerformancePlaceholder>, queryDownstream?: Query<PerformancePlaceholder>): Observable<Blob> {
+    let params = new HttpParams()
+      .set('interval', interval)
+      .set('aggregateUpstream', aggregateUpstream)
+      .set('aggregateDownstream', aggregateDownstream)
+      .set('start', start)
+      .set('end', end);
+    if (queryUpstream) {
+      params = params.append('queryUpstream', JSON.stringify(queryUpstream));
+    }
+    if (queryDownstream) {
+      params = params.append('queryDownstream', JSON.stringify(queryDownstream));
+    }
+
+    return this.http.get(environment.apipath + '/api/managed/summary/download', { params: params, responseType: 'blob', withCredentials: true });
+  }
+
 }
