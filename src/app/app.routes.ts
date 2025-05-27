@@ -27,6 +27,7 @@ import { PerformanceComponent } from './components/management/ad/performance/per
 import { BillComponent } from './components/management/ad/bill/bill.component';
 import { SignComponent } from './components/management/ad/sign/sign.component';
 import { SummaryComponent } from './components/management/ad/summary/summary.component';
+import { EncryptComponent } from './components/open/encrypt/encrypt.component';
 import { UpstreamObserverComponent } from './components/management/ad/upstream-observer/upstream-observer.component';
 import { DownstreamManagerComponent } from './components/management/ad/downstream-manager/downstream-manager.component';
 
@@ -139,6 +140,10 @@ export const routes: Routes = [
         redirectTo: '',
       },
     ],
+  },
+  {
+    path: 'encrypt',
+    component: EncryptComponent,
   },
   {
     path: '',
