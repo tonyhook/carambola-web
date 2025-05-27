@@ -1,0 +1,83 @@
+<mat-tab-group class="tab-in-card">
+  <mat-tab label="加密测试">
+    <form class="form-in-tab" [formGroup]="formGroupEncrypt">
+      <mat-form-field class="full-width-input">
+        <mat-label>Encryption Key</mat-label>
+        <input placeholder="Encryption Key" matInput formControlName="ekey" />
+      </mat-form-field>
+      <mat-form-field class="full-width-input">
+        <mat-label>Integrity Key</mat-label>
+        <input placeholder="Integrity Key" matInput formControlName="ikey" />
+      </mat-form-field>
+      <mat-form-field class="full-width-input">
+        <mat-label>IV</mat-label>
+        <input placeholder="iv" matInput formControlName="iv" />
+      </mat-form-field>
+      <mat-form-field class="full-width-input">
+        <mat-label>Price</mat-label>
+        <input placeholder="Price" matInput formControlName="price" />
+      </mat-form-field>
+      <button type="button" class="form-button" mat-stroked-button color="accent" (click)="encrypt()">提交</button>
+    </form>
+
+    <mat-card>
+      <mat-card-content>
+        <p>ekey: {{ buf2hex(encrypt_ekey) }}</p>
+        <p>ikey: {{ buf2hex(encrypt_ikey) }}</p>
+        <p>iv: {{ buf2hex(encrypt_iv) }}</p>
+        <p>price: {{ buf2hex(encrypt_price) }}</p>
+        <p>pad: {{ buf2hex(encrypt_pad) }}</p>
+        <p>enc_price: {{ buf2hex(encrypt_enc_price) }}</p>
+        <p>signature: {{ buf2hex(encrypt_signature) }}</p>
+        <p>message: {{ buf2hex(encrypt_message) }}</p>
+        <p>final: {{ encrypt_final_message }}</p>
+      </mat-card-content>
+    </mat-card>
+  </mat-tab>
+  <mat-tab label="解密测试">
+    <form class="form-in-tab" [formGroup]="formGroupDecrypt">
+      <mat-form-field class="full-width-input">
+        <mat-label>Encryption Key</mat-label>
+        <input placeholder="Encryption Key" matInput formControlName="ekey" />
+      </mat-form-field>
+      <mat-form-field class="full-width-input">
+        <mat-label>Integrity Key</mat-label>
+        <input placeholder="Integrity Key" matInput formControlName="ikey" />
+      </mat-form-field>
+      <mat-form-field class="full-width-input">
+        <mat-label>message</mat-label>
+        <input placeholder="Message" matInput formControlName="message" />
+      </mat-form-field>
+      <button type="button" class="form-button" mat-stroked-button color="accent" (click)="decrypt()">提交</button>
+    </form>
+
+    <mat-card>
+      <mat-card-content>
+        <p>ekey: {{ buf2hex(decrypt_ekey) }}</p>
+        <p>ikey: {{ buf2hex(decrypt_ikey) }}</p>
+        <p>message: {{ buf2hex(decrypt_message) }}</p>
+        <p>iv: {{ buf2hex(decrypt_iv) }}</p>
+        <p>enc_price: {{ buf2hex(decrypt_enc_price) }}</p>
+        <p>signature: {{ buf2hex(decrypt_signature) }}</p>
+        <p>pad: {{ buf2hex(decrypt_pad) }}</p>
+        <p>price: {{ buf2hex(decrypt_price) }}</p>
+        <p>final: {{ decrypt_final_price }}</p>
+      </mat-card-content>
+    </mat-card>
+  </mat-tab>
+  <mat-tab label="Rust示例">
+    <pre>
+      <code [innerHTML]="rustCode"></code>
+    </pre>
+  </mat-tab>
+  <mat-tab label="Java示例">
+    <pre>
+      <code [innerHTML]="javaCode"></code>
+    </pre>
+  </mat-tab>
+  <mat-tab label="TypeScript示例">
+    <pre>
+      <code [innerHTML]="tsCode"></code>
+    </pre>
+  </mat-tab>
+</mat-tab-group>
