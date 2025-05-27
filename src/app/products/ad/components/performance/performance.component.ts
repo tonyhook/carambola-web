@@ -138,7 +138,9 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
     clientPort: 0,
     vendorPort: 0,
     request: 0,
+    requestv: 0,
     response: 0,
+    responsev: 0,
     impression: 0,
     click: 0,
     income: 0,
@@ -232,7 +234,9 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
         clientPort: 0,
         vendorPort: 0,
         request: 0,
+        requestv: 0,
         response: 0,
+        responsev: 0,
         impression: 0,
         click: 0,
         income: 0,
@@ -301,8 +305,11 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
 
         this.candidateColumns = new Map([]);
         this.candidateColumns.set('request', '请求');
+        this.candidateColumns.set('request-valid', '有效请求');
         this.candidateColumns.set('response', '响应');
+        this.candidateColumns.set('response-valid', '有效响应');
         this.candidateColumns.set('gfr', '填充率');
+        this.candidateColumns.set('gfrv', '有效填充率');
         this.candidateColumns.set('impression', '展现');
         this.candidateColumns.set('click', '点击');
         this.candidateColumns.set('er', '展现率');
@@ -827,7 +834,9 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
       clientPort: 0,
       vendorPort: 0,
       request: 0,
+      requestv: 0,
       response: 0,
+      responsev: 0,
       impression: 0,
       click: 0,
       income: 0,
@@ -912,7 +921,9 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
           vendorPort: this.performanceAggregateDownstream === 'vendorport' ? performance.vendorPort : 0,
 
           request: 0,
+          requestv: 0,
           response: 0,
+          responsev: 0,
           impression: 0,
           click: 0,
           income: 0,
@@ -937,14 +948,22 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
           performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE +
           performance.eventF + performance.eventG + performance.eventH + performance.eventK + performance.eventL +
           performance.eventM;
+        performanceView.requestv +=
+          performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventK;
         performanceView.response +=
           performance.eventD + performance.eventE + performance.eventK;
+        performanceView.responsev +=
+          performance.eventD + performance.eventE;
       }
       if (this.direction() === 'vendor') {
         performanceView.request +=
           performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE +
           performance.eventF + performance.eventG + performance.eventH + performance.eventI + performance.eventJ;
+        performanceView.requestv +=
+          performance.eventH + performance.eventI + performance.eventJ;
         performanceView.response +=
+          performance.eventI + performance.eventJ;
+        performanceView.responsev +=
           performance.eventI + performance.eventJ;
       }
       performanceView.impression += performance.impression;
@@ -959,14 +978,22 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
           performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE +
           performance.eventF + performance.eventG + performance.eventH + performance.eventK + performance.eventL +
           performance.eventM;
+        this.performanceViewTotal.requestv +=
+          performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventK;
         this.performanceViewTotal.response +=
           performance.eventD + performance.eventE + performance.eventK;
+        this.performanceViewTotal.responsev +=
+          performance.eventD + performance.eventE;
       }
       if (this.direction() === 'vendor') {
         this.performanceViewTotal.request +=
           performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE +
           performance.eventF + performance.eventG + performance.eventH + performance.eventI + performance.eventJ;
+        this.performanceViewTotal.requestv +=
+          performance.eventH + performance.eventI + performance.eventJ;
         this.performanceViewTotal.response +=
+          performance.eventI + performance.eventJ;
+        this.performanceViewTotal.responsev +=
           performance.eventI + performance.eventJ;
       }
       this.performanceViewTotal.impression += performance.impression;
@@ -1022,7 +1049,9 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
         vendorMedia: 0,
         vendorPort: 0,
         request: 0,
+        requestv: 0,
         response: 0,
+        responsev: 0,
         impression: 0,
         click: 0,
         income: 0,
@@ -1044,10 +1073,13 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
     this.dataSource.paginator = this.paginator;
     this.dataSource.sortingDataAccessor = (item, property) => {
       switch (property) {
-        case 'gfr': return item.request ? (1.0 * (item.response ?? 0) / item.request) : -1;
+        case 'request-valid': return item.requestv ?? -1;
+        case 'response-valid': return item.responsev ?? -1;
+        case 'gfr': return item.requestv ? (1.0 * (item.response ?? 0) / item.requestv) : -1;
+        case 'gfrv': return item.requestv ? (1.0 * (item.responsev ?? 0) / item.requestv) : -1;
         case 'er': return item.response ? (1.0 * (item.impression ?? 0) / item.response) : -1;
         case 'ctr': return item.impression ? (1.0 * (item.click ?? 0) / item.impression) : -1;
-        case 'rv': return item.request ? (1.0 * (item.income ?? 0) / item.request / 10) : -1;
+        case 'rv': return item.requestv ? (1.0 * (item.income ?? 0) / item.requestv / 10) : -1;
         case 'outcome': return item.outcomeUpstream + item.outcomeRebate + item.outcomeDownstream;
         case 'profit': return item.income - (item.outcomeUpstream + item.outcomeRebate + item.outcomeDownstream);
         case 'cpmu': return item.impression ? (1.0 * (item.income ?? 0) / 100 / item.impression) : -1;
@@ -1140,7 +1172,9 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
             : 0,
           vendorPort: this.performanceAggregateDownstream === 'vendorport' ? performance.vendorPort : 0,
           request: 0,
+          requestv: 0,
           response: 0,
+          responsev: 0,
           impression: 0,
           click: 0,
           income: 0,
@@ -1158,8 +1192,12 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
         performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE +
         performance.eventF + performance.eventG + performance.eventH + performance.eventK + performance.eventL +
         performance.eventM;
+      performanceView.requestv +=
+        performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventK;
       performanceView.response +=
         performance.eventD + performance.eventE + performance.eventK;
+      performanceView.responsev +=
+        performance.eventD + performance.eventE;
       performanceView.impression += performance.impression;
       performanceView.click += performance.click;
       performanceView.income += performance.income;
