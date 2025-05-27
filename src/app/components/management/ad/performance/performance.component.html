@@ -333,6 +333,17 @@
           {{ performanceViewTotal.request | number }}
         </mat-footer-cell>
       </ng-container>
+      <ng-container matColumnDef="request-valid">
+        <mat-header-cell class="number" *matHeaderCellDef mat-sort-header>
+          有效请求
+        </mat-header-cell>
+        <mat-cell class="number" *matCellDef="let row">
+          {{ row.requestv | number }}
+        </mat-cell>
+        <mat-footer-cell class="number" *matFooterCellDef>
+          {{ performanceViewTotal.requestv | number }}
+        </mat-footer-cell>
+      </ng-container>
       <ng-container matColumnDef="response">
         <mat-header-cell class="number" *matHeaderCellDef mat-sort-header>
           响应
@@ -344,15 +355,37 @@
           {{ performanceViewTotal.response | number }}
         </mat-footer-cell>
       </ng-container>
+      <ng-container matColumnDef="response-valid">
+        <mat-header-cell class="number" *matHeaderCellDef mat-sort-header>
+          有效响应
+        </mat-header-cell>
+        <mat-cell class="number" *matCellDef="let row">
+          {{ row.responsev | number }}
+        </mat-cell>
+        <mat-footer-cell class="number" *matFooterCellDef>
+          {{ performanceViewTotal.responsev | number }}
+        </mat-footer-cell>
+      </ng-container>
       <ng-container matColumnDef="gfr">
         <mat-header-cell class="number" *matHeaderCellDef mat-sort-header>
           填充率
         </mat-header-cell>
         <mat-cell class="number" *matCellDef="let row">
-          {{ row.request ? (row.response / row.request | percent: '0.2-2') : '-' }}
+          {{ row.requestv ? (row.response / row.requestv | percent: '0.2-2') : '-' }}
         </mat-cell>
         <mat-footer-cell class="number" *matFooterCellDef>
-          {{ performanceViewTotal.request ? (performanceViewTotal.response / performanceViewTotal.request | percent: '0.2-2') : '-' }}
+          {{ performanceViewTotal.requestv ? (performanceViewTotal.response / performanceViewTotal.requestv | percent: '0.2-2') : '-' }}
+        </mat-footer-cell>
+      </ng-container>
+      <ng-container matColumnDef="gfrv">
+        <mat-header-cell class="number" *matHeaderCellDef mat-sort-header>
+          有效填充率
+        </mat-header-cell>
+        <mat-cell class="number" *matCellDef="let row">
+          {{ row.requestv ? (row.responsev / row.requestv | percent: '0.2-2') : '-' }}
+        </mat-cell>
+        <mat-footer-cell class="number" *matFooterCellDef>
+          {{ performanceViewTotal.requestv ? (performanceViewTotal.responsev / performanceViewTotal.requestv | percent: '0.2-2') : '-' }}
         </mat-footer-cell>
       </ng-container>
       <ng-container matColumnDef="impression">
@@ -437,7 +470,7 @@
           请求价值
         </mat-header-cell>
         <mat-cell class="number" *matCellDef="let row">
-          {{ row.request ? (row.income / row.request / 10 | number: '0.2-2') : '-' }}
+          {{ row.requestv ? (row.income / row.requestv / 10 | number: '0.2-2') : '-' }}
         </mat-cell>
         <mat-footer-cell class="number" *matFooterCellDef>
           {{ performanceViewTotal.request ? (performanceViewTotal.income / performanceViewTotal.request / 10 | number: '0.2-2') : '-' }}
@@ -560,14 +593,29 @@
                   {{ rowSub.request | number }}
                 </mat-cell>
               </ng-container>
+              <ng-container matColumnDef="request-valid">
+                <mat-cell class="number" *matCellDef="let rowSub">
+                  {{ rowSub.requestv | number }}
+                </mat-cell>
+              </ng-container>
               <ng-container matColumnDef="response">
                 <mat-cell class="number" *matCellDef="let rowSub">
                   {{ rowSub.response | number }}
                 </mat-cell>
               </ng-container>
+              <ng-container matColumnDef="response-valid">
+                <mat-cell class="number" *matCellDef="let rowSub">
+                  {{ rowSub.responsev | number }}
+                </mat-cell>
+              </ng-container>
               <ng-container matColumnDef="gfr">
                 <mat-cell class="number" *matCellDef="let rowSub">
-                  {{ rowSub.request ? (rowSub.response / rowSub.request | percent: '0.2-2') : '-' }}
+                  {{ rowSub.requestv ? (rowSub.response / rowSub.requestv | percent: '0.2-2') : '-' }}
+                </mat-cell>
+              </ng-container>
+              <ng-container matColumnDef="gfrv">
+                <mat-cell class="number" *matCellDef="let rowSub">
+                  {{ rowSub.requestv ? (rowSub.responsev / rowSub.requestv | percent: '0.2-2') : '-' }}
                 </mat-cell>
               </ng-container>
               <ng-container matColumnDef="impression">
@@ -607,7 +655,7 @@
               </ng-container>
               <ng-container matColumnDef="rv">
                 <mat-cell class="number" *matCellDef="let rowSub">
-                  {{ rowSub.request ? (rowSub.income / rowSub.request / 10 | number: '0.2-2') : '-' }}
+                  {{ rowSub.requestv ? (rowSub.income / rowSub.requestv / 10 | number: '0.2-2') : '-' }}
                 </mat-cell>
               </ng-container>
               <ng-container matColumnDef="cpmu">

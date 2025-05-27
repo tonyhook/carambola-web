@@ -40,7 +40,7 @@ export interface BundleDialogData {
   styleUrls: ['./bundle-dialog.component.scss'],
 })
 export class BundleDialogComponent implements AfterViewInit {
-  displayedColumns = ['client', 'vendor', 'bundle', 'request', 'response', 'gfr', 'impression', 'click', 'er', 'ctr', 'rv', 'actions'];
+  displayedColumns = ['client', 'vendor', 'bundle', 'request', 'response', 'gfr', 'gfrv', 'impression', 'click', 'er', 'ctr', 'rv', 'actions'];
   dataSource = new MatTableDataSource<PerformanceView>([]);
   @ViewChild(MatSort, {static: false}) sort: MatSort | null = null;
 
@@ -157,6 +157,12 @@ export class BundleDialogComponent implements AfterViewInit {
         this.vendorMediaMap = new Map(this.vendorMedias.map(vm => [vm.id, vm]));
         this.vendorPortMap = new Map(this.vendorPorts.map(vp => [vp.id, vp]));
 
+        if (this.direction() === 'client') {
+          this.displayedColumns = ['client', 'vendor', 'bundle', 'request-valid', 'response', 'response-valid', 'gfr', 'gfrv', 'impression', 'click', 'er', 'ctr', 'rv', 'actions'];
+        } else {
+          this.displayedColumns = ['client', 'vendor', 'bundle', 'request', 'request-valid', 'response', 'gfr', 'gfrv', 'impression', 'click', 'er', 'ctr', 'rv', 'actions'];
+        }
+
         forkJoin([
           this.direction() === 'client' ?
             this.performanceAPI.getPerformanceClientBundleList(
@@ -268,7 +274,9 @@ export class BundleDialogComponent implements AfterViewInit {
           vendorPort: performance.vendorPort,
           bundle: performance.bundle,
           request: 0,
+          requestv: 0,
           response: 0,
+          responsev: 0,
           impression: 0,
           click: 0,
           income: 0,
@@ -291,10 +299,14 @@ export class BundleDialogComponent implements AfterViewInit {
       if (this.direction() === 'client') {
         performanceView.request += performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventK!;
         performanceView.response += performance.eventD + performance.eventE + performance.eventK!;
+        performanceView.requestv += performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventK!;
+        performanceView.responsev += performance.eventD + performance.eventE;
       }
       if (this.direction() === 'vendor') {
         performanceView.request += performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventG + performance.eventH + performance.eventI + performance.eventJ;
         performanceView.response += performance.eventI + performance.eventJ;
+        performanceView.requestv += performance.eventH + performance.eventI + performance.eventJ;
+        performanceView.responsev += performance.eventI + performance.eventJ;
       }
       performanceView.impression += performance.impression;
       performanceView.click += performance.click;
@@ -312,10 +324,13 @@ export class BundleDialogComponent implements AfterViewInit {
     this.dataSource.sort = this.sort;
     this.dataSource.sortingDataAccessor = (item, property) => {
       switch (property) {
-        case 'gfr': return item.request ? (1.0 * (item.response ?? 0) / item.request) : -1;
+        case 'request-valid': return item.requestv ?? -1;
+        case 'response-valid': return item.responsev ?? -1;
+        case 'gfr': return item.requestv ? (1.0 * (item.response ?? 0) / item.requestv) : -1;
+        case 'gfrv': return item.requestv ? (1.0 * (item.responsev ?? 0) / item.requestv) : -1;
         case 'er': return item.response ? (1.0 * (item.impression ?? 0) / item.response) : -1;
         case 'ctr': return item.impression ? (1.0 * (item.click ?? 0) / item.impression) : -1;
-        case 'rv': return item.request ? (1.0 * (item.income ?? 0) / item.request / 10) : -1;
+        case 'rv': return item.requestv ? (1.0 * (item.income ?? 0) / item.requestv / 10) : -1;
         case 'client': return item.clientPort ? this.getClientPortName(item.clientPort) : '';
         case 'vendor': return item.vendorPort ? this.getVendorPortName(item.vendorPort) : '';
         default: {
