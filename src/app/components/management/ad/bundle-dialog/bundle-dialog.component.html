@@ -54,6 +54,14 @@
             {{ row.request | number }}
           </mat-cell>
         </ng-container>
+        <ng-container matColumnDef="request-valid">
+          <mat-header-cell *matHeaderCellDef mat-sort-header>
+            有效请求
+          </mat-header-cell>
+          <mat-cell *matCellDef="let row">
+            {{ row.requestv | number }}
+          </mat-cell>
+        </ng-container>
         <ng-container matColumnDef="response">
           <mat-header-cell *matHeaderCellDef mat-sort-header>
             响应
@@ -62,12 +70,28 @@
             {{ row.response | number }}
           </mat-cell>
         </ng-container>
+        <ng-container matColumnDef="response-valid">
+          <mat-header-cell *matHeaderCellDef mat-sort-header>
+            有效响应
+          </mat-header-cell>
+          <mat-cell *matCellDef="let row">
+            {{ row.responsev | number }}
+          </mat-cell>
+        </ng-container>
         <ng-container matColumnDef="gfr">
           <mat-header-cell *matHeaderCellDef mat-sort-header>
             填充率
           </mat-header-cell>
           <mat-cell *matCellDef="let row">
-            {{ row.response / row.request | percent: '0.2-2' }}
+            {{ row.response / row.requestv | percent: '0.2-2' }}
+          </mat-cell>
+        </ng-container>
+        <ng-container matColumnDef="gfrv">
+          <mat-header-cell *matHeaderCellDef mat-sort-header>
+            有效填充率
+          </mat-header-cell>
+          <mat-cell *matCellDef="let row">
+            {{ row.responsev / row.requestv | percent: '0.2-2' }}
           </mat-cell>
         </ng-container>
         <ng-container matColumnDef="impression">
@@ -107,7 +131,7 @@
             请求价值
           </mat-header-cell>
           <mat-cell *matCellDef="let row">
-            {{ row.income / row.request / 10 | number: '0.2-2' }}
+            {{ row.income / row.requestv / 10 | number: '0.2-2' }}
           </mat-cell>
         </ng-container>
         <ng-container matColumnDef="actions">
