@@ -1,0 +1,470 @@
+<mat-card>
+  <mat-card-header>
+    <div class="sign-header">
+      @if (action === 'create' || action === 'edit') {
+        <carambola-ad-entity type="vendor" mode="brief" [vendor]="vendor"></carambola-ad-entity>
+        <carambola-ad-entity type="vendorPort" mode="brief" [vendorPort]="vendorPort"></carambola-ad-entity>
+      }
+      <button type="button" class="form-button" mat-button>日期：{{ date | date: 'yyyy-MM-dd' }}</button>
+    </div>
+  </mat-card-header>
+  <mat-card-content>
+    <div class="full-width-input">
+      @if (action === 'create' || action === 'edit') {
+        <form [formGroup]="formGroupRatio">
+          <mat-table matSort [dataSource]="dataSource">
+            <ng-container matColumnDef="partner">
+              <mat-header-cell class="partner" *matHeaderCellDef>
+                来源
+              </mat-header-cell>
+              <mat-cell class="partner" *matCellDef="let row">
+                @if (row.status === 1) {
+                  <button type="button" class="form-button sign-status" mat-button>数据就绪</button>
+                }
+                @if (row.status === 2) {
+                  <button type="button" class="form-button sign-status" mat-button>待签发</button>
+                }
+                @if (row.status === -1) {
+                  <carambola-ad-entity type="client" mode="tiny" [client]="clientPortMap.get(row.clientPort)!.client"></carambola-ad-entity>
+                  <carambola-ad-entity type="clientPort" mode="tiny" [clientPort]="clientPortMap.get(row.clientPort)"></carambola-ad-entity>
+                }
+                @if (row.status === -2) {
+                  @if (mediums.length === 0) {
+                    <button type="button" class="form-button" mat-button>上游未出账</button>
+                  } @else {
+                    <button type="button" class="form-button" mat-button>上游拆帐小计</button>
+                  }
+                }
+                @if (row.status === -3) {
+                  @if (row.clientPort === -1) {
+                    <button mat-button>无响应，上游不明</button>
+                  } @else {
+                    <carambola-ad-entity type="client" mode="tiny" [client]="clientPortMap.get(row.clientPort)!.client"></carambola-ad-entity>
+                    <carambola-ad-entity type="clientPort" mode="tiny" [clientPort]="clientPortMap.get(row.clientPort)"></carambola-ad-entity>
+                  }
+                }
+                @if (row.status === -4) {
+                  <button type="button" class="form-button" mat-button>流量参考小计</button>
+                }
+              </mat-cell>
+            </ng-container>
+            <ng-container matColumnDef="cost">
+              <mat-header-cell class="number" *matHeaderCellDef>
+                <mat-form-field subscriptSizing="dynamic">
+                  <mat-label>预估收益扣减</mat-label>
+                  <input type="number" min="0" max="100" class="input-percentage" placeholder="预估收益扣减" matInput formControlName="cost" />
+                  <span matTextSuffix>%</span>
+                </mat-form-field>
+              </mat-header-cell>
+              <mat-cell class="number" *matCellDef="let row; let index = index">
+                @if (costRatio === 1 || index !== 0) {
+                  {{ row.cost === null ? '' : row.cost / 100000 | number: '0.2-2' }}
+                } @else {
+                  <div class="dual">
+                    <div>
+                      {{ costRatio * signViewOriginal.cost! / 100000 | number: '0.2-2' }}
+                    </div>
+                    <div class="original">
+                      {{ (signViewOriginal.cost ?? 0) / 100000 | number: '0.2-2' }}
+                    </div>
+                  </div>
+                }
+              </mat-cell>
+            </ng-container>
+            <ng-container matColumnDef="impression">
+              <mat-header-cell class="number" *matHeaderCellDef>
+                <mat-form-field subscriptSizing="dynamic">
+                  <mat-label>展现扣减</mat-label>
+                  <input type="number" min="0" max="100" class="input-percentage" placeholder="展现扣减" matInput formControlName="impression" />
+                  <span matTextSuffix>%</span>
+                </mat-form-field>
+              </mat-header-cell>
+              <mat-cell class="number" *matCellDef="let row; let index = index">
+                @if (impressionRatio === 1 || index !== 0) {
+                  {{ row.impression | number }}
+                } @else {
+                  <div class="dual">
+                    <div>
+                      {{ impressionRatio * signViewOriginal.impression! | number: '1.0-0' }}
+                    </div>
+                    <div class="original">
+                      {{ signViewOriginal.impression | number }}
+                    </div>
+                  </div>
+                }
+              </mat-cell>
+            </ng-container>
+            <ng-container matColumnDef="click">
+              <mat-header-cell class="number" *matHeaderCellDef>
+                <mat-form-field subscriptSizing="dynamic">
+                  <mat-label>点击扣减</mat-label>
+                  <input type="number" min="0" max="100" class="input-percentage" placeholder="点击扣减" matInput formControlName="click" />
+                  <span matTextSuffix>%</span>
+                </mat-form-field>
+              </mat-header-cell>
+              <mat-cell class="number" *matCellDef="let row; let index = index">
+                @if (clickRatio === 1 || index !== 0) {
+                  {{ row.click | number }}
+                } @else {
+                  <div class="dual">
+                    <div>
+                      {{ clickRatio * signViewOriginal.click! | number: '1.0-0' }}
+                    </div>
+                    <div class="original">
+                      {{ signViewOriginal.click | number }}
+                    </div>
+                  </div>
+                }
+              </mat-cell>
+            </ng-container>
+            <ng-container matColumnDef="request">
+              <mat-header-cell class="number" *matHeaderCellDef>
+                <mat-form-field subscriptSizing="dynamic">
+                  <mat-label>请求扣减</mat-label>
+                  <input type="number" min="0" max="100" class="input-percentage" placeholder="请求扣减" matInput formControlName="request" />
+                  <span matTextSuffix>%</span>
+                </mat-form-field>
+              </mat-header-cell>
+              <mat-cell class="number" *matCellDef="let row; let index = index">
+                @if (requestRatio === 1 || index !== 0) {
+                  {{ row.request | number }}
+                } @else {
+                  <div class="dual">
+                    <div>
+                      {{ requestRatio * signViewOriginal.request! | number: '1.0-0' }}
+                    </div>
+                    <div class="original">
+                      {{ signViewOriginal.request | number }}
+                    </div>
+                  </div>
+                }
+              </mat-cell>
+            </ng-container>
+            <ng-container matColumnDef="response">
+              <mat-header-cell class="number" *matHeaderCellDef>
+                <mat-form-field subscriptSizing="dynamic">
+                  <mat-label>响应扣减</mat-label>
+                  <input type="number" min="0" max="100" class="input-percentage" placeholder="响应扣减" matInput formControlName="response" />
+                  <span matTextSuffix>%</span>
+                </mat-form-field>
+              </mat-header-cell>
+              <mat-cell class="number" *matCellDef="let row; let index = index">
+                @if (responseRatio === 1 || index !== 0) {
+                  {{ row.response | number }}
+                } @else {
+                  <div class="dual">
+                    <div>
+                      {{ responseRatio * signViewOriginal.response! | number: '1.0-0' }}
+                    </div>
+                    <div class="original">
+                      {{ signViewOriginal.response | number }}
+                    </div>
+                  </div>
+                }
+              </mat-cell>
+            </ng-container>
+            <ng-container matColumnDef="actions">
+              <mat-header-cell class="actions" *matHeaderCellDef>
+              </mat-header-cell>
+              <mat-cell class="actions" *matCellDef="let row;">
+              </mat-cell>
+            </ng-container>
+
+            <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+            <mat-row *matRowDef="let row; columns: displayedColumns; let index = index" class="element-row" [class.sub-total]="row.status === -2 || row.status === -4" [class.sign]="index === 0"></mat-row>
+          </mat-table>
+        </form>
+      }
+
+      @if (action === 'stage' && mode === '0') {
+        <form [formGroup]="formGroupLevel">
+          <div class="full-width-input wrapper">
+            <mat-form-field class="third-width-input" subscriptSizing="dynamic">
+              <mat-label>高消耗</mat-label>
+              <input type="number" min="0" max="100" class="input-percentage" placeholder="高消耗" matInput formControlName="top" />
+              <span matTextSuffix>%</span>
+            </mat-form-field>
+            <mat-form-field class="third-width-input" subscriptSizing="dynamic">
+              <mat-label>中消耗</mat-label>
+              <input type="number" min="0" max="100" class="input-percentage" placeholder="中消耗" matInput formControlName="middle" />
+              <span matTextSuffix>%</span>
+            </mat-form-field>
+            <mat-form-field class="third-width-input" subscriptSizing="dynamic">
+              <mat-label>低消耗</mat-label>
+              <input type="number" min="0" max="100" class="input-percentage" placeholder="低消耗" matInput formControlName="bottom" />
+              <span matTextSuffix>%</span>
+            </mat-form-field>
+          </div>
+        </form>
+        <mat-table matSort [dataSource]="dataSource">
+          <ng-container matColumnDef="level">
+            <mat-header-cell class="number" *matHeaderCellDef>
+              消耗等级
+            </mat-header-cell>
+            <mat-cell class="number" *matCellDef="let row; let index = index">
+              @let rank = signViews.length === 1 ? 0 : index / (signViews.length - 1);
+              @if (rank > 0.666) {
+                <button type="button" class="form-button" mat-button>低消耗</button>
+              } @else if (rank > 0.333) {
+                <button type="button" class="form-button" mat-button>中消耗</button>
+              } @else {
+                <button type="button" class="form-button" mat-button>高消耗</button>
+              }
+            </mat-cell>
+          </ng-container>
+          <ng-container matColumnDef="partner">
+            <mat-header-cell class="partner" *matHeaderCellDef>
+              广告位
+            </mat-header-cell>
+            <mat-cell class="partner" *matCellDef="let row">
+              <carambola-ad-entity type="vendor" mode="tiny" [vendor]="vendorPortMap.get(row.vendorPort)!.vendor"></carambola-ad-entity>
+              <carambola-ad-entity type="vendorPort" mode="tiny" [vendorPort]="vendorPortMap.get(row.vendorPort)"></carambola-ad-entity>
+            </mat-cell>
+          </ng-container>
+          <ng-container matColumnDef="cost">
+            <mat-header-cell class="number" *matHeaderCellDef>
+              收益
+            </mat-header-cell>
+            <mat-cell class="number" *matCellDef="let row; let index = index">
+              @let rank = signViews.length === 1 ? 0 : index / (signViews.length - 1);
+              @if (rank > 0.666) {
+                @if (levelBottom === 1) {
+                  {{ row.cost / 100000 | number: '0.2-2' }}
+                } @else {
+                  <div class="dual">
+                    <div>
+                      {{ levelBottom * row.cost / 100000 | number: '0.2-2' }}
+                    </div>
+                    <div class="original">
+                      {{ row.cost / 100000 | number: '0.2-2' }}
+                    </div>
+                  </div>
+                }
+              } @else if (rank > 0.333) {
+                @if (levelMiddle=== 1) {
+                  {{ row.cost / 100000 | number: '0.2-2' }}
+                } @else {
+                  <div class="dual">
+                    <div>
+                      {{ levelMiddle * row.cost / 100000 | number: '0.2-2' }}
+                    </div>
+                    <div class="original">
+                      {{ row.cost / 100000 | number: '0.2-2' }}
+                    </div>
+                  </div>
+                }
+              } @else {
+                @if (levelTop === 1) {
+                  {{ row.cost / 100000 | number: '0.2-2' }}
+                } @else {
+                  <div class="dual">
+                    <div>
+                      {{ levelTop * row.cost / 100000 | number: '0.2-2' }}
+                    </div>
+                    <div class="original">
+                      {{ row.cost / 100000 | number: '0.2-2' }}
+                    </div>
+                  </div>
+                }
+              }
+            </mat-cell>
+          </ng-container>
+          <ng-container matColumnDef="impression">
+            <mat-header-cell class="number" *matHeaderCellDef>
+              展现
+            </mat-header-cell>
+            <mat-cell class="number" *matCellDef="let row; let index = index">
+              {{ row.impression | number }}
+            </mat-cell>
+          </ng-container>
+          <ng-container matColumnDef="click">
+            <mat-header-cell class="number" *matHeaderCellDef>
+              点击
+            </mat-header-cell>
+            <mat-cell class="number" *matCellDef="let row; let index = index">
+              {{ row.click | number }}
+            </mat-cell>
+          </ng-container>
+          <ng-container matColumnDef="request">
+            <mat-header-cell class="number" *matHeaderCellDef>
+              请求
+            </mat-header-cell>
+            <mat-cell class="number" *matCellDef="let row; let index = index">
+              {{ row.request | number }}
+            </mat-cell>
+          </ng-container>
+          <ng-container matColumnDef="response">
+            <mat-header-cell class="number" *matHeaderCellDef>
+              响应
+            </mat-header-cell>
+            <mat-cell class="number" *matCellDef="let row; let index = index">
+              {{ row.response | number }}
+            </mat-cell>
+          </ng-container>
+          <ng-container matColumnDef="actions">
+            <mat-header-cell class="actions" *matHeaderCellDef>
+            </mat-header-cell>
+            <mat-cell class="actions" *matCellDef="let row;">
+            </mat-cell>
+          </ng-container>
+
+          <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+          <mat-row *matRowDef="let row; columns: displayedColumns; let index = index" class="element-row"></mat-row>
+        </mat-table>
+      }
+
+      @if (action === 'stage' && mode === '1') {
+        <form [formGroup]="formGroupRatio">
+          <mat-table matSort [dataSource]="dataSource">
+            <ng-container matColumnDef="partner">
+              <mat-header-cell class="partner" *matHeaderCellDef>
+                广告位
+              </mat-header-cell>
+              <mat-cell class="partner" *matCellDef="let row">
+                <carambola-ad-entity type="vendor" mode="tiny" [vendor]="vendorPortMap.get(row.vendorPort)!.vendor"></carambola-ad-entity>
+                <carambola-ad-entity type="vendorPort" mode="tiny" [vendorPort]="vendorPortMap.get(row.vendorPort)"></carambola-ad-entity>
+              </mat-cell>
+            </ng-container>
+            <ng-container matColumnDef="cost">
+              <mat-header-cell class="number" *matHeaderCellDef>
+                <mat-form-field subscriptSizing="dynamic">
+                  <mat-label>预估收益扣减</mat-label>
+                  <input type="number" min="0" max="100" class="input-percentage" placeholder="预估收益扣减" matInput formControlName="cost" />
+                  <span matTextSuffix>%</span>
+                </mat-form-field>
+              </mat-header-cell>
+              <mat-cell class="number" *matCellDef="let row; let index = index">
+                @if (costRatio === 1) {
+                  {{ row.cost / 100000 | number: '0.2-2' }}
+                } @else {
+                  <div class="dual">
+                    <div>
+                      {{ costRatio * row.cost / 100000 | number: '0.2-2' }}
+                    </div>
+                    <div class="original">
+                      {{ row.cost / 100000 | number: '0.2-2' }}
+                    </div>
+                  </div>
+                }
+              </mat-cell>
+            </ng-container>
+            <ng-container matColumnDef="impression">
+              <mat-header-cell class="number" *matHeaderCellDef>
+                <mat-form-field subscriptSizing="dynamic">
+                  <mat-label>展现扣减</mat-label>
+                  <input type="number" min="0" max="100" class="input-percentage" placeholder="展现扣减" matInput formControlName="impression" />
+                  <span matTextSuffix>%</span>
+                </mat-form-field>
+              </mat-header-cell>
+              <mat-cell class="number" *matCellDef="let row; let index = index">
+                @if (impressionRatio === 1) {
+                  {{ row.impression | number }}
+                } @else {
+                  <div class="dual">
+                    <div>
+                      {{ impressionRatio * row.impression | number: '1.0-0' }}
+                    </div>
+                    <div class="original">
+                      {{ row.impression | number }}
+                    </div>
+                  </div>
+                }
+              </mat-cell>
+            </ng-container>
+            <ng-container matColumnDef="click">
+              <mat-header-cell class="number" *matHeaderCellDef>
+                <mat-form-field subscriptSizing="dynamic">
+                  <mat-label>点击扣减</mat-label>
+                  <input type="number" min="0" max="100" class="input-percentage" placeholder="点击扣减" matInput formControlName="click" />
+                  <span matTextSuffix>%</span>
+                </mat-form-field>
+              </mat-header-cell>
+              <mat-cell class="number" *matCellDef="let row; let index = index">
+                @if (clickRatio === 1) {
+                  {{ row.click | number }}
+                } @else {
+                  <div class="dual">
+                    <div>
+                      {{ clickRatio * row.click | number: '1.0-0' }}
+                    </div>
+                    <div class="original">
+                      {{ row.click | number }}
+                    </div>
+                  </div>
+                }
+              </mat-cell>
+            </ng-container>
+            <ng-container matColumnDef="request">
+              <mat-header-cell class="number" *matHeaderCellDef>
+                <mat-form-field subscriptSizing="dynamic">
+                  <mat-label>请求扣减</mat-label>
+                  <input type="number" min="0" max="100" class="input-percentage" placeholder="请求扣减" matInput formControlName="request" />
+                  <span matTextSuffix>%</span>
+                </mat-form-field>
+              </mat-header-cell>
+              <mat-cell class="number" *matCellDef="let row; let index = index">
+                @if (requestRatio === 1) {
+                  {{ row.request | number }}
+                } @else {
+                  <div class="dual">
+                    <div>
+                      {{ requestRatio * row.request | number: '1.0-0' }}
+                    </div>
+                    <div class="original">
+                      {{ row.request | number }}
+                    </div>
+                  </div>
+                }
+              </mat-cell>
+            </ng-container>
+            <ng-container matColumnDef="response">
+              <mat-header-cell class="number" *matHeaderCellDef>
+                <mat-form-field subscriptSizing="dynamic">
+                  <mat-label>响应扣减</mat-label>
+                  <input type="number" min="0" max="100" class="input-percentage" placeholder="响应扣减" matInput formControlName="response" />
+                  <span matTextSuffix>%</span>
+                </mat-form-field>
+              </mat-header-cell>
+              <mat-cell class="number" *matCellDef="let row; let index = index">
+                @if (responseRatio === 1) {
+                  {{ row.response | number }}
+                } @else {
+                  <div class="dual">
+                    <div>
+                      {{ responseRatio * row.response | number: '1.0-0' }}
+                    </div>
+                    <div class="original">
+                      {{ row.response | number }}
+                    </div>
+                  </div>
+                }
+              </mat-cell>
+            </ng-container>
+            <ng-container matColumnDef="actions">
+              <mat-header-cell class="actions" *matHeaderCellDef>
+              </mat-header-cell>
+              <mat-cell class="actions" *matCellDef="let row;">
+              </mat-cell>
+            </ng-container>
+
+            <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+            <mat-row *matRowDef="let row; columns: displayedColumns; let index = index" class="element-row"></mat-row>
+          </mat-table>
+        </form>
+      }
+    </div>
+
+    <div class="full-width-input flex">
+      @if (action === 'create') {
+        <button type="button" class="form-button confirm" mat-stroked-button (click)="confirm()">创建</button>
+      }
+      @if (action === 'edit') {
+        <button type="button" class="form-button confirm" mat-stroked-button (click)="confirm()">修改</button>
+      }
+      @if (action === 'stage') {
+        <button type="button" class="form-button confirm" mat-stroked-button (click)="confirm()">创建</button>
+      }
+      <button type="button" class="form-button cancel" mat-stroked-button (click)="cancel()">取消</button>
+    </div>
+  </mat-card-content>
+</mat-card>

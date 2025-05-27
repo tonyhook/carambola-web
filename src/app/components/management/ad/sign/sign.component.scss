@@ -1,0 +1,143 @@
+@use '../../../../shared/styles/management.scss';
+
+.container {
+  flex-direction: column;
+  overflow: hidden;
+}
+.table-container {
+  width: 100%;
+  overflow: auto;
+}
+
+.cdk-header-cell, .cdk-cell, .cdk-footer-cell {
+  overflow-wrap: normal;
+  word-break: normal;
+}
+.mat-mdc-table-sticky {
+  background-color: var(--mat-sys-outline-variant);
+  color: var(--mat-sys-on-outline-variant);
+  opacity: 1;
+}
+
+.partner {
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  flex: 0 0 250px;
+  min-width: 250px;
+}
+.partner-cover {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  width: 100%;
+}
+.partner carambola-ad-entity {
+  width: 100%;
+  font-size: 80%;
+}
+.number {
+  justify-content: flex-end;
+  align-items: center;
+  flex: 1 0 120px;
+  min-width: 120px;
+}
+.expand {
+  justify-content: flex-end;
+  align-items: center;
+  flex: 0 0 80px;
+  min-width: 80px;
+}
+.time {
+  justify-content: flex-end;
+  align-items: center;
+  flex: 0 0 120px;
+  min-width: 120px;
+}
+.actions {
+  justify-content: flex-end;
+  align-items: center;
+  flex: 0 0 150px;
+  min-width: 150px;
+}
+.placeholder.expand {
+  position: relative;
+}
+.placeholder.time {
+  position: relative;
+}
+.placeholder.partner {
+  position: relative;
+}
+.placeholder.actions {
+  position: relative;
+}
+
+.extended-cell {
+  justify-content: flex-start;
+  align-items: center;
+  padding-left: 0;
+  padding-right: 0;
+  z-index: 0;
+}
+
+.cdk-row.element-row.expanded-row .cdk-cell {
+  background-color: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+  font-weight: bold;
+}
+.cdk-row.element-row:not(.expanded-row):hover .cdk-cell {
+  background-color: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+}
+
+.cdk-header-row, .cdk-footer-row {
+  min-height: 44px;
+  max-height: 44px;
+}
+.cdk-row.element-row {
+  min-height: 44px;
+  max-height: 44px;
+}
+.cdk-row.detail-row {
+  min-height: 0;
+}
+.cdk-row.sub-row {
+  min-height: 44px;
+  max-height: 44px;
+}
+.cdk-row.detail-row .cdk-cell {
+  background-color: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+}
+.cdk-row.detail-row:not(.expanded-row) {
+  height: 0;
+}
+
+.progress {
+  flex-grow: 0;
+  flex-shrink: 0;
+  position: relative;
+  background-color: light-dark(#c8e6c9, #2e7d32);
+  width: 100%;
+  height: 4px;
+}
+.progress-bar {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  background-color: light-dark(#2e7d32, #c8e6c9);
+  height: 4px;
+  z-index: 1;
+}
+
+input[type="file"] {
+  display: none;
+}
+#table ::ng-deep.mat-button-toggle-label-content {
+  line-height: 20px !important;
+}
+#table .mat-button-toggle-group {
+  border: 0;
+}

@@ -1,0 +1,10 @@
+@use '../../../../shared/styles/management.scss';
+
+.bill-header {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  width: 100%;
+  margin: 1rem;
+  gap: 1vw;
+}
