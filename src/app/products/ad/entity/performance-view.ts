@@ -10,7 +10,9 @@ export interface PerformanceView {
   vendorPort: number;
   bundle?: string;
   request: number;
+  requestv: number;
   response: number;
+  responsev: number;
   impression: number;
   click: number;
   income: number;
