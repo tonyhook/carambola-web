@@ -1082,7 +1082,7 @@ export class SummaryComponent implements OnInit, AfterViewInit, DoCheck {
       performanceView.request +=
         performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE +
         performance.eventF + performance.eventG + performance.eventH + performance.eventK + performance.eventL +
-        performance.eventM;
+        performance.eventM + performance.eventN;
       performanceView.requestv +=
         performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventK;
       performanceView.response +=
@@ -1457,7 +1457,7 @@ export class SummaryComponent implements OnInit, AfterViewInit, DoCheck {
           performanceView.request +=
             performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE +
             performance.eventF + performance.eventG + performance.eventH + performance.eventK + performance.eventL +
-            performance.eventM;
+            performance.eventM + performance.eventN;
           performanceView.requestv +=
             performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventK;
           performanceView.response +=
@@ -1480,7 +1480,7 @@ export class SummaryComponent implements OnInit, AfterViewInit, DoCheck {
           this.performanceViewTotal.request +=
             performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE +
             performance.eventF + performance.eventG + performance.eventH + performance.eventK + performance.eventL +
-            performance.eventM;
+            performance.eventM + performance.eventN;
           this.performanceViewTotal.requestv +=
             performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventK;
           this.performanceViewTotal.response +=
