@@ -1,3 +1,5 @@
+export * from './anti-fraud-rule';
+export * from './anti-fraud';
 export * from './bill-rule';
 export * from './bill-view';
 export * from './bill';
@@ -48,6 +50,12 @@ export enum SignStatus {
   SIGN_STATUS_READY   = 1,
   SIGN_STATUS_CREATED = 2,
   SIGN_STATUS_SIGNED  = 3,
+}
+export enum AntiFraudPeriod {
+  AF_PERIOD_SECOND = 1,
+  AF_PERIOD_MINUTE = 2,
+  AF_PERIOD_HOUR   = 3,
+  AF_PERIOD_DAY    = 4,
 }
 export enum TrafficControlIndicator {
   TC_INDICATOR_REQUEST = 1,
