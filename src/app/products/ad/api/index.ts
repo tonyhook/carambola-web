@@ -10,3 +10,5 @@ export * from './performance.api';
 export * from './bill.api';
 export * from './traffic-control.api';
 export * from './server.api';
+export * from './anti-fraud.api';
+export * from './anti-fraud-rule.api';

@@ -32,3 +32,7 @@ export * from './connection/connection.component';
 export * from './server/server.component';
 export * from './server-dialog/server-dialog.component';
 export * from './server-form/server-form.component';
+export * from './traffic-control/traffic-control.component';
+export * from './traffic-control-dialog/traffic-control-dialog.component';
+export * from './anti-fraud/anti-fraud.component';
+export * from './anti-fraud-dialog/anti-fraud-dialog.component';
