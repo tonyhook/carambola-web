@@ -6,6 +6,7 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatCardModule } from '@angular/material/card';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -13,6 +14,7 @@ import { MatRadioModule } from '@angular/material/radio';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTabsModule } from '@angular/material/tabs';
+import { forkJoin } from 'rxjs';
 import {
   Field,
   QueryArrowIconDirective,
@@ -28,9 +30,9 @@ import {
   RuleSet,
 } from '@solidexpert/ngx-query-builder';
 
-import { Client, ClientAPI, ClientMedia, ClientMediaAPI, ClientPort, ClientPortAPI, Connection, PartnerType, PortType } from '../../../../core';
+import { AntiFraud, AntiFraudAPI, AntiFraudPeriod, Client, ClientAPI, ClientMedia, ClientMediaAPI, ClientPort, ClientPortAPI, Connection, PartnerType, PortType, TrafficControl, TrafficControlAPI, TrafficControlIndicator, TrafficControlPeriod } from '../../../../core';
 import { TenantService } from '../../../../services';
-import { ConnectionComponent, FilteredSelectClientComponent, FilteredSelectClientMediaComponent } from '../../../../shared';
+import { AntiFraudComponent, AntiFraudDialogComponent, ConnectionComponent, FilteredSelectClientComponent, FilteredSelectClientMediaComponent, TrafficControlComponent, TrafficControlDialogComponent } from '../../../../shared';
 
 @Component({
   selector: 'carambola-clientport-form',
@@ -62,6 +64,8 @@ import { ConnectionComponent, FilteredSelectClientComponent, FilteredSelectClien
     ConnectionComponent,
     FilteredSelectClientComponent,
     FilteredSelectClientMediaComponent,
+    TrafficControlComponent,
+    AntiFraudComponent,
   ],
   templateUrl: './clientport-form.component.html',
   styleUrls: ['./clientport-form.component.scss'],
@@ -73,6 +77,9 @@ export class ClientPortFormComponent implements AfterViewInit {
   private clientAPI = inject(ClientAPI);
   private clientMediaAPI = inject(ClientMediaAPI);
   private clientPortAPI = inject(ClientPortAPI);
+  private trafficControlAPI = inject(TrafficControlAPI);
+  private antiFraudAPI = inject(AntiFraudAPI);
+  private dialog = inject(MatDialog);
 
   PartnerType = PartnerType;
   PortType = PortType;
@@ -100,6 +107,8 @@ export class ClientPortFormComponent implements AfterViewInit {
 
   clientPortFull: ClientPort | null = null;
   connections: Connection[] = [];
+  trafficControls: TrafficControl[] = [];
+  antiFrauds: AntiFraud[] = [];
   selectedIndex = 0;
 
   query: RuleSet = {
@@ -272,6 +281,8 @@ export class ClientPortFormComponent implements AfterViewInit {
                 this.formClientId.set(client.id!);
                 this.managedClientMedias.set(clientMedias.filter(clientMedia => clientMedia.client.id === client.id));
                 this.connections = [];
+                this.trafficControls = [];
+                this.antiFrauds = [];
 
                 this.formGroup.setControl('client', this.formBuilder.control({value: client, disabled: this.readonly}, Validators.required), {emitEvent: false});
                 this.formGroup.setControl('clientMedia', this.formBuilder.control({value: clientMedia, disabled: this.readonly}, Validators.required), {emitEvent: false});
@@ -299,6 +310,8 @@ export class ClientPortFormComponent implements AfterViewInit {
             this.initialized = true;
 
             this.connections = [];
+            this.trafficControls = [];
+            this.antiFrauds = [];
 
             this.formGroup.setControl('client', this.formBuilder.control(null, Validators.required), {emitEvent: false});
             this.formGroup.setControl('clientMedia', this.formBuilder.control({value: null, disabled: true}, Validators.required), {emitEvent: false});
@@ -318,7 +331,15 @@ export class ClientPortFormComponent implements AfterViewInit {
             }
           }
         } else {
-          this.clientPortAPI.getClientPort(this.clientPort()!.id!).subscribe(clientPort => {
+          forkJoin([
+            this.clientPortAPI.getClientPort(clientPort.id!),
+            this.trafficControlAPI.getTrafficControlListByPort(clientPort.id!, -1),
+            this.antiFraudAPI.getAntiFraudListByPort(clientPort.id!),
+          ]).subscribe(results => {
+            const clientPort = results[0];
+            const trafficControls = results[1];
+            const antifrauds = results[2];
+
             this.clientPortFull = clientPort;
 
             this.readonly = !this.tenantService.isTenantManager() && !this.tenantService.isManager();
@@ -333,6 +354,8 @@ export class ClientPortFormComponent implements AfterViewInit {
               this.formClientId.set(client.id!);
               this.managedClientMedias.set(clientMedias.filter(clientMedia => clientMedia.client.id === client.id));
               this.connections = clientPort.connection.filter(connection => !connection.deleted).filter(connection => !connection.vendorPort.deleted);
+              this.trafficControls = trafficControls;
+              this.antiFrauds = antifrauds;
               this.selectedIndex = tab === 'property' ? 0 : 1;
 
               this.formGroup.setControl('client', this.formBuilder.control({value: client, disabled: this.readonly}, Validators.required), {emitEvent: false});
@@ -481,12 +504,36 @@ export class ClientPortFormComponent implements AfterViewInit {
       connection: [],
     };
 
-    this.clientPortAPI.addClientPort(clientPort).subscribe(() => {
-      this.snackBar.open('上游广告位已创建', 'OK', {
-        duration: 2000,
-      });
+    this.clientPortAPI.addClientPort(clientPort).subscribe(clientPort => {
+      const requests = [];
+      for (const trafficControl of this.trafficControls) {
+        if (trafficControl.limitation >= 0) {
+          trafficControl.clientPort = clientPort.id;
+          requests.push(this.trafficControlAPI.addTrafficControl(trafficControl));
+        }
+      }
+      for (const antiFraud of this.antiFrauds) {
+        if (antiFraud.limitation >= 0) {
+          antiFraud.clientPort = clientPort.id;
+          requests.push(this.antiFraudAPI.addAntiFraud(antiFraud));
+        }
+      }
 
-      this.changed.emit(true);
+      if (requests.length > 0) {
+        forkJoin(requests).subscribe(() => {
+          this.snackBar.open('上游广告位已创建', 'OK', {
+            duration: 2000,
+          });
+
+          this.changed.emit(true);
+        });
+      } else {
+        this.snackBar.open('上游广告位已创建', 'OK', {
+          duration: 2000,
+        });
+
+        this.changed.emit(true);
+      }
     });
   }
 
@@ -521,11 +568,51 @@ export class ClientPortFormComponent implements AfterViewInit {
     clientPort.remark = this.formGroup.value.remark;
 
     this.clientPortAPI.updateClientPort(clientPort.id!, clientPort).subscribe(() => {
-      this.snackBar.open('上游广告位已修改', 'OK', {
-        duration: 2000,
-      });
+      const requests = [];
+      for (const trafficControl of this.trafficControls) {
+        if (trafficControl.limitation >= 0) {
+          if (trafficControl.clientPort === null) {
+            trafficControl.clientPort = clientPort.id;
+          }
+          if (trafficControl.id === null) {
+            requests.push(this.trafficControlAPI.addTrafficControl(trafficControl));
+          }
+        } else {
+          if (trafficControl.id !== null) {
+            requests.push(this.trafficControlAPI.removeTrafficControl(trafficControl.id));
+          }
+        }
+      }
+      for (const antiFraud of this.antiFrauds) {
+        if (antiFraud.limitation >= 0) {
+          if (antiFraud.clientPort === null) {
+            antiFraud.clientPort = clientPort.id;
+          }
+          if (antiFraud.id === null) {
+            requests.push(this.antiFraudAPI.addAntiFraud(antiFraud));
+          }
+        } else {
+          if (antiFraud.id !== null) {
+            requests.push(this.antiFraudAPI.removeAntiFraud(antiFraud.id));
+          }
+        }
+      }
 
-      this.changed.emit(true);
+      if (requests.length > 0) {
+        forkJoin(requests).subscribe(() => {
+          this.snackBar.open('上游广告位已修改', 'OK', {
+            duration: 2000,
+          });
+
+          this.changed.emit(true);
+        });
+      } else {
+        this.snackBar.open('上游广告位已修改', 'OK', {
+          duration: 2000,
+        });
+
+        this.changed.emit(true);
+      }
     });
   }
 
@@ -559,6 +646,68 @@ export class ClientPortFormComponent implements AfterViewInit {
     this.clientPortAPI.getClientPort(this.clientPort()!.id!).subscribe(clientPort => {
       this.connections = clientPort.connection.filter(connection => !connection.deleted).filter(connection => !connection.vendorPort.deleted);
     });
+  }
+
+  getValidTrafficControls(): TrafficControl[] {
+    return this.trafficControls?.filter(tc => tc.limitation >= 0);
+  }
+
+  addTrafficControl() {
+    const clientPort = this.clientPort();
+
+    const dialogRef = this.dialog.open<TrafficControlDialogComponent, TrafficControl>(TrafficControlDialogComponent, {
+      data: {
+        id: null,
+        clientPort: clientPort ? clientPort.id : null,
+        vendorPort: -1,
+        bundle: '',
+        indicator: TrafficControlIndicator.TC_INDICATOR_REQUEST,
+        period: TrafficControlPeriod.TC_PERIOD_SECOND,
+        limitation: 0,
+      },
+      minWidth: '50vw',
+      maxWidth: '50vw',
+    });
+
+    dialogRef.afterClosed().subscribe(trafficControl => {
+      if (trafficControl) {
+        this.trafficControls.push(trafficControl);
+      }
+    });
+  }
+
+  removeTrafficControl(trafficControl: TrafficControl) {
+    trafficControl.limitation = -1;
+  }
+
+  getValidAntiFrauds(): AntiFraud[] {
+    return this.antiFrauds?.filter(af => af.limitation >= 0);
+  }
+
+  addAntiFraud() {
+    const clientPort = this.clientPort();
+
+    const dialogRef = this.dialog.open<AntiFraudDialogComponent, AntiFraud>(AntiFraudDialogComponent, {
+      data: {
+        id: null,
+        clientPort: clientPort ? clientPort.id : null,
+        rule: '',
+        period: AntiFraudPeriod.AF_PERIOD_SECOND,
+        limitation: 0,
+      },
+      minWidth: '50vw',
+      maxWidth: '50vw',
+    });
+
+    dialogRef.afterClosed().subscribe(antiFraud => {
+      if (antiFraud) {
+        this.antiFrauds.push(antiFraud);
+      }
+    });
+  }
+
+  removeAntiFraud(antiFraud: AntiFraud) {
+    antiFraud.limitation = -1;
   }
 
 }

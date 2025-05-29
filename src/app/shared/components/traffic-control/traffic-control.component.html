@@ -1,0 +1,27 @@
+@if (trafficControl().limitation) {
+  @switch (trafficControl().period) {
+    @case (TrafficControlPeriod.TC_PERIOD_SECOND) {
+      每秒
+    }
+    @case (TrafficControlPeriod.TC_PERIOD_MINUTE) {
+      每分钟
+    }
+    @case (TrafficControlPeriod.TC_PERIOD_HOUR) {
+      每小时
+    }
+    @case (TrafficControlPeriod.TC_PERIOD_DAY) {
+      每天
+    }
+  }
+  @switch (trafficControl().indicator) {
+    @case (TrafficControlIndicator.TC_INDICATOR_REQUEST) {
+      请求
+    }
+    @case (TrafficControlIndicator.TC_INDICATOR_COST) {
+      预期收益
+    }
+  }
+  控制在{{ (trafficControl().indicator === TrafficControlIndicator.TC_INDICATOR_REQUEST ? trafficControl().limitation : trafficControl().limitation / 100000) + (trafficControl().indicator === TrafficControlIndicator.TC_INDICATOR_REQUEST ? '次' : '元') }}以下（含）
+} @else {
+  禁用
+}

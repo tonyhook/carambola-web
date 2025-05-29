@@ -6,17 +6,20 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatDialogRef, MAT_DIALOG_DATA, MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { forkJoin } from 'rxjs';
 
-import { Client, ClientAPI, ClientMedia, ClientPort, ClientPortAPI, Connection, PartnerType, PortType, Vendor, VendorAPI, VendorMedia, VendorPort, VendorPortAPI } from '../../../core';
+import { Client, ClientAPI, ClientMedia, ClientPort, ClientPortAPI, Connection, PartnerType, PortType, TrafficControl, TrafficControlAPI, TrafficControlIndicator, TrafficControlPeriod, Vendor, VendorAPI, VendorMedia, VendorPort, VendorPortAPI } from '../../../core';
 import { FilteredSelectClientComponent } from '../filtered-select-client/filtered-select-client.component';
 import { FilteredSelectClientPortComponent } from '../filtered-select-clientport/filtered-select-clientport.component';
 import { FilteredSelectVendorComponent } from '../filtered-select-vendor/filtered-select-vendor.component';
 import { FilteredSelectVendorPortComponent } from '../filtered-select-vendorport/filtered-select-vendorport.component';
+import { TrafficControlComponent } from '../traffic-control/traffic-control.component';
+import { TrafficControlDialogComponent } from '../traffic-control-dialog/traffic-control-dialog.component';
 
 export interface ConnectionDialogData {
   clientPort: ClientPort | null;
@@ -34,11 +37,13 @@ export interface ConnectionDialogData {
     MatCheckboxModule,
     MatDatepickerModule,
     MatFormFieldModule,
+    MatIconModule,
     MatInputModule,
     FilteredSelectClientComponent,
     FilteredSelectClientPortComponent,
     FilteredSelectVendorComponent,
     FilteredSelectVendorPortComponent,
+    TrafficControlComponent,
   ],
   templateUrl: './connection-dialog.component.html',
   styleUrls: ['./connection-dialog.component.scss'],
@@ -50,7 +55,9 @@ export class ConnectionDialogComponent implements OnInit, AfterViewInit {
   private clientPortAPI = inject(ClientPortAPI);
   private vendorAPI = inject(VendorAPI);
   private vendorPortAPI = inject(VendorPortAPI);
+  private trafficControlAPI = inject(TrafficControlAPI);
   private snackBar = inject(MatSnackBar);
+  private dialog = inject(MatDialog);
   dialogRef = inject<MatDialogRef<ConnectionDialogComponent>>(MatDialogRef);
   data = inject<ConnectionDialogData>(MAT_DIALOG_DATA);
 
@@ -61,6 +68,7 @@ export class ConnectionDialogComponent implements OnInit, AfterViewInit {
   vendor: Vendor | null = null;
   vendorPort: VendorPort | null = null;
   connection: Connection | null = null;
+  trafficControls: TrafficControl[] = [];
 
   clients: Client[] = [];
   clientPorts: ClientPort[] = [];
@@ -246,6 +254,12 @@ export class ConnectionDialogComponent implements OnInit, AfterViewInit {
           this.formGroupPort.setControl('vendorPort', this.formBuilder.control({value: this.vendorPort, disabled: true}, Validators.required), {emitEvent: false,});
         }, 0);
       }
+
+      if (this.connection) {
+        this.trafficControlAPI.getTrafficControlListByPort(this.connection.clientPort.id!, this.connection.vendorPort.id!).subscribe(trafficControls => {
+          this.trafficControls = trafficControls;
+        });
+      }
     });
   }
 
@@ -340,7 +354,62 @@ export class ConnectionDialogComponent implements OnInit, AfterViewInit {
       defaultPrice: this.formGroupConnection.value.defaultPrice,
     };
 
-    this.dialogRef.close(connection);
+    const requests = [];
+    for (const trafficControl of this.trafficControls) {
+      if (trafficControl.limitation !== -1) {
+        if (trafficControl.clientPort === null) {
+          trafficControl.clientPort = connection.clientPort.id;
+        }
+        if (trafficControl.vendorPort === null) {
+          trafficControl.vendorPort = connection.vendorPort.id;
+        }
+        if (trafficControl.id === null) {
+          requests.push(this.trafficControlAPI.addTrafficControl(trafficControl));
+        }
+      } else {
+        if (trafficControl.id !== null) {
+          requests.push(this.trafficControlAPI.removeTrafficControl(trafficControl.id));
+        }
+      }
+    }
+
+    if (requests.length > 0) {
+      forkJoin(requests).subscribe(() => {
+        this.dialogRef.close(connection);
+      });
+    } else {
+      this.dialogRef.close(connection);
+    }
+  }
+
+  getValidTrafficControls(): TrafficControl[] {
+    return this.trafficControls?.filter(tc => tc.limitation >= 0);
+  }
+
+  addTrafficControl() {
+    const dialogRef = this.dialog.open<TrafficControlDialogComponent, TrafficControl>(TrafficControlDialogComponent, {
+      data: {
+        id: null,
+        clientPort: this.connection ? this.connection.clientPort.id : null,
+        vendorPort: this.connection ? this.connection.vendorPort.id : null,
+        bundle: '',
+        indicator: TrafficControlIndicator.TC_INDICATOR_REQUEST,
+        period: TrafficControlPeriod.TC_PERIOD_SECOND,
+        limitation: 0,
+      },
+      minWidth: '50vw',
+      maxWidth: '50vw',
+    });
+
+    dialogRef.afterClosed().subscribe(trafficControl => {
+      if (trafficControl) {
+        this.trafficControls.push(trafficControl);
+      }
+    });
+  }
+
+  removeTrafficControl(trafficControl: TrafficControl) {
+    trafficControl.limitation = -1;
   }
 
 }

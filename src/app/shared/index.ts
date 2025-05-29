@@ -23,3 +23,7 @@ export * from './components/filtered-select-clientport/filtered-select-clientpor
 export * from './components/filtered-select-vendor/filtered-select-vendor.component';
 export * from './components/filtered-select-vendormedia/filtered-select-vendormedia.component';
 export * from './components/filtered-select-vendorport/filtered-select-vendorport.component';
+export * from './components/anti-fraud/anti-fraud.component';
+export * from './components/anti-fraud-dialog/anti-fraud-dialog.component';
+export * from './components/traffic-control/traffic-control.component';
+export * from './components/traffic-control-dialog/traffic-control-dialog.component';

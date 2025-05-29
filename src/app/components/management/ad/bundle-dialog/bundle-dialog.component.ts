@@ -181,7 +181,7 @@ export class BundleDialogComponent implements AfterViewInit {
               this.toISOStringWithTimezone(this.dialogData.end),
               this.dialogData.query
             ),
-          this.trafficControlAPI.getTrafficControlList(
+          this.trafficControlAPI.getTrafficControlListByQuery(
             this.dialogData.query
           ),
         ]).subscribe(results => {

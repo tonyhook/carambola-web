@@ -182,6 +182,40 @@
                   </query-builder>
                 </div>
               }
+              <div class="full-width-input flex">
+                <div class="rule-wrapper">
+                  <div class="rule-list">
+                    @if (getValidTrafficControls().length === 0) {
+                      <div>无流量控制</div>
+                    } @else {
+                      @for (trafficControl of getValidTrafficControls(); track trafficControl) {
+                        <div class="full-width-input flex">
+                          <carambola-traffic-control [trafficControl]="trafficControl" />
+                          <button class="form-button" mat-icon-button (click)="removeTrafficControl(trafficControl)"><mat-icon>delete</mat-icon></button>
+                        </div>
+                      }
+                    }
+                  </div>
+                  <button class="form-button rule-add" mat-stroked-button (click)="addTrafficControl()"><mat-icon>add</mat-icon>增加一条流量控制规则</button>
+                </div>
+              </div>
+              <div class="full-width-input flex">
+                <div class="rule-wrapper">
+                  <div class="rule-list">
+                    @if (getValidAntiFrauds().length === 0) {
+                      <div>无反作弊控制</div>
+                    } @else {
+                      @for (antiFraud of getValidAntiFrauds(); track antiFraud) {
+                        <div class="full-width-input flex">
+                          <carambola-anti-fraud [antiFraud]="antiFraud" />
+                          <button class="form-button" mat-icon-button (click)="removeAntiFraud(antiFraud)"><mat-icon>delete</mat-icon></button>
+                        </div>
+                      }
+                    }
+                  </div>
+                  <button class="form-button rule-add" mat-stroked-button (click)="addAntiFraud()"><mat-icon>add</mat-icon>增加一条反作弊控制规则</button>
+                </div>
+              </div>
             }
             <mat-form-field class="full-width-input" subscriptSizing="dynamic">
               <mat-label>备注</mat-label>

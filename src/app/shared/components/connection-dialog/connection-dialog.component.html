@@ -74,6 +74,23 @@
         </mat-form-field>
       </div>
       <div class="full-width-input flex">
+        <div class="rule-wrapper">
+          <div class="rule-list">
+            @if (getValidTrafficControls().length === 0) {
+              <div>无流量控制</div>
+            } @else {
+              @for (trafficControl of getValidTrafficControls(); track trafficControl.id) {
+                <div class="full-width-input flex">
+                  <carambola-traffic-control [trafficControl]="trafficControl" />
+                  <button class="form-button" mat-icon-button (click)="removeTrafficControl(trafficControl)"><mat-icon>delete</mat-icon></button>
+                </div>
+              }
+            }
+          </div>
+          <button class="form-button rule-add" mat-stroked-button (click)="addTrafficControl()"><mat-icon>add</mat-icon>增加一条流量控制规则</button>
+        </div>
+      </div>
+      <div class="full-width-input flex">
         @if (!this.readonly) {
           <button type="button" class="form-button" mat-stroked-button (click)="confirm()">提交</button>
           <button type="button" class="form-button cencel" mat-stroked-button (click)="cancel()">取消</button>

@@ -1,0 +1,33 @@
+<mat-card>
+  <mat-card-content>
+    <form class="form-in-tab" [formGroup]="formGroup">
+      <div class="full-width-input wrapper">
+        <mat-form-field class="third-width-input" subscriptSizing="dynamic">
+          <mat-label>反作弊规则</mat-label>
+          <mat-select formControlName="rule">
+            @for (antiFraudRule of antiFraudRules; track antiFraudRule.id) {
+              <mat-option [value]="antiFraudRule.code">{{antiFraudRule.brief}}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field class="third-width-input" subscriptSizing="dynamic">
+          <mat-label>时间颗粒度</mat-label>
+          <mat-select formControlName="period">
+            <mat-option [value]="AntiFraudPeriod.AF_PERIOD_SECOND">秒</mat-option>
+            <mat-option [value]="AntiFraudPeriod.AF_PERIOD_MINUTE">分钟</mat-option>
+            <mat-option [value]="AntiFraudPeriod.AF_PERIOD_HOUR">小时</mat-option>
+            <mat-option [value]="AntiFraudPeriod.AF_PERIOD_DAY">天</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field class="third-width-input" subscriptSizing="dynamic">
+          <mat-label>限定值</mat-label>
+          <input type="number" placeholder="限定值" matInput formControlName="limitation" />
+        </mat-form-field>
+      </div>
+      <div class="full-width-input flex">
+        <button type="button" class="form-button confirm" mat-stroked-button (click)="confirm()">确定</button>
+        <button type="button" class="form-button cancel" mat-stroked-button (click)="cancel()">取消</button>
+      </div>
+    </form>
+  </mat-card-content>
+</mat-card>
