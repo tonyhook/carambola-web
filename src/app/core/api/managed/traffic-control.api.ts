@@ -11,11 +11,19 @@ import { PerformancePlaceholder, Query, TrafficControl } from '../..';
 export class TrafficControlAPI {
   private http = inject(HttpClient);
 
-  getTrafficControlList(query: Query<PerformancePlaceholder>): Observable<TrafficControl[]> {
+  getTrafficControlListByQuery(query: Query<PerformancePlaceholder>): Observable<TrafficControl[]> {
     let params = new HttpParams();
     params = params.append('query', JSON.stringify(query));
 
-    return this.http.get<TrafficControl[]>(environment.apipath + '/api/managed/trafficcontrol', { params: params, withCredentials: true });
+    return this.http.get<TrafficControl[]>(environment.apipath + '/api/managed/trafficcontrol/query', { params: params, withCredentials: true });
+  }
+
+  getTrafficControlListByPort(clientPortId: number, vendorPortId: number): Observable<TrafficControl[]> {
+    const params = new HttpParams()
+      .set('clientPortId', clientPortId)
+      .set('vendorPortId', vendorPortId);
+
+    return this.http.get<TrafficControl[]>(environment.apipath + '/api/managed/trafficcontrol/port', { params: params, withCredentials: true });
   }
 
   addTrafficControl(newTrafficControl: TrafficControl): Observable<TrafficControl> {

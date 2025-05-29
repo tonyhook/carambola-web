@@ -17,6 +17,7 @@ export interface PerformancePartner {
   eventK: number;
   eventL: number;
   eventM: number;
+  eventN: number;
   impression: number;
   click: number;
   income: number;

@@ -3,6 +3,23 @@
 .rule-action {
   margin-left: 1rem;
 }
+.rule-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+.rule-list {
+  display: flex;
+  flex-direction: column;
+}
+.rule-add {
+  position: relative;
+  right: 0;
+  top: 0;
+}
 
 ::ng-deep.q-rule {
   background-color: var(--mat-sys-surface-variant) !important;

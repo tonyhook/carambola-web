@@ -181,7 +181,7 @@ export class BundleDialogComponent implements AfterViewInit {
               this.toISOStringWithTimezone(this.dialogData.end),
               this.dialogData.query
             ),
-          this.trafficControlAPI.getTrafficControlList(
+          this.trafficControlAPI.getTrafficControlListByQuery(
             this.dialogData.query
           ),
         ]).subscribe(results => {
@@ -301,7 +301,7 @@ export class BundleDialogComponent implements AfterViewInit {
         performanceView.request +=
           performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE +
           performance.eventF + performance.eventG + performance.eventH + performance.eventK + performance.eventL +
-          performance.eventM;
+          performance.eventM + performance.eventN;
         performanceView.requestv +=
           performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventK;
         performanceView.response +=

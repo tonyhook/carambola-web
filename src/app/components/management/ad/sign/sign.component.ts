@@ -995,6 +995,7 @@ export class SignComponent implements OnInit, AfterViewInit, DoCheck {
             eventK: 0,
             eventL: 0,
             eventM: 0,
+            eventN: 0,
             impression: 0,
             click: 0,
             income: 0,

@@ -16,6 +16,8 @@ export * from './api/managed/vendor.api';
 export * from './api/managed/vendormedia.api';
 export * from './api/managed/vendorport.api';
 export * from './api/managed/performance.api';
+export * from './api/managed/anti-fraud.api';
+export * from './api/managed/anti-fraud-rule.api';
 export * from './api/managed/traffic-control.api';
 export * from './api/managed/bill.api';
 export * from './api/managed/server.api';
@@ -53,6 +55,8 @@ export * from './entity/ad/vendorport';
 export * from './entity/ad/performance-partner';
 export * from './entity/ad/performance-placeholder';
 export * from './entity/ad/performance-view';
+export * from './entity/ad/anti-fraud';
+export * from './entity/ad/anti-fraud-rule';
 export * from './entity/ad/traffic-control';
 export * from './entity/ad/bill';
 export * from './entity/ad/medium';
@@ -88,6 +92,12 @@ export enum SignStatus {
   SIGN_STATUS_READY   = 1,
   SIGN_STATUS_CREATED = 2,
   SIGN_STATUS_SIGNED  = 3,
+}
+export enum AntiFraudPeriod {
+  AF_PERIOD_SECOND = 1,
+  AF_PERIOD_MINUTE = 2,
+  AF_PERIOD_HOUR   = 3,
+  AF_PERIOD_DAY    = 4,
 }
 export enum TrafficControlIndicator {
   TC_INDICATOR_REQUEST = 1,
