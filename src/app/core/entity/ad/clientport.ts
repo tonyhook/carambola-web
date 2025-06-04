@@ -14,6 +14,7 @@ export interface ClientPort {
   ekey: number | null;
   ikey: number | null;
   filter: string | null;
+  filterType: string | null;
   remark: string | null;
   createTime: string | null;
   updateTime: string | null;

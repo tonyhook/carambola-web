@@ -1,10 +1,12 @@
-import { AfterViewInit, Component, effect, input, output, signal, WritableSignal, inject } from '@angular/core';
+import { AfterViewInit, Component, effect, ElementRef, inject, input, output, signal, ViewChild, WritableSignal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { UntypedFormGroup, UntypedFormBuilder, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { UntypedFormGroup, UntypedFormBuilder, Validators, ReactiveFormsModule, FormsModule, FormControl } from '@angular/forms';
+import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
-import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatButtonToggleChange, MatButtonToggleGroup, MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatCardModule } from '@angular/material/card';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatChipsModule } from '@angular/material/chips';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -14,7 +16,7 @@ import { MatRadioModule } from '@angular/material/radio';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTabsModule } from '@angular/material/tabs';
-import { forkJoin } from 'rxjs';
+import { forkJoin, map, Observable, startWith } from 'rxjs';
 import {
   Field,
   QueryArrowIconDirective,
@@ -32,7 +34,7 @@ import {
 
 import { AntiFraud, AntiFraudAPI, AntiFraudPeriod, Client, ClientAPI, ClientMedia, ClientMediaAPI, ClientPort, ClientPortAPI, Connection, PartnerType, PortType, TrafficControl, TrafficControlAPI, TrafficControlIndicator, TrafficControlPeriod } from '../../../../core';
 import { TenantService } from '../../../../services';
-import { AntiFraudComponent, AntiFraudDialogComponent, ConnectionComponent, FilteredSelectClientComponent, FilteredSelectClientMediaComponent, TrafficControlComponent, TrafficControlDialogComponent } from '../../../../shared';
+import { AntiFraudComponent, AntiFraudDialogComponent, ConfirmDialogComponent, ConnectionComponent, FilteredSelectClientComponent, FilteredSelectClientMediaComponent, TrafficControlComponent, TrafficControlDialogComponent } from '../../../../shared';
 
 @Component({
   selector: 'carambola-clientport-form',
@@ -40,10 +42,12 @@ import { AntiFraudComponent, AntiFraudDialogComponent, ConnectionComponent, Filt
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
+    MatAutocompleteModule,
     MatButtonModule,
     MatButtonToggleModule,
     MatCardModule,
     MatCheckboxModule,
+    MatChipsModule,
     MatDatepickerModule,
     MatFormFieldModule,
     MatIconModule,
@@ -84,6 +88,12 @@ export class ClientPortFormComponent implements AfterViewInit {
   PartnerType = PartnerType;
   PortType = PortType;
 
+  ctrlFilter = new FormControl(null);
+  filteredFields: Observable<[string, Field][]> = new Observable<[string, Field][]>();
+  selectedFilters: [string, Field][] = [];
+  @ViewChild('inputFilter') inputFilter: ElementRef<HTMLInputElement> | undefined;
+  @ViewChild('queryTypeToggleGroup') queryTypeToggleGroup: MatButtonToggleGroup | undefined;
+
   formGroup: UntypedFormGroup;
   clients: WritableSignal<Client[]> = signal([]);
   managedClients: WritableSignal<Client[]> = signal([]);
@@ -115,6 +125,7 @@ export class ClientPortFormComponent implements AfterViewInit {
     condition: 'and',
     rules: [],
   };
+  queryType = 'simple';
 
   config: QueryBuilderConfig = {
     fields: {
@@ -219,6 +230,7 @@ export class ClientPortFormComponent implements AfterViewInit {
       return ['is not null'];
     }
   }
+  simpleFields = Object.entries(this.config.fields);
 
   getOperator(operator: string): string {
     switch (operator) {
@@ -291,6 +303,7 @@ export class ClientPortFormComponent implements AfterViewInit {
                   condition: 'and',
                   rules: [],
                 };
+                this.queryType = 'simple';
 
                 if (this.mode() === PartnerType.PARTNER_TYPE_DIRECT) {
                   this.formProtocolKey = ['id'];
@@ -320,6 +333,7 @@ export class ClientPortFormComponent implements AfterViewInit {
               condition: 'and',
               rules: [],
             };
+            this.queryType = 'simple';
 
             if (this.mode() === PartnerType.PARTNER_TYPE_DIRECT) {
               this.formProtocolKey = ['id'];
@@ -368,13 +382,22 @@ export class ClientPortFormComponent implements AfterViewInit {
               this.formGroup.setControl('filter', this.formBuilder.control({value: clientPort.filter !== null && clientPort.filter.length > 0, disabled: this.readonly}, null), {emitEvent: false});
               this.formGroup.setControl('remark', this.formBuilder.control({value: clientPort.remark, disabled: this.readonly}, null), {emitEvent: false});
 
-              if (clientPort.filter !== null && clientPort.filter.length > 0) {
+              if (clientPort.filter !== null && clientPort.filter.length > 0 && clientPort.filterType !== null && clientPort.filterType.length > 0 ) {
                 this.query = JSON.parse(clientPort.filter);
+                this.queryType = clientPort.filterType;
+
+                if (this.queryType === 'simple') {
+                  this.selectedFilters = this.query.rules.map(rule => {
+                    const field = rule.field;
+                    return this.simpleFields[this.simpleFields.map(field => field[0]).indexOf(field)];
+                  });
+                }
               } else {
                 this.query = {
                   condition: 'and',
                   rules: [],
                 };
+                this.queryType = 'simple';
               }
 
               if (this.mode() === PartnerType.PARTNER_TYPE_DIRECT) {
@@ -470,6 +493,45 @@ export class ClientPortFormComponent implements AfterViewInit {
         }
       }
     });
+
+    this.filteredFields = this.ctrlFilter.valueChanges.pipe(
+      startWith(null),
+      map((field: [string, Field] | null) => {
+        return field ? this._filter(field[0]) : this.simpleFields.slice()
+      }),
+    );
+  }
+
+  private _filter(value: string): [string, Field][] {
+    const filterValue = value.toLowerCase();
+
+    return this.simpleFields.filter(field => field[1].name.toLowerCase().includes(filterValue));
+  }
+
+  remove(field: [string, Field], control: FormControl | null, fields: [string, Field][]): void {
+    const index = fields.map(field => field[0]).indexOf(field[0]);
+
+    if (index >= 0) {
+      fields.splice(index, 1);
+    }
+    this.query.rules = fields.map(field => ({ field: field[0], operator: 'is not null', value: null }));
+
+    if (control) {
+      control.setValue(null);
+    }
+  }
+
+  select(event: MatAutocompleteSelectedEvent, input: HTMLInputElement, control: FormControl, fields: [string, Field][]): void {
+    const value = event.option.value;
+
+    if (fields.map(field => field[0]).indexOf(value[0]) < 0) {
+      fields.push(value);
+    }
+    this.query.rules = fields.map(field => ({ field: field[0], operator: 'is not null', value: null }));
+
+    input.value = '';
+    control.setValue(null);
+    event.option.deselect();
   }
 
   addClientPort() {
@@ -498,6 +560,7 @@ export class ClientPortFormComponent implements AfterViewInit {
       ekey: this.formGroup.value.ekey,
       ikey: this.formGroup.value.ikey,
       filter: this.formGroup.value.filter ? JSON.stringify(this.query) : null,
+      filterType: this.formGroup.value.filter ? this.queryType : null,
       remark: this.formGroup.value.remark,
       createTime: null,
       updateTime: null,
@@ -565,6 +628,7 @@ export class ClientPortFormComponent implements AfterViewInit {
     clientPort.ekey = this.formGroup.value.ekey;
     clientPort.ikey = this.formGroup.value.ikey;
     clientPort.filter = this.formGroup.value.filter ? JSON.stringify(this.query) : null;
+    clientPort.filterType = this.formGroup.value.filter ? this.queryType : null;
     clientPort.remark = this.formGroup.value.remark;
 
     this.clientPortAPI.updateClientPort(clientPort.id!, clientPort).subscribe(() => {
@@ -646,6 +710,34 @@ export class ClientPortFormComponent implements AfterViewInit {
     this.clientPortAPI.getClientPort(this.clientPort()!.id!).subscribe(clientPort => {
       this.connections = clientPort.connection.filter(connection => !connection.deleted).filter(connection => !connection.vendorPort.deleted);
     });
+  }
+
+  changeFilterType(event: MatButtonToggleChange) {
+    if (event.value === 'simple') {
+      const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+        data: '从高级版切换回精简版会清空已配置的过滤条件，是否继续？',
+        maxWidth: '40vw',
+        maxHeight: '40vh',
+      });
+
+      dialogRef.afterClosed().subscribe(result => {
+        if (result) {
+          this.query = {
+            condition: 'and',
+            rules: [],
+          };
+          this.selectedFilters = [];
+          this.queryType = 'simple';
+        } else {
+          if (this.queryTypeToggleGroup) {
+            this.queryTypeToggleGroup.value = this.queryType;
+          }
+        }
+      });
+    } else {
+      this.selectedFilters = [];
+      this.queryType = 'advanced';
+    }
   }
 
   getValidTrafficControls(): TrafficControl[] {
