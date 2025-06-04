@@ -61,9 +61,39 @@
                 </mat-form-field>
               </div>
               <div class="full-width-input flex">
-                <mat-checkbox class="full-width-input" formControlName="filter">启用字段过滤</mat-checkbox>
+                <mat-checkbox formControlName="filter">启用字段过滤</mat-checkbox>
+                @if (formGroup.value.filter) {
+                  <mat-button-toggle-group #queryTypeToggleGroup="matButtonToggleGroup" [value]="queryType" (change)="changeFilterType($event)">
+                    <mat-button-toggle [value]="'simple'">精简版（支持必需字段）</mat-button-toggle>
+                    <mat-button-toggle [value]="'advanced'">高级版（支持条件组合）</mat-button-toggle>
+                  </mat-button-toggle-group>
+                }
               </div>
-              @if (formGroup.value.filter) {
+              @if (formGroup.value.filter && queryType === 'simple') {
+                <mat-form-field class="full-width-input" subscriptSizing="dynamic">
+                  <mat-label>必填字段</mat-label>
+                  <mat-chip-grid #chipGridFilter>
+                    @for (field of selectedFilters; track field[0]) {
+                      <mat-chip-row [value]="field" (removed)="remove(field, ctrlFilter, selectedFilters)">
+                        {{ field[1].name }}
+                        <button matChipRemove>
+                          <mat-icon>cancel</mat-icon>
+                        </button>
+                      </mat-chip-row>
+                    }
+                  </mat-chip-grid>
+                  <input placeholder="增加字段" #inputFilter matInput [formControl]="ctrlFilter"
+                    [matChipInputFor]="chipGridFilter" [matAutocomplete]="autoFilter"/>
+                  <mat-autocomplete #autoFilter="matAutocomplete" (optionSelected)="select($event, inputFilter, ctrlFilter, selectedFilters)">
+                    @for (field of filteredFields | async; track field[0]) {
+                      <mat-option [value]="field">
+                        {{ field[1].name }}
+                      </mat-option>
+                    }
+                  </mat-autocomplete>
+                </mat-form-field>
+              }
+              @if (formGroup.value.filter && queryType === 'advanced') {
                 <div class="full-width-input wrapper">
                   <query-builder [(ngModel)]="query" [ngModelOptions]="{standalone: true}" [config]="config" [emptyMessage]="'规则组至少要有一条规则，请增加一条规则，或彻底删除这个规则组'">
                     <ng-container *queryButtonGroup="let ruleset; let addRule=addRule; let addRuleSet=addRuleSet; let removeRuleSet=removeRuleSet">
