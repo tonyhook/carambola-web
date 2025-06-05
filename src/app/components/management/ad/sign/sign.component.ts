@@ -942,16 +942,83 @@ export class SignComponent implements OnInit, AfterViewInit, DoCheck {
         connectionKeys.add(this.toISOStringWithTimezone(new Date(medium.date)).substring(0, 10).replace('T', ' ') + '|' + medium.clientPort + '|' + medium.vendorPort);
       }
 
+      const performanceMap = new Map<string, PerformancePartner>();
       for (const performance of this.performanceData) {
-        if (performance.clientPort === -1) {
-          continue;
+        let time = '';
+        if (this.signInterval === 'day') {
+          time = this.toISOStringWithTimezone(new Date(performance.time)).substring(0, 10).replace('T', ' ');
+        }
+        if (this.signInterval === 'month') {
+          time = this.toISOStringWithTimezone(new Date(performance.time)).substring(0, 7).replace('T', ' ');
+        }
+        if (this.signInterval === 'year') {
+          time = this.toISOStringWithTimezone(new Date(performance.time)).substring(0, 4).replace('T', ' ');
         }
 
+        let key = time + '|';
+        if (this.signAggregateDownstream === 'vendor' || this.signAggregateDownstream === 'vendorport') {
+          key += 'V' + this.vendorPortMap.get(performance.vendorPort)?.vendor.id + '|';
+        }
+        if (this.signAggregateDownstream === 'vendorport') {
+          key += 'VP' + performance.vendorPort + '|';
+        }
+
+        if (!performanceMap.has(key)) {
+          const performanceNew: PerformancePartner = {
+            id: null,
+            time: performance.time,
+            vendorPort: performance.vendorPort,
+            clientPort: performance.clientPort,
+            bundle: '',
+            eventA: 0,
+            eventB: 0,
+            eventC: 0,
+            eventD: 0,
+            eventE: 0,
+            eventF: 0,
+            eventG: 0,
+            eventH: 0,
+            eventI: 0,
+            eventJ: 0,
+            eventK: 0,
+            eventL: 0,
+            eventM: 0,
+            eventN: 0,
+            impression: 0,
+            click: 0,
+            income: 0,
+            outcomeUpstream: 0,
+            outcomeRebate: 0,
+            outcomeDownstream: 0,
+          };
+
+          performanceMap.set(key, performanceNew);
+        }
+
+        const existingPerformance = performanceMap.get(key)!;
+        existingPerformance.eventA += performance.eventA;
+        existingPerformance.eventB += performance.eventB;
+        existingPerformance.eventC += performance.eventC;
+        existingPerformance.eventD += performance.eventD;
+        existingPerformance.eventE += performance.eventE;
+        existingPerformance.eventF += performance.eventF;
+        existingPerformance.eventG += performance.eventG;
+        existingPerformance.eventH += performance.eventH;
+        existingPerformance.eventI += performance.eventI;
+        existingPerformance.eventJ += performance.eventJ;
+        existingPerformance.impression += performance.impression;
+        existingPerformance.click += performance.click;
+        existingPerformance.outcomeDownstream += performance.outcomeDownstream;
+      }
+
+      for (const performance of performanceMap.values()) {
+        let processed = false;
+
         if (signKeys.has(this.toISOStringWithTimezone(new Date(performance.time)).substring(0, 10).replace('T', ' ') + '|' + performance.vendorPort)) {
-          continue;
+          processed = true;
         }
         if (connectionKeys.has(this.toISOStringWithTimezone(new Date(performance.time)).substring(0, 10).replace('T', ' ') + '|' + performance.clientPort + '|' + performance.vendorPort)) {
-          continue;
+          processed = true;
         }
 
         let time = '';
@@ -999,18 +1066,38 @@ export class SignComponent implements OnInit, AfterViewInit, DoCheck {
         }
 
         const signView = this.signViewMap.get(key)!;
-        signView.request = signView.request === null ? performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventG + performance.eventH + performance.eventI + performance.eventJ : signView.request + performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventG + performance.eventH + performance.eventI + performance.eventJ;
-        signView.response = signView.response === null ? performance.eventI + performance.eventJ : signView.response + performance.eventI + performance.eventJ;
-        signView.impression = signView.impression === null ? performance.impression : signView.impression + performance.impression;
-        signView.click = signView.click === null ? performance.click : signView.click + performance.click;
-        signView.cost = signView.cost === null ? performance.outcomeDownstream : signView.cost + performance.outcomeDownstream;
+        if (!processed || signView.request === null) {
+          signView.request = signView.request === null ? performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventG + performance.eventH + performance.eventI + performance.eventJ : signView.request + performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventG + performance.eventH + performance.eventI + performance.eventJ;
+        }
+        if (!processed || signView.response === null) {
+          signView.response = signView.response === null ? performance.eventI + performance.eventJ : signView.response + performance.eventI + performance.eventJ;
+        }
+        if (!processed || signView.request === null) {
+          signView.impression = signView.impression === null ? performance.impression : signView.impression + performance.impression;
+        }
+        if (!processed || signView.request === null) {
+          signView.click = signView.click === null ? performance.click : signView.click + performance.click;
+        }
+        if (!processed || signView.request === null) {
+          signView.cost = signView.cost === null ? performance.outcomeDownstream : signView.cost + performance.outcomeDownstream;
+        }
         signView.total++;
 
-        this.signViewTotal.request = this.signViewTotal.request === null ? performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventG + performance.eventH + performance.eventI + performance.eventJ : this.signViewTotal.request + performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventG + performance.eventH + performance.eventI + performance.eventJ;
-        this.signViewTotal.response = this.signViewTotal.response === null ? performance.eventI + performance.eventJ : this.signViewTotal.response + performance.eventI + performance.eventJ;
-        this.signViewTotal.impression = this.signViewTotal.impression === null ? performance.impression : this.signViewTotal.impression + performance.impression;
-        this.signViewTotal.click = this.signViewTotal.click === null ? performance.click : this.signViewTotal.click + performance.click;
-        this.signViewTotal.cost = this.signViewTotal.cost === null ? performance.outcomeDownstream : this.signViewTotal.cost + performance.outcomeDownstream;
+        if (!processed || this.signViewTotal.request === null) {
+          this.signViewTotal.request = this.signViewTotal.request === null ? performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventG + performance.eventH + performance.eventI + performance.eventJ : this.signViewTotal.request + performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventG + performance.eventH + performance.eventI + performance.eventJ;
+        }
+        if (!processed || this.signViewTotal.response === null) {
+          this.signViewTotal.response = this.signViewTotal.response === null ? performance.eventI + performance.eventJ : this.signViewTotal.response + performance.eventI + performance.eventJ;
+        }
+        if (!processed || this.signViewTotal.request === null) {
+          this.signViewTotal.impression = this.signViewTotal.impression === null ? performance.impression : this.signViewTotal.impression + performance.impression;
+        }
+        if (!processed || this.signViewTotal.request === null) {
+          this.signViewTotal.click = this.signViewTotal.click === null ? performance.click : this.signViewTotal.click + performance.click;
+        }
+        if (!processed || this.signViewTotal.request === null) {
+          this.signViewTotal.cost = this.signViewTotal.cost === null ? performance.outcomeDownstream : this.signViewTotal.cost + performance.outcomeDownstream;
+        }
 
         dateKeys.add(this.toISOStringWithTimezone(new Date(performance.time)).substring(0, 10).replace('T', ' '));
         signKeys.add(this.toISOStringWithTimezone(new Date(performance.time)).substring(0, 10).replace('T', ' ') + '|' + performance.vendorPort);
