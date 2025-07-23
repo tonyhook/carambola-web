@@ -1,4 +1,4 @@
-import { Component, effect, input, OnInit } from '@angular/core';
+import { Component, effect, input, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { UntypedFormGroup, UntypedFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -35,6 +35,10 @@ import { GetUserNamePipe } from '../../pipes/get-user-name.pipe';
   styleUrls: ['./permission.component.scss'],
 })
 export class PermissionComponent implements OnInit {
+  private formBuilder = inject(UntypedFormBuilder);
+  private permissionAPI = inject(PermissionAPI);
+  private roleAPI = inject(RoleAPI);
+
   roles: Role[] = [];
   displayedColumns: string[] = ['roleId', 'permission'];
 
@@ -69,11 +73,7 @@ export class PermissionComponent implements OnInit {
       T               I           R       P           R has P for I
   */
 
-  constructor(
-    private formBuilder: UntypedFormBuilder,
-    private permissionAPI: PermissionAPI,
-    private roleAPI: RoleAPI,
-  ) {
+  constructor() {
     this.formGroup = this.formBuilder.group({
       'inherited': [false, null],
     });

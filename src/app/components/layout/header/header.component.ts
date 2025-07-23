@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { Title } from '@angular/platform-browser';
 import { MatButtonModule } from '@angular/material/button';
@@ -22,14 +22,12 @@ import { AuthService, DrawerService } from '../../../services';
   styleUrls: ['./header.component.scss'],
 })
 export class HeaderComponent implements OnInit {
-  name = '';
+  private title = inject(Title);
+  public authService = inject(AuthService);
+  public drawerService = inject(DrawerService);
+  private applicationAPI = inject(OpenApplicationAPI);
 
-  constructor(
-    private title: Title,
-    public authService: AuthService,
-    public drawerService: DrawerService,
-    private applicationAPI: OpenApplicationAPI,
-  ) { }
+  name = '';
 
   ngOnInit() {
     this.applicationAPI.getSite().subscribe((site) => {

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
@@ -21,9 +21,6 @@ import { MenuComponent } from '../menu/menu.component';
   styleUrls: ['./main.component.scss'],
 })
 export class MainComponent {
-
-  constructor(
-    public drawerService: DrawerService,
-  ) { }
+  public drawerService = inject(DrawerService);
 
 }
