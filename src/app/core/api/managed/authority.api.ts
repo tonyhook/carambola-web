@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
@@ -9,10 +9,7 @@ import { Authority, Query } from '../..';
   providedIn: 'root',
 })
 export class AuthorityAPI {
-
-  constructor(
-    private http: HttpClient
-  ) { }
+  private http = inject(HttpClient);
 
   getAuthorityList(query?: Query<Authority>): Observable<Authority[]> {
     let params = new HttpParams();

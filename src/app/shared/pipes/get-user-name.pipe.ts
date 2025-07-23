@@ -1,4 +1,4 @@
-import { Pipe, PipeTransform } from '@angular/core';
+import { Pipe, PipeTransform, inject } from '@angular/core';
 
 import { switchMap } from 'rxjs/operators';
 import { of } from 'rxjs';
@@ -9,10 +9,7 @@ import { UserAPI } from '../../core';
   name: 'getUserName',
 })
 export class GetUserNamePipe implements PipeTransform {
-
-  constructor(
-    private userAPI: UserAPI,
-  ) { }
+  private userAPI = inject(UserAPI);
 
   transform(userId: number) {
     return this.userAPI.getUser(userId).pipe(

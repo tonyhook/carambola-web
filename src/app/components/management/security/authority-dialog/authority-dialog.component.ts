@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
 import { Authority } from '../../../../core';
@@ -13,18 +13,8 @@ import { AuthorityFormComponent } from '../authority-form/authority-form.compone
   styleUrls: ['./authority-dialog.component.scss'],
 })
 export class AuthorityDialogComponent {
-  authority: Authority | null;
-
-  constructor(
-    private dialogRef: MatDialogRef<AuthorityDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) data: Authority,
-  ) {
-    if (data) {
-      this.authority = data;
-    } else {
-      this.authority = null;
-    }
-  }
+  private dialogRef = inject<MatDialogRef<AuthorityDialogComponent>>(MatDialogRef);
+  public authority: Authority | null = inject(MAT_DIALOG_DATA, {optional: true}) as Authority | null;
 
   changed(changed: boolean) {
     this.dialogRef.close(changed);

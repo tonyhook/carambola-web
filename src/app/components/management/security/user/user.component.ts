@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnInit, ViewChild, inject } from '@angular/core';
 import { UntypedFormGroup, UntypedFormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { Subject, switchMap } from 'rxjs';
 import { MatBadgeModule } from '@angular/material/badge';
@@ -42,6 +42,10 @@ import { UserDialogComponent } from '../user-dialog/user-dialog.component';
   styleUrls: ['./user.component.scss'],
 })
 export class UserManagerComponent implements OnInit, AfterViewInit {
+  private formBuilder = inject(UntypedFormBuilder);
+  private dialog = inject(MatDialog);
+  private userAPI = inject(UserAPI);
+
   displayedColumns: string[] = ['username', 'actions'];
   hoverRow: User | null = null;
 
@@ -58,11 +62,7 @@ export class UserManagerComponent implements OnInit, AfterViewInit {
   dataRequest$ = new Subject<Query<User>>();
   dataSource = new MatTableDataSource<User>([]);
 
-  constructor(
-    private formBuilder: UntypedFormBuilder,
-    private dialog: MatDialog,
-    private userAPI: UserAPI,
-  ) {
+  constructor() {
     this.formGroupQuery = this.formBuilder.group({
       'search': ['', null],
     });

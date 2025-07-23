@@ -1,4 +1,4 @@
-import { Component, computed, input, OnInit, Signal } from '@angular/core';
+import { Component, computed, input, OnInit, Signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { state, style, transition, animate, trigger } from '@angular/animations';
 import { Router, ActivatedRoute, NavigationExtras } from '@angular/router';
@@ -28,6 +28,10 @@ import { DrawerService } from '../../../services';
   styleUrls: ['./menu-item.component.scss'],
 })
 export class MenuItemComponent implements OnInit {
+  public drawerService = inject(DrawerService);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+
   onpath: Signal<boolean>;
   active: Signal<boolean>;
   disabled: Signal<boolean>;
@@ -37,11 +41,7 @@ export class MenuItemComponent implements OnInit {
   item = input.required<MenuTreeNode>();
   depth = input<number>(0);
 
-  constructor(
-    public drawerService: DrawerService,
-    private router: Router,
-    private route: ActivatedRoute,
-  ) {
+  constructor() {
     this.onpath = computed(() => {
       if (this.isOnPath(this.item())) {
         return true;

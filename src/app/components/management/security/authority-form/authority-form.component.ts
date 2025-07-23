@@ -1,4 +1,4 @@
-import { Component, effect, input, output } from '@angular/core';
+import { Component, effect, input, output, inject } from '@angular/core';
 import { UntypedFormGroup, UntypedFormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -23,16 +23,16 @@ import { Authority, AuthorityAPI } from '../../../../core';
   styleUrls: ['./authority-form.component.scss'],
 })
 export class AuthorityFormComponent {
+  private formBuilder = inject(UntypedFormBuilder);
+  private snackBar = inject(MatSnackBar);
+  private authorityAPI = inject(AuthorityAPI);
+
   formGroup: UntypedFormGroup;
 
   authority = input<Authority | null>(null);
   changed = output<boolean>();
 
-  constructor(
-    private formBuilder: UntypedFormBuilder,
-    private snackBar: MatSnackBar,
-    private authorityAPI: AuthorityAPI,
-  ) {
+  constructor() {
     this.formGroup = this.formBuilder.group({
       'name': ['', Validators.required],
     });
