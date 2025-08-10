@@ -60,6 +60,16 @@
                   <input placeholder="Integrity Ke" matInput formControlName="ikey" />
                 </mat-form-field>
               </div>
+              <div class="full-width-input wrapper">
+                <mat-form-field class="half-width-input" subscriptSizing="dynamic">
+                  <mat-label>应用名</mat-label>
+                  <input placeholder="应用名" matInput formControlName="appname" />
+                </mat-form-field>
+                <mat-form-field class="half-width-input" subscriptSizing="dynamic">
+                  <mat-label>包名</mat-label>
+                  <input placeholder="包名" matInput formControlName="apppackage" />
+                </mat-form-field>
+              </div>
               <div class="full-width-input flex">
                 <mat-checkbox formControlName="filter">启用字段过滤</mat-checkbox>
                 @if (formGroup.value.filter) {
