@@ -13,6 +13,8 @@ export interface ClientPort {
   mode: number;
   ekey: number | null;
   ikey: number | null;
+  appname: string | null;
+  apppackage: string | null;
   filter: string | null;
   filterType: string | null;
   remark: string | null;
