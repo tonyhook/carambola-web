@@ -467,6 +467,7 @@
   <div class="port-menu" cdkMenu>
     <mat-card>
       <mat-card-content>
+        <carambola-ad-entity type="clientPort" mode="brief" [clientPort]="clientPort"></carambola-ad-entity>
         <button mat-icon-button cdkMenuItem (click)="popupClientPort(clientPort, 'connection')">
           <mat-icon>cable</mat-icon>
         </button>
@@ -484,6 +485,7 @@
   <div class="port-menu" cdkMenu>
     <mat-card>
       <mat-card-content>
+        <carambola-ad-entity type="vendorPort" mode="brief" [vendorPort]="vendorPort"></carambola-ad-entity>
         <button mat-icon-button cdkMenuItem (click)="popupVendorPort(vendorPort, 'connection')">
           <mat-icon>cable</mat-icon>
         </button>
