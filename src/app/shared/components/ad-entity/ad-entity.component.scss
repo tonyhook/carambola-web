@@ -30,18 +30,18 @@
   overflow: hidden;
 }
 .name {
-  flex-shrink: 1;
+  flex-shrink: 0;
   color: var(--mat-sys-on-surface);
-  text-wrap: nowrap;
-  text-overflow: ellipsis;
-  overflow: hidden;
 }
 .sub {
-  flex-shrink: 0;
+  flex-shrink: 1;
   font-size: 80%;
   line-height: 150%;
   color: var(--mat-sys-outline);
   padding-left: 2px;
+  text-wrap: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
 .entity-icon {
   position: absolute;

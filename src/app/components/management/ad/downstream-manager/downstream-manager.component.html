@@ -180,6 +180,7 @@
   <div class="port-menu" cdkMenu>
     <mat-card>
       <mat-card-content>
+        <carambola-ad-entity type="vendorPort" mode="brief" [vendorPort]="vendorPort"></carambola-ad-entity>
         <button mat-icon-button cdkMenuItem (click)="popupVendorPort(vendorPort, 'property')">
           <mat-icon>settings</mat-icon>
         </button>
