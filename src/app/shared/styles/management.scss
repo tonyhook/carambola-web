@@ -3,8 +3,12 @@
 }
 .container {
   display: flex;
-  height: 100%;
   min-height: 100%;
+}
+@media screen and (width >= 600px) and (height >= 600px) {
+  .container {
+    height: 100%;
+  }
 }
 
 .form-dialog {
