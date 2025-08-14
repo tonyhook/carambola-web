@@ -3,7 +3,6 @@
 }
 .mat-drawer {
   overflow: hidden;
-  height: 100%;
   width: auto;
 }
 .mat-drawer.full {
@@ -11,4 +10,10 @@
 }
 .mat-drawer-content.padded {
   margin-left: 40px;
+}
+@media screen and (width < 600px) {
+  .mat-drawer {
+    position: absolute !important;
+    bottom: unset;
+  }
 }

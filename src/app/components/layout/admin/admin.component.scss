@@ -17,3 +17,8 @@
   flex-shrink: 0;
   flex-grow: 0;
 }
+@media screen and ((width < 600px) or (height < 600px)) {
+  .admin-footer {
+    display: none;
+  }
+}
