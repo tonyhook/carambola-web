@@ -2,24 +2,24 @@
 
   <mat-card class="box">
     <mat-card-header>
-      <mat-card-title>Login</mat-card-title>
+      <mat-card-title>登录</mat-card-title>
     </mat-card-header>
 
     <mat-card-content>
       <form class="form" [formGroup]="formGroup" (ngSubmit)="login()">
         <mat-form-field class="full-width">
-          <mat-label>Username</mat-label>
-          <input placeholder="Username" matInput formControlName="username" />
+          <mat-label>用户名</mat-label>
+          <input placeholder="用户名" matInput formControlName="username" />
         </mat-form-field>
         <mat-form-field class="full-width">
-          <mat-label>Password</mat-label>
-          <input placeholder="Password" matInput formControlName="password" [type]="hide ? 'password' : 'text'" />
+          <mat-label>密码</mat-label>
+          <input placeholder="密码" matInput formControlName="password" [type]="hide ? 'password' : 'text'" />
           <button type="button" mat-icon-button matIconSuffix (click)="hide = !hide">
             <mat-icon>{{ hide ? 'visibility_off' : 'visibility' }}</mat-icon>
           </button>
         </mat-form-field>
-        <mat-checkbox class="full-width-input" formControlName="rememberMe">Remember Me</mat-checkbox>
-        <button type="submit" class="btn-block full-width" mat-stroked-button>Login</button>
+        <mat-checkbox class="full-width-input" formControlName="rememberMe">下次自动登录</mat-checkbox>
+        <button type="submit" class="btn-block full-width" mat-stroked-button>登录</button>
       </form>
     </mat-card-content>
   </mat-card>
