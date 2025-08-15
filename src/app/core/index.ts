@@ -1,3 +1,4 @@
+export * from './api/open/application.api';
 export * from './api/open/security.api';
 export * from './api/managed/menu.api';
 export * from './api/managed/authority.api';
@@ -14,6 +15,7 @@ export * from './entity/sequence-managed-resource';
 export * from './entity/hierarchy-managed-resource';
 export * from './entity/contained-managed-resource';
 
+export * from './entity/backend/site';
 export * from './entity/backend/menu';
 export * from './entity/backend/menu-tree-node';
 export * from './entity/security/login';

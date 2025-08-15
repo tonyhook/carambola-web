@@ -9,15 +9,15 @@
     <button class="header-gt-sm" mat-icon-button routerLink="/admin">
       <mat-icon>home</mat-icon>
     </button>
-    <button class="header-gt-sm" mat-button>{{ title }}</button>
-    <button class="header-sm" mat-button>{{ title }}</button>
+    <button class="header-gt-sm" mat-button>{{ name }}</button>
+    <button class="header-sm" mat-button>{{ name }}</button>
   </div>
-  <button class="header-xs" mat-button>{{ title }}</button>
+  <button class="header-xs" mat-button>{{ name }}</button>
   <div class="header-gt-sm">
     @if (authService.credential() === null) {
       <button mat-button routerLink="/admin/login">
         <mat-icon>power_settings_new</mat-icon>
-        Login
+        登录
       </button>
     } @else {
       <button mat-button routerLink="/admin/me">
@@ -25,7 +25,7 @@
       </button>
       <button mat-button routerLink="/admin/logout">
         <mat-icon>exit_to_app</mat-icon>
-        Logout
+        注销
       </button>
     }
   </div>
@@ -39,12 +39,12 @@
 <mat-menu x-position="before" #menu="matMenu">
   <button mat-menu-item routerLink="/admin">
     <mat-icon>home</mat-icon>
-    Home
+    首页
   </button>
   @if (authService.credential() === null) {
     <button mat-menu-item routerLink="/admin/login">
       <mat-icon>power_settings_new</mat-icon>
-      Login
+      登录
     </button>
   } @else {
     <button mat-menu-item routerLink="/admin/me">
@@ -53,7 +53,7 @@
     </button>
     <button mat-menu-item routerLink="/admin/logout">
       <mat-icon>exit_to_app</mat-icon>
-      Logout
+      注销
     </button>
   }
 </mat-menu>
