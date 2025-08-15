@@ -1,14 +1,14 @@
 <mat-card class="card-in-container">
-  <mat-card-header>Change Password</mat-card-header>
+  <mat-card-header>修改密码</mat-card-header>
 
   <mat-card-content>
     <form class="form-in-tab" [formGroup]="formGroup">
       <mat-form-field class="full-width-input" subscriptSizing="dynamic">
-        <mat-label>New Password</mat-label>
-        <input type="password" placeholder="New Password" matInput formControlName="password" />
+        <mat-label>新密码</mat-label>
+        <input type="password" placeholder="新密码" matInput formControlName="password" />
       </mat-form-field>
       <div class="full-width-input flex">
-        <button type="button" class="form-button" mat-stroked-button (click)="updatePassword()">Change</button>
+        <button type="button" class="form-button" mat-stroked-button (click)="updatePassword()">修改</button>
       </div>
     </form>
   </mat-card-content>
