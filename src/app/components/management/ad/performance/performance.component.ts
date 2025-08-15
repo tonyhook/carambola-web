@@ -126,6 +126,7 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
   };
   range: UntypedFormGroup;
   differ: KeyValueDiffer<string, unknown>;
+  changedByProgram = false;
 
   performanceAggregateUpstream = 'all';
   performanceAggregateDownstream = 'all';
@@ -203,6 +204,7 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
     this.range = new UntypedFormGroup({
       start: new UntypedFormControl(),
       end: new UntypedFormControl(),
+      time: new UntypedFormControl(),
     });
     this.differ = this.differs.find(this.range.value).create();
 
@@ -461,14 +463,59 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
   ngDoCheck(): void {
     const changes = this.differ.diff(this.range.value);
     if (changes) {
+      if (this.changedByProgram) {
+        return;
+      }
+      this.changedByProgram = true;
+
       if (this.performanceInterval === 'day' || this.performanceInterval === 'month' || this.performanceInterval === 'year') {
         if (this.range.value.start && this.range.value.end) {
+          this.range.controls['time'].setValue(null);
           this.query();
+        } else {
+          this.changedByProgram = false;
         }
       }
       if (this.performanceInterval === 'quarter' || this.performanceInterval === 'hour') {
-        if (this.range.value.start) {
-          this.query();
+        let dateChanged = false;
+        changes.forEachChangedItem(item => {
+          if (item.key === 'start' || item.key === 'end') {
+            dateChanged = true;
+          }
+        })
+        let timeChanged = false;
+        changes.forEachChangedItem(item => {
+          if (item.key === 'time') {
+            timeChanged = true;
+          }
+        });
+
+        if (this.range.value.time) {
+          if (dateChanged) {
+            if (this.range.value.start && this.range.value.end) {
+              this.range.controls['time'].setValue(null);
+              this.query();
+            } else {
+              this.changedByProgram = false;
+            }
+          } else {
+            this.range.controls['start'].setValue(new Date());
+            this.range.controls['end'].setValue(new Date());
+            this.query();
+          }
+        } else {
+          if (timeChanged) {
+            this.range.controls['start'].setValue(new Date());
+            this.range.controls['end'].setValue(new Date());
+            this.query();
+          } else {
+            if (this.range.value.start && this.range.value.end) {
+              this.range.controls['time'].setValue(null);
+              this.query();
+            } else {
+              this.changedByProgram = false;
+            }
+          }
         }
       }
     }
@@ -614,22 +661,20 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
 
   changePerformanceInterval(event: MatButtonToggleChange) {
     if (event.value !== this.performanceInterval) {
-      if (this.performanceInterval === 'quarter') {
-        if (event.value === 'hour' || event.value === 'day' || event.value === 'month' || event.value === 'year') {
+      if (this.performanceInterval === 'quarter' || this.performanceInterval === 'hour') {
+        if (event.value === 'day' || event.value === 'month' || event.value === 'year') {
+          this.changedByProgram = true;
           this.range.controls['start'].setValue(null);
           this.range.controls['end'].setValue(null);
-        }
-      }
-      if (this.performanceInterval === 'hour') {
-        if (event.value === 'quarter' || event.value === 'day' || event.value === 'month' || event.value === 'year') {
-          this.range.controls['start'].setValue(null);
-          this.range.controls['end'].setValue(null);
+          this.range.controls['time'].setValue(null);
         }
       }
       if (this.performanceInterval === 'day' || this.performanceInterval === 'month' || this.performanceInterval === 'year') {
         if (event.value === 'quarter' || event.value === 'hour') {
-          this.range.controls['start'].setValue(null);
-          this.range.controls['end'].setValue(null);
+          this.changedByProgram = true;
+          this.range.controls['start'].setValue(new Date());
+          this.range.controls['end'].setValue(new Date());
+          this.range.controls['time'].setValue(null);
         }
       }
 
@@ -686,84 +731,99 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
   }
 
   prepareRange() {
-    const time = new Date();
-    let timeStart = new Date(time);
-    let timeEnd = new Date(time);
-
-    if (this.range.value.start) {
-      timeStart = new Date(Date.parse(this.range.value.start));
-    }
-    if (this.range.value.end) {
-      timeEnd = new Date(Date.parse(this.range.value.end));
-    }
+    const now = new Date();
 
     if (this.performanceInterval === 'quarter') {
-      if (this.range.value.start) {
-        this.performanceStart = new Date(Math.trunc(timeStart.getTime() / 900000) * 900000);
-        this.performanceEnd = new Date(Math.trunc(timeStart.getTime() / 900000) * 900000 + 899999);
+      if (this.range.value.time) {
+        this.performanceStart = new Date(Math.trunc(new Date(Date.parse(this.range.value.time)).getTime() / 900000) * 900000);
+        this.performanceEnd = new Date(Math.trunc(new Date(Date.parse(this.range.value.time)).getTime() / 900000) * 900000 + 899999);
       } else {
-        time.setMilliseconds(0);
-        time.setSeconds(0);
-        time.setMinutes(Math.trunc(time.getMinutes() / 15) * 15);
-        this.performanceEnd = new Date(time.getTime() + 899999);
-        time.setMinutes(0);
-        time.setHours(0);
-        this.performanceStart = new Date(time);
+        if (this.range.value.start && this.range.value.end) {
+          this.performanceStart = new Date(Date.parse(this.range.value.start));
+          this.performanceStart.setHours(0);
+          this.performanceStart.setMinutes(0);
+          this.performanceStart.setSeconds(0);
+          this.performanceStart.setMilliseconds(0);
+          this.performanceEnd = new Date(Date.parse(this.range.value.end));
+          this.performanceEnd.setHours(23);
+          this.performanceEnd.setMinutes(59);
+          this.performanceEnd.setSeconds(59);
+          this.performanceEnd.setMilliseconds(999);
+        } else {
+          now.setMinutes(Math.trunc(now.getMinutes() / 15) * 15);
+          now.setSeconds(0);
+          now.setMilliseconds(0);
+          this.performanceStart = new Date(now);
+          this.performanceEnd = new Date(now.getTime() + 899999);
+        }
       }
     }
     if (this.performanceInterval === 'hour') {
-      if (this.range.value.start) {
-        this.performanceStart = new Date(Math.trunc(timeStart.getTime() / 3600000) * 3600000);
-        this.performanceEnd = new Date(Math.trunc(timeStart.getTime() / 3600000) * 3600000 + 3599999);
+      if (this.range.value.time) {
+        this.performanceStart = new Date(Math.trunc(new Date(Date.parse(this.range.value.time)).getTime() / 3600000) * 3600000);
+        this.performanceEnd = new Date(Math.trunc(new Date(Date.parse(this.range.value.time)).getTime() / 3600000) * 3600000 + 3599999);
       } else {
-        time.setMilliseconds(0);
-        time.setSeconds(0);
-        time.setMinutes(0);
-        this.performanceEnd = new Date(time.getTime() + 3599999);
-        time.setHours(0);
-        this.performanceStart = new Date(time);
+        if (this.range.value.start && this.range.value.end) {
+          this.performanceStart = new Date(Date.parse(this.range.value.start));
+          this.performanceStart.setHours(0);
+          this.performanceStart.setMinutes(0);
+          this.performanceStart.setSeconds(0);
+          this.performanceStart.setMilliseconds(0);
+          this.performanceEnd = new Date(Date.parse(this.range.value.end));
+          this.performanceEnd.setHours(23);
+          this.performanceEnd.setMinutes(59);
+          this.performanceEnd.setSeconds(59);
+          this.performanceEnd.setMilliseconds(999);
+        } else {
+          now.setHours(0);
+          now.setMinutes(0);
+          now.setSeconds(0);
+          now.setMilliseconds(0);
+          this.performanceStart = new Date(now);
+          this.performanceEnd = new Date(now.getTime() + 3599999);
+        }
       }
     }
     if (this.performanceInterval === 'day') {
       if (this.range.value.start && this.range.value.end) {
-        this.performanceStart = new Date(timeStart);
-        this.performanceEnd = new Date(timeEnd);
+        this.performanceStart = new Date(Date.parse(this.range.value.start));
+        this.performanceEnd = new Date(Date.parse(this.range.value.end));
       } else {
-        this.performanceEnd = new Date(time);
-        time.setMilliseconds(0);
-        time.setSeconds(0);
-        time.setMinutes(0);
-        time.setHours(0);
-        time.setDate(time.getDate() - 30);
-        this.performanceStart = new Date(time);
+        this.performanceEnd = new Date(now);
+        now.setMilliseconds(0);
+        now.setSeconds(0);
+        now.setMinutes(0);
+        now.setHours(0);
+        now.setDate(now.getDate() - 30);
+        this.performanceStart = new Date(now);
       }
     }
     if (this.performanceInterval === 'month') {
       if (this.range.value.start && this.range.value.end) {
-        this.performanceStart = new Date(timeStart);
-        this.performanceEnd = new Date(timeEnd);
+        this.performanceStart = new Date(Date.parse(this.range.value.start));
+        this.performanceEnd = new Date(Date.parse(this.range.value.end));
       } else {
-        this.performanceEnd = new Date(time);
-        time.setMilliseconds(0);
-        time.setSeconds(0);
-        time.setMinutes(0);
-        time.setHours(0);
-        time.setMonth(time.getMonth() - 12);
-        this.performanceStart = new Date(time);
+        this.performanceEnd = new Date(now);
+        now.setMilliseconds(0);
+        now.setSeconds(0);
+        now.setMinutes(0);
+        now.setHours(0);
+        now.setMonth(now.getMonth() - 12);
+        this.performanceStart = new Date(now);
       }
     }
     if (this.performanceInterval === 'year') {
       if (this.range.value.start && this.range.value.end) {
-        this.performanceStart = new Date(timeStart);
-        this.performanceEnd = new Date(timeEnd);
+        this.performanceStart = new Date(Date.parse(this.range.value.start));
+        this.performanceEnd = new Date(Date.parse(this.range.value.end));
       } else {
-        this.performanceEnd = new Date(time);
-        time.setMilliseconds(0);
-        time.setSeconds(0);
-        time.setMinutes(0);
-        time.setHours(0);
-        time.setFullYear(time.getFullYear() - 3);
-        this.performanceStart = new Date(time);
+        this.performanceEnd = new Date(now);
+        now.setMilliseconds(0);
+        now.setSeconds(0);
+        now.setMinutes(0);
+        now.setHours(0);
+        now.setFullYear(now.getFullYear() - 3);
+        this.performanceStart = new Date(now);
       }
     }
   }
@@ -1091,6 +1151,7 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
       }
     };
 
+    this.changedByProgram = false;
   }
 
   updatePerformanceViewSub() {
