@@ -67,30 +67,28 @@
           <mat-button-toggle [value]="'month'">月</mat-button-toggle>
           <mat-button-toggle [value]="'year'">年</mat-button-toggle>
         </mat-button-toggle-group>
+        <mat-form-field subscriptSizing="dynamic">
+          <mat-label>请输入日期范围</mat-label>
+          <mat-date-range-input [rangePicker]="picker">
+            <input matStartDate formControlName="start" placeholder="起始日期">
+            <input matEndDate formControlName="end" placeholder="结束日期">
+          </mat-date-range-input>
+          <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+          <mat-date-range-picker #picker></mat-date-range-picker>
+
+          @if (range.controls['start'].hasError('matStartDateInvalid')) {
+            <mat-error>起始日期无效</mat-error>
+          }
+          @if (range.controls['end'].hasError('matEndDateInvalid')) {
+            <mat-error>结束日期无效</mat-error>
+          }
+        </mat-form-field>
         @if (performanceInterval === 'quarter' || performanceInterval === 'hour') {
           <mat-form-field subscriptSizing="dynamic">
             <mat-label>请输入开始时间</mat-label>
-            <input matInput formControlName="start" [matTimepicker]="pickerStart" />
+            <input matInput formControlName="time" [matTimepicker]="pickerStart" />
             <mat-timepicker-toggle matIconSuffix [for]="pickerStart" />
             <mat-timepicker [interval]="performanceInterval === 'quarter' ? 900 : 3600" #pickerStart />
-          </mat-form-field>
-        }
-        @if (performanceInterval === 'day' || performanceInterval === 'month' || performanceInterval === 'year') {
-          <mat-form-field subscriptSizing="dynamic">
-            <mat-label>请输入日期范围</mat-label>
-            <mat-date-range-input [rangePicker]="picker">
-              <input matStartDate formControlName="start" placeholder="起始日期">
-              <input matEndDate formControlName="end" placeholder="结束日期">
-            </mat-date-range-input>
-            <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
-            <mat-date-range-picker #picker></mat-date-range-picker>
-
-            @if (range.controls['start'].hasError('matStartDateInvalid')) {
-              <mat-error>起始日期无效</mat-error>
-            }
-            @if (range.controls['end'].hasError('matEndDateInvalid')) {
-              <mat-error>结束日期无效</mat-error>
-            }
           </mat-form-field>
         }
       </div>
@@ -164,31 +162,28 @@
           <mat-button-toggle [value]="'month'">月</mat-button-toggle>
           <mat-button-toggle [value]="'year'">年</mat-button-toggle>
         </mat-button-toggle-group>
+        <mat-form-field subscriptSizing="dynamic">
+          <mat-label>请输入日期范围</mat-label>
+          <mat-date-range-input [rangePicker]="picker">
+            <input matStartDate formControlName="start" placeholder="起始日期">
+            <input matEndDate formControlName="end" placeholder="结束日期">
+          </mat-date-range-input>
+          <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+          <mat-date-range-picker #picker></mat-date-range-picker>
+
+          @if (range.controls['start'].hasError('matStartDateInvalid')) {
+            <mat-error>起始日期无效</mat-error>
+          }
+          @if (range.controls['end'].hasError('matEndDateInvalid')) {
+            <mat-error>结束日期无效</mat-error>
+          }
+        </mat-form-field>
         @if (performanceInterval === 'quarter' || performanceInterval === 'hour') {
           <mat-form-field subscriptSizing="dynamic">
             <mat-label>请输入开始时间</mat-label>
-            <input matInput formControlName="start" [matTimepicker]="pickerStart" />
-            <mat-timepicker-toggle matIconSuffix [for]="pickerStart">
-            </mat-timepicker-toggle>
+            <input matInput formControlName="time" [matTimepicker]="pickerStart" />
+            <mat-timepicker-toggle matIconSuffix [for]="pickerStart" />
             <mat-timepicker [interval]="performanceInterval === 'quarter' ? 900 : 3600" #pickerStart />
-          </mat-form-field>
-        }
-        @if (performanceInterval === 'day' || performanceInterval === 'month' || performanceInterval === 'year') {
-          <mat-form-field subscriptSizing="dynamic">
-            <mat-label>请输入日期范围</mat-label>
-            <mat-date-range-input [rangePicker]="picker">
-              <input matStartDate formControlName="start" placeholder="起始日期">
-              <input matEndDate formControlName="end" placeholder="结束日期">
-            </mat-date-range-input>
-            <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
-            <mat-date-range-picker #picker></mat-date-range-picker>
-
-            @if (range.controls['start'].hasError('matStartDateInvalid')) {
-              <mat-error>起始日期无效</mat-error>
-            }
-            @if (range.controls['end'].hasError('matEndDateInvalid')) {
-              <mat-error>结束日期无效</mat-error>
-            }
           </mat-form-field>
         }
       </div>
