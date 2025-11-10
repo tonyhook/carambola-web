@@ -1000,10 +1000,17 @@ export class BillComponent implements OnInit, AfterViewInit, DoCheck {
       if (performanceView.end < new Date(performance.time)) {
         performanceView.end = new Date(performance.time);
       }
-      performanceView.request += performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventK!;
-      performanceView.response += performance.eventD + performance.eventE + performance.eventK!;
-      performanceView.requestv += performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventK!;
-      performanceView.responsev += performance.eventD + performance.eventE;
+      performanceView.request +=
+        performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE +
+        performance.eventF + performance.eventG + performance.eventH + performance.eventK + performance.eventL +
+        performance.eventM + performance.eventN + performance.eventO;
+      performanceView.requestv +=
+        performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventK +
+        performance.eventO;
+      performanceView.response +=
+        performance.eventD + performance.eventE + performance.eventK;
+      performanceView.responsev +=
+        performance.eventD + performance.eventE;
       performanceView.impression += performance.impression;
       performanceView.click += performance.click;
       performanceView.income += performance.income;

@@ -1078,10 +1078,17 @@ export class SummaryComponent implements OnInit, AfterViewInit, DoCheck {
         outcomeDownstream: 0,
       };
 
-      performanceView.request += performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventK!;
-      performanceView.response += performance.eventD + performance.eventE + performance.eventK!;
-      performanceView.requestv += performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventK!;
-      performanceView.responsev += performance.eventD + performance.eventE;
+      performanceView.request +=
+        performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE +
+        performance.eventF + performance.eventG + performance.eventH + performance.eventK + performance.eventL +
+        performance.eventM + performance.eventN + performance.eventO;
+      performanceView.requestv +=
+        performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventK +
+        performance.eventO;
+      performanceView.response +=
+        performance.eventD + performance.eventE + performance.eventK;
+      performanceView.responsev +=
+        performance.eventD + performance.eventE;
       performanceView.impression += performance.impression;
       performanceView.click += performance.click;
       performanceView.income += performance.income;
@@ -1447,10 +1454,17 @@ export class SummaryComponent implements OnInit, AfterViewInit, DoCheck {
           if (performanceView.end < new Date(performance.time)) {
             performanceView.end = new Date(performance.time);
           }
-          performanceView.request += performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventK!;
-          performanceView.response += performance.eventD + performance.eventE + performance.eventK!;
-          performanceView.requestv += performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventK!;
-          performanceView.responsev += performance.eventD + performance.eventE;
+          performanceView.request +=
+            performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE +
+            performance.eventF + performance.eventG + performance.eventH + performance.eventK + performance.eventL +
+            performance.eventM + performance.eventN + performance.eventO;
+          performanceView.requestv +=
+            performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventK +
+            performance.eventO;
+          performanceView.response +=
+            performance.eventD + performance.eventE + performance.eventK;
+          performanceView.responsev +=
+            performance.eventD + performance.eventE;
           performanceView.impression += performance.impression;
           performanceView.click += performance.click;
           performanceView.income += performance.income;
@@ -1458,10 +1472,17 @@ export class SummaryComponent implements OnInit, AfterViewInit, DoCheck {
           performanceView.outcomeRebate += performance.outcomeRebate;
           performanceView.outcomeDownstream += performance.outcomeDownstream;
 
-          this.performanceViewTotal.request += performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventK!;
-          this.performanceViewTotal.response += performance.eventD + performance.eventE + performance.eventK!;
-          this.performanceViewTotal.requestv += performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventK!;
-          this.performanceViewTotal.responsev += performance.eventD + performance.eventE;
+          this.performanceViewTotal.request +=
+            performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE +
+            performance.eventF + performance.eventG + performance.eventH + performance.eventK + performance.eventL +
+            performance.eventM + performance.eventN + performance.eventO;
+          this.performanceViewTotal.requestv +=
+            performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventK +
+            performance.eventO;
+          this.performanceViewTotal.response +=
+            performance.eventD + performance.eventE + performance.eventK;
+          this.performanceViewTotal.responsev +=
+            performance.eventD + performance.eventE;
           this.performanceViewTotal.impression += performance.impression;
           this.performanceViewTotal.click += performance.click;
           this.performanceViewTotal.income += performance.income;

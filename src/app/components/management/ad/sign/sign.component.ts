@@ -984,6 +984,7 @@ export class SignComponent implements OnInit, AfterViewInit, DoCheck {
             eventL: 0,
             eventM: 0,
             eventN: 0,
+            eventO: 0,
             impression: 0,
             click: 0,
             income: 0,
@@ -1067,10 +1068,18 @@ export class SignComponent implements OnInit, AfterViewInit, DoCheck {
 
         const signView = this.signViewMap.get(key)!;
         if (!processed || signView.request === null) {
-          signView.request = signView.request === null ? performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventG + performance.eventH + performance.eventI + performance.eventJ : signView.request + performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventG + performance.eventH + performance.eventI + performance.eventJ;
+          signView.request = signView.request === null ?
+            performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE +
+            performance.eventF + performance.eventG + performance.eventH + performance.eventI + performance.eventJ
+          : signView.request +
+            performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE +
+            performance.eventF + performance.eventG + performance.eventH + performance.eventI + performance.eventJ;
         }
         if (!processed || signView.response === null) {
-          signView.response = signView.response === null ? performance.eventI + performance.eventJ : signView.response + performance.eventI + performance.eventJ;
+          signView.response = signView.response === null ?
+            performance.eventI + performance.eventJ
+          : signView.response +
+            performance.eventI + performance.eventJ;
         }
         if (!processed || signView.request === null) {
           signView.impression = signView.impression === null ? performance.impression : signView.impression + performance.impression;
@@ -1084,7 +1093,7 @@ export class SignComponent implements OnInit, AfterViewInit, DoCheck {
         signView.total++;
 
         if (!processed || this.signViewTotal.request === null) {
-          this.signViewTotal.request = this.signViewTotal.request === null ? performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventG + performance.eventH + performance.eventI + performance.eventJ : this.signViewTotal.request + performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventG + performance.eventH + performance.eventI + performance.eventJ;
+          this.signViewTotal.request = this.signViewTotal.request === null ? performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE + performance.eventH + performance.eventI + performance.eventJ : this.signViewTotal.request + performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE + performance.eventH + performance.eventI + performance.eventJ;
         }
         if (!processed || this.signViewTotal.response === null) {
           this.signViewTotal.response = this.signViewTotal.response === null ? performance.eventI + performance.eventJ : this.signViewTotal.response + performance.eventI + performance.eventJ;
@@ -1346,8 +1355,16 @@ export class SignComponent implements OnInit, AfterViewInit, DoCheck {
       }
 
       const signView = this.signViewMapSub.get(key)!;
-      signView.request = signView.request === null ? performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventG + performance.eventH + performance.eventI + performance.eventJ : signView.request + performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventG + performance.eventH + performance.eventI + performance.eventJ;
-      signView.response = signView.response === null ? performance.eventI + performance.eventJ : signView.response + performance.eventI + performance.eventJ;
+      signView.request = signView.request === null ?
+        performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE +
+        performance.eventF + performance.eventG + performance.eventH + performance.eventI + performance.eventJ
+      : signView.request +
+        performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE +
+        performance.eventF + performance.eventG + performance.eventH + performance.eventI + performance.eventJ;
+      signView.response = signView.response === null ?
+        performance.eventI + performance.eventJ
+      : signView.response +
+        performance.eventI + performance.eventJ;
       signView.impression = signView.impression === null ? performance.impression : signView.impression + performance.impression;
       signView.click = signView.click === null ? performance.click : signView.click + performance.click;
       signView.cost = signView.cost === null ? performance.outcomeDownstream : signView.cost + performance.outcomeDownstream;

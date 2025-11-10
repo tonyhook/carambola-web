@@ -298,16 +298,28 @@ export class BundleDialogComponent implements AfterViewInit {
         performanceView.end = new Date(performance.time);
       }
       if (this.direction() === 'client') {
-        performanceView.request += performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventK!;
-        performanceView.response += performance.eventD + performance.eventE + performance.eventK!;
-        performanceView.requestv += performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventK!;
-        performanceView.responsev += performance.eventD + performance.eventE;
+        performanceView.request +=
+          performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE +
+          performance.eventF + performance.eventG + performance.eventH + performance.eventK + performance.eventL +
+          performance.eventM + performance.eventN + performance.eventO;
+        performanceView.requestv +=
+          performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventK +
+          performance.eventO;
+        performanceView.response +=
+          performance.eventD + performance.eventE + performance.eventK;
+        performanceView.responsev +=
+          performance.eventD + performance.eventE;
       }
       if (this.direction() === 'vendor') {
-        performanceView.request += performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventG + performance.eventH + performance.eventI + performance.eventJ;
-        performanceView.response += performance.eventI + performance.eventJ;
-        performanceView.requestv += performance.eventH + performance.eventI + performance.eventJ;
-        performanceView.responsev += performance.eventI + performance.eventJ;
+        performanceView.request +=
+          performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE +
+          performance.eventF + performance.eventG + performance.eventH + performance.eventI + performance.eventJ;
+        performanceView.requestv +=
+          performance.eventH + performance.eventI + performance.eventJ;
+        performanceView.response +=
+          performance.eventI + performance.eventJ;
+        performanceView.responsev +=
+          performance.eventI + performance.eventJ;
       }
       performanceView.impression += performance.impression;
       performanceView.click += performance.click;

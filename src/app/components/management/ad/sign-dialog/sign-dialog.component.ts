@@ -390,7 +390,9 @@ export class SignDialogComponent {
           vendorMedia: 0,
           clientPort: performance.clientPort,
           vendorPort: this.vendorPort.id!,
-          request: performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventG + performance.eventH + performance.eventI + performance.eventJ,
+          request:
+            performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE +
+            performance.eventF + performance.eventG + performance.eventH + performance.eventI + performance.eventJ,
           response: performance.eventI + performance.eventJ,
           impression: performance.impression,
           click: performance.click,
@@ -649,10 +651,18 @@ export class SignDialogComponent {
             }
 
             if (signViewOriginalClient[index].indexOf(performance.clientPort) < 0 || signView.request === null) {
-              this.signViewOriginals[index].request = this.signViewOriginals[index].request === null ? performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventG + performance.eventH + performance.eventI + performance.eventJ : this.signViewOriginals[index].request + performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventG + performance.eventH + performance.eventI + performance.eventJ;
+              this.signViewOriginals[index].request = this.signViewOriginals[index].request === null ?
+                performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE +
+                performance.eventF + performance.eventG + performance.eventH + performance.eventI + performance.eventJ
+              : this.signViewOriginals[index].request +
+                performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE +
+                performance.eventF + performance.eventG + performance.eventH + performance.eventI + performance.eventJ;
             }
             if (signViewOriginalClient[index].indexOf(performance.clientPort) < 0 || signView.response === null) {
-              this.signViewOriginals[index].response = this.signViewOriginals[index].response === null ? performance.eventI + performance.eventJ : this.signViewOriginals[index].response + performance.eventI + performance.eventJ;
+              this.signViewOriginals[index].response = this.signViewOriginals[index].response === null ?
+                performance.eventI + performance.eventJ
+              : this.signViewOriginals[index].response +
+                performance.eventI + performance.eventJ;
             }
             if (signViewOriginalClient[index].indexOf(performance.clientPort) < 0 || signView.impression === null) {
               this.signViewOriginals[index].impression = this.signViewOriginals[index].impression === null ? performance.impression : this.signViewOriginals[index].impression + performance.impression;

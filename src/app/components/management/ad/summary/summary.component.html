@@ -446,7 +446,7 @@
             </div>
             @if (mode() === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
               <div>
-                {{ row.request | number }}
+                {{ row.requestv | number }}
               </div>
             }
             <div class="downstream">
@@ -457,13 +457,13 @@
               }
             </div>
             <div>
-              @if (row.request !== null && row.request !== 0 && getMediumData(row) !== null && getMediumData(row)?.request !== null) {
+              @if (row.requestv !== null && row.requestv !== 0 && getMediumData(row) !== null && getMediumData(row)?.request !== null) {
                 <div class="gap">
-                  <div [class.less]="getMediumData(row)?.request! < row.request" [class.greater]="getMediumData(row)?.request! > row.request">
+                  <div [class.less]="getMediumData(row)?.request! < row.requestv" [class.greater]="getMediumData(row)?.request! > row.requestv">
                     {{
-                      (getMediumData(row)?.request! > row.request ? '+' : '')
+                      (getMediumData(row)?.request! > row.requestv ? '+' : '')
                       +
-                      ((getMediumData(row)?.request! - row.request) / row.request | percent: '0.2-2')
+                      ((getMediumData(row)?.request! - row.requestv) / row.requestv | percent: '0.2-2')
                     }}
                   </div>
                 </div>
@@ -478,7 +478,7 @@
             </div>
             @if (mode() === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
               <div>
-                {{ performanceViewTotal.request | number }}
+                {{ performanceViewTotal.requestv | number }}
               </div>
             }
             <div class="downstream">

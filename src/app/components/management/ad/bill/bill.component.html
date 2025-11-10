@@ -322,14 +322,14 @@
             </div>
             @if (mode() === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
               <div class="platform">
-                {{ getPerformanceData(row)?.request !== null ? (getPerformanceData(row)?.request | number) : '-' }}
-                @if (row.request !== null && row.request !== 0 && getPerformanceData(row) !== null && getPerformanceData(row)?.request !== null) {
+                {{ getPerformanceData(row)?.requestv !== null ? (getPerformanceData(row)?.requestv | number) : '-' }}
+                @if (row.request !== null && row.request !== 0 && getPerformanceData(row) !== null && getPerformanceData(row)?.requestv !== null) {
                   (<div class="gap">
-                    <div [class.less]="getPerformanceData(row)?.request! < row.request" [class.greater]="getPerformanceData(row)?.request! > row.request">
+                    <div [class.less]="getPerformanceData(row)?.requestv! < row.request" [class.greater]="getPerformanceData(row)?.requestv! > row.request">
                       {{
-                        (row.request > getPerformanceData(row)?.request! ? '+' : '')
+                        (row.request > getPerformanceData(row)?.requestv! ? '+' : '')
                         +
-                        ((row.request - getPerformanceData(row)?.request!) / getPerformanceData(row)?.request! | percent: '0.2-2')
+                        ((row.request - getPerformanceData(row)?.requestv!) / getPerformanceData(row)?.requestv! | percent: '0.2-2')
                       }}
                     </div>
                   </div>)
