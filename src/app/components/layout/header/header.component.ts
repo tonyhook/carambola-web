@@ -43,4 +43,11 @@ export class HeaderComponent implements OnInit {
     this.router.navigate(['/admin']);
   }
 
+  downloadDocument() {
+    const a = document.createElement('a');
+    a.href = '/carambola.pdf';
+    a.download = 'carambola.pdf';
+    a.click();
+  }
+
 }
