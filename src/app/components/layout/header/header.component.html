@@ -14,6 +14,10 @@
   </div>
   <button class="header-xs" mat-button>{{ name }}</button>
   <div class="header-gt-sm">
+    <button mat-button (click)="downloadDocument()">
+      <mat-icon>book_2</mat-icon>
+      协议文档
+    </button>
     <button mat-button routerLink="/encrypt">
       <mat-icon>calculate</mat-icon>
       加密计算器
