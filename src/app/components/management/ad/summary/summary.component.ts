@@ -1081,9 +1081,10 @@ export class SummaryComponent implements OnInit, AfterViewInit, DoCheck {
       performanceView.request +=
         performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE +
         performance.eventF + performance.eventG + performance.eventH + performance.eventK + performance.eventL +
-        performance.eventM + performance.eventN;
+        performance.eventM + performance.eventN + performance.eventO;
       performanceView.requestv +=
-        performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventK;
+        performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventK +
+        performance.eventO;
       performanceView.response +=
         performance.eventD + performance.eventE + performance.eventK;
       performanceView.responsev +=
@@ -1456,9 +1457,10 @@ export class SummaryComponent implements OnInit, AfterViewInit, DoCheck {
           performanceView.request +=
             performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE +
             performance.eventF + performance.eventG + performance.eventH + performance.eventK + performance.eventL +
-            performance.eventM + performance.eventN;
+            performance.eventM + performance.eventN + performance.eventO;
           performanceView.requestv +=
-            performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventK;
+            performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventK +
+            performance.eventO;
           performanceView.response +=
             performance.eventD + performance.eventE + performance.eventK;
           performanceView.responsev +=
@@ -1473,9 +1475,10 @@ export class SummaryComponent implements OnInit, AfterViewInit, DoCheck {
           this.performanceViewTotal.request +=
             performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE +
             performance.eventF + performance.eventG + performance.eventH + performance.eventK + performance.eventL +
-            performance.eventM + performance.eventN;
+            performance.eventM + performance.eventN + performance.eventO;
           this.performanceViewTotal.requestv +=
-            performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventK;
+            performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventK +
+            performance.eventO;
           this.performanceViewTotal.response +=
             performance.eventD + performance.eventE + performance.eventK;
           this.performanceViewTotal.responsev +=

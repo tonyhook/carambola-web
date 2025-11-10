@@ -1003,9 +1003,10 @@ export class BillComponent implements OnInit, AfterViewInit, DoCheck {
       performanceView.request +=
         performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE +
         performance.eventF + performance.eventG + performance.eventH + performance.eventK + performance.eventL +
-        performance.eventM + performance.eventN;
+        performance.eventM + performance.eventN + performance.eventO;
       performanceView.requestv +=
-        performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventK;
+        performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventK +
+        performance.eventO;
       performanceView.response +=
         performance.eventD + performance.eventE + performance.eventK;
       performanceView.responsev +=
