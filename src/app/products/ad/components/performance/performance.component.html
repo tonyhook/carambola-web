@@ -61,6 +61,7 @@
       <div class="full-width-input flex">
         <button type="button" class="form-button" mat-button>时间颗粒度</button>
         <mat-button-toggle-group [value]="performanceInterval" (change)="changePerformanceInterval($event)">
+          <mat-button-toggle [value]="'minute'">3分钟</mat-button-toggle>
           <mat-button-toggle [value]="'quarter'">15分钟</mat-button-toggle>
           <mat-button-toggle [value]="'hour'">小时</mat-button-toggle>
           <mat-button-toggle [value]="'day'">日</mat-button-toggle>
@@ -83,12 +84,12 @@
             <mat-error>结束日期无效</mat-error>
           }
         </mat-form-field>
-        @if (performanceInterval === 'quarter' || performanceInterval === 'hour') {
+        @if (performanceInterval === 'minute' || performanceInterval === 'quarter' || performanceInterval === 'hour') {
           <mat-form-field subscriptSizing="dynamic">
             <mat-label>请输入开始时间</mat-label>
             <input matInput formControlName="time" [matTimepicker]="pickerStart" />
             <mat-timepicker-toggle matIconSuffix [for]="pickerStart" />
-            <mat-timepicker [interval]="performanceInterval === 'quarter' ? 900 : 3600" #pickerStart />
+            <mat-timepicker [interval]="performanceInterval === 'minute' ? 180 : performanceInterval === 'quarter' ? 900 : 3600" #pickerStart />
           </mat-form-field>
         }
       </div>
@@ -156,6 +157,7 @@
       <div class="full-width-input flex">
         <button type="button" class="form-button" mat-button>时间颗粒度</button>
         <mat-button-toggle-group [value]="performanceInterval" (change)="changePerformanceInterval($event)">
+          <mat-button-toggle [value]="'minute'">3分钟</mat-button-toggle>
           <mat-button-toggle [value]="'quarter'">15分钟</mat-button-toggle>
           <mat-button-toggle [value]="'hour'">小时</mat-button-toggle>
           <mat-button-toggle [value]="'day'">日</mat-button-toggle>
@@ -178,12 +180,12 @@
             <mat-error>结束日期无效</mat-error>
           }
         </mat-form-field>
-        @if (performanceInterval === 'quarter' || performanceInterval === 'hour') {
+        @if (performanceInterval === 'minute' || performanceInterval === 'quarter' || performanceInterval === 'hour') {
           <mat-form-field subscriptSizing="dynamic">
             <mat-label>请输入开始时间</mat-label>
             <input matInput formControlName="time" [matTimepicker]="pickerStart" />
             <mat-timepicker-toggle matIconSuffix [for]="pickerStart" />
-            <mat-timepicker [interval]="performanceInterval === 'quarter' ? 900 : 3600" #pickerStart />
+            <mat-timepicker [interval]="performanceInterval === 'minute' ? 180 : performanceInterval === 'quarter' ? 900 : 3600" #pickerStart />
           </mat-form-field>
         }
       </div>
