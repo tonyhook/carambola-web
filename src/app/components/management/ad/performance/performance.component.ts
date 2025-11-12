@@ -461,7 +461,7 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
           this.changedByProgram = false;
         }
       }
-      if (this.performanceInterval === 'quarter' || this.performanceInterval === 'hour') {
+      if (this.performanceInterval === 'minute' || this.performanceInterval === 'quarter' || this.performanceInterval === 'hour') {
         let dateChanged = false;
         changes.forEachChangedItem(item => {
           if (item.key === 'start' || item.key === 'end') {
@@ -646,7 +646,7 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
 
   changePerformanceInterval(event: MatButtonToggleChange) {
     if (event.value !== this.performanceInterval) {
-      if (this.performanceInterval === 'quarter' || this.performanceInterval === 'hour') {
+      if (this.performanceInterval === 'minute' || this.performanceInterval === 'quarter' || this.performanceInterval === 'hour') {
         if (event.value === 'day' || event.value === 'month' || event.value === 'year') {
           this.changedByProgram = true;
           this.range.controls['start'].setValue(null);
@@ -655,7 +655,7 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
         }
       }
       if (this.performanceInterval === 'day' || this.performanceInterval === 'month' || this.performanceInterval === 'year') {
-        if (event.value === 'quarter' || event.value === 'hour') {
+        if (event.value === 'minute' || event.value === 'quarter' || event.value === 'hour') {
           this.changedByProgram = true;
           this.range.controls['start'].setValue(new Date());
           this.range.controls['end'].setValue(new Date());
@@ -718,6 +718,31 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
   prepareRange() {
     const now = new Date();
 
+    if (this.performanceInterval === 'minute') {
+      if (this.range.value.time) {
+        this.performanceStart = new Date(Math.trunc(new Date(Date.parse(this.range.value.time)).getTime() / 180000) * 180000);
+        this.performanceEnd = new Date(Math.trunc(new Date(Date.parse(this.range.value.time)).getTime() / 180000) * 180000 + 179999);
+      } else {
+        if (this.range.value.start && this.range.value.end) {
+          this.performanceStart = new Date(Date.parse(this.range.value.start));
+          this.performanceStart.setHours(0);
+          this.performanceStart.setMinutes(0);
+          this.performanceStart.setSeconds(0);
+          this.performanceStart.setMilliseconds(0);
+          this.performanceEnd = new Date(Date.parse(this.range.value.end));
+          this.performanceEnd.setHours(23);
+          this.performanceEnd.setMinutes(59);
+          this.performanceEnd.setSeconds(59);
+          this.performanceEnd.setMilliseconds(999);
+        } else {
+          now.setMinutes(Math.trunc(now.getMinutes() / 3) * 3);
+          now.setSeconds(0);
+          now.setMilliseconds(0);
+          this.performanceStart = new Date(now);
+          this.performanceEnd = new Date(now.getTime() + 179999);
+        }
+      }
+    }
     if (this.performanceInterval === 'quarter') {
       if (this.range.value.time) {
         this.performanceStart = new Date(Math.trunc(new Date(Date.parse(this.range.value.time)).getTime() / 900000) * 900000);
@@ -818,6 +843,11 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
 
     for (let t = this.performanceEnd.getTime(); t >= this.performanceStart.getTime();) {
       const date = new Date(t);
+      if (this.performanceInterval === 'minute') {
+        date.setMilliseconds(0);
+        date.setSeconds(0);
+        date.setMinutes(date.getMinutes() - date.getMinutes() % 3);
+      }
       if (this.performanceInterval === 'quarter') {
         date.setMilliseconds(0);
         date.setSeconds(0);
@@ -853,6 +883,9 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
       this.timestamps.push(date);
       t = date.getTime();
 
+      if (this.performanceInterval === 'minute') {
+        t = t - 180000;
+      }
       if (this.performanceInterval === 'quarter') {
         t = t - 900000;
       }
@@ -913,6 +946,9 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
       }
 
       let time = '';
+      if (this.performanceInterval === 'minute') {
+        time = this.toISOStringWithTimezone(new Date(performance.time)).substring(0, 16).replace('T', ' ');
+      }
       if (this.performanceInterval === 'quarter') {
         time = this.toISOStringWithTimezone(new Date(performance.time)).substring(0, 16).replace('T', ' ');
       }
@@ -1071,6 +1107,9 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
       }
 
       let time = '';
+      if (this.performanceInterval === 'minute') {
+        time = this.toISOStringWithTimezone(new Date(timestamp)).substring(0, 16).replace('T', ' ');
+      }
       if (this.performanceInterval === 'quarter') {
         time = this.toISOStringWithTimezone(new Date(timestamp)).substring(0, 16).replace('T', ' ');
       }
@@ -1169,6 +1208,9 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
 
     for (const performance of this.performanceDataSub) {
       let time = '';
+      if (this.performanceInterval === 'minute') {
+        time = this.toISOStringWithTimezone(new Date(performance.time)).substring(0, 16).replace('T', ' ');
+      }
       if (this.performanceInterval === 'quarter') {
         time = this.toISOStringWithTimezone(new Date(performance.time)).substring(0, 16).replace('T', ' ');
       }
