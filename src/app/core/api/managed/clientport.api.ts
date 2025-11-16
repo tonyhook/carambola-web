@@ -36,4 +36,8 @@ export class ClientPortAPI {
     return this.http.delete(environment.apipath + '/api/managed/clientport/' + id, { withCredentials: true });
   }
 
+  getClientPortTrackerList(id: number): Observable<string[]> {
+    return this.http.get<string[]>(environment.apipath + '/api/managed/clientport/' + id + '/tracker', { withCredentials: true });
+  }
+
 }

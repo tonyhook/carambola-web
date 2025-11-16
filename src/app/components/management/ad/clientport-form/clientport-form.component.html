@@ -297,6 +297,26 @@
             </div>
           </mat-tab>
         }
+        @if (isConnectionManager && clientPort() !== null) {
+          <mat-tab label="上游分析">
+            <ng-template mat-tab-label>
+              <mat-icon>graph_2</mat-icon>上游分析
+            </ng-template>
+            <div class="tracker-list">
+              @if (trackers.length === 0) {
+                <mat-card class="tracker">
+                  没有上游分析数据
+                </mat-card>
+              } @else {
+                @for (tracker of trackers; track tracker) {
+                  <mat-card class="tracker">
+                    {{ tracker }}
+                  </mat-card>
+                }
+              }
+            </div>
+          </mat-tab>
+        }
       </mat-tab-group>
     </mat-card-content>
   </mat-card>

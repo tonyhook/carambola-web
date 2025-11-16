@@ -119,6 +119,7 @@ export class ClientPortFormComponent implements AfterViewInit {
   connections: Connection[] = [];
   trafficControls: TrafficControl[] = [];
   antiFrauds: AntiFraud[] = [];
+  trackers: string[] = [];
   selectedIndex = 0;
 
   query: RuleSet = {
@@ -351,12 +352,15 @@ export class ClientPortFormComponent implements AfterViewInit {
             this.clientPortAPI.getClientPort(clientPort.id!),
             this.trafficControlAPI.getTrafficControlListByPort(clientPort.id!, -1),
             this.antiFraudAPI.getAntiFraudListByPort(clientPort.id!),
+            this.clientPortAPI.getClientPortTrackerList(clientPort.id!),
           ]).subscribe(results => {
             const clientPort = results[0];
             const trafficControls = results[1];
             const antifrauds = results[2];
+            const trackers = results[3];
 
             this.clientPortFull = clientPort;
+            this.trackers = trackers;
 
             this.readonly = !this.tenantService.isTenantManager() && !this.tenantService.isManager();
             this.isConnectionManager = this.tenantService.isTenantManager() || this.tenantService.isTenantOperator() || this.tenantService.isManager();
@@ -372,7 +376,7 @@ export class ClientPortFormComponent implements AfterViewInit {
               this.connections = clientPort.connection.filter(connection => !connection.deleted).filter(connection => !connection.vendorPort.deleted);
               this.trafficControls = trafficControls;
               this.antiFrauds = antifrauds;
-              this.selectedIndex = tab === 'property' ? 0 : 1;
+              this.selectedIndex = tab === 'property' ? 0 : tab === 'connection' ? 1 : 2;
 
               this.formGroup.setControl('client', this.formBuilder.control({value: client, disabled: this.readonly}, Validators.required), {emitEvent: false});
               this.formGroup.setControl('clientMedia', this.formBuilder.control({value: clientMedia, disabled: this.readonly}, Validators.required), {emitEvent: false});
