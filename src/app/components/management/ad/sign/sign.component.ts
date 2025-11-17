@@ -1003,6 +1003,7 @@ export class SignComponent implements OnInit, AfterViewInit, DoCheck {
             outcomeUpstream: 0,
             outcomeRebate: 0,
             outcomeDownstream: 0,
+            offer: 0,
           };
 
           performanceMap.set(key, performanceNew);

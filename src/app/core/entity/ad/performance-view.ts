@@ -19,4 +19,5 @@ export interface PerformanceView {
   outcomeUpstream: number;
   outcomeRebate: number;
   outcomeDownstream: number;
+  offer: number;
 }
