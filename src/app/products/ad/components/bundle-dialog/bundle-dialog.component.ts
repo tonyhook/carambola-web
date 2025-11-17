@@ -285,6 +285,7 @@ export class BundleDialogComponent implements AfterViewInit {
           outcomeUpstream: 0,
           outcomeRebate: 0,
           outcomeDownstream: 0,
+          offer: 0,
         };
 
         this.performanceViewData.push(performanceView);

@@ -161,6 +161,7 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
     outcomeUpstream: 0,
     outcomeRebate: 0,
     outcomeDownstream: 0,
+    offer: 0,
   };
   performanceDataSub: PerformancePartner[] = [];
   performanceViewDataSub: PerformanceView[] = [];
@@ -212,7 +213,7 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
     effect(() => {
       const mode = this.mode();
       const tenant = this.tenantService.tenant();
-      this.direction();
+      const direction = this.direction();
 
       this.performanceAggregateUpstream = 'all';
       this.performanceAggregateDownstream = 'all';
@@ -245,6 +246,7 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
         outcomeUpstream: 0,
         outcomeRebate: 0,
         outcomeDownstream: 0,
+        offer: 0,
       };
 
       forkJoin([
@@ -312,6 +314,9 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
         this.candidateColumns.set('response-valid', '有效响应');
         this.candidateColumns.set('gfr', '填充率');
         this.candidateColumns.set('gfrv', '有效填充率');
+        if (direction === 'client') {
+          this.candidateColumns.set('offer', '平均出价');
+        }
         this.candidateColumns.set('impression', '展现');
         this.candidateColumns.set('click', '点击');
         this.candidateColumns.set('er', '展现率');
@@ -936,6 +941,7 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
       outcomeUpstream: 0,
       outcomeRebate: 0,
       outcomeDownstream: 0,
+      offer: 0,
     };
 
     for (const performance of this.performanceData) {
@@ -1026,6 +1032,7 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
           outcomeUpstream: 0,
           outcomeRebate: 0,
           outcomeDownstream: 0,
+          offer: 0,
         };
 
         this.performanceViewData.push(performanceView);
@@ -1069,6 +1076,7 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
       performanceView.outcomeUpstream += performance.outcomeUpstream;
       performanceView.outcomeRebate += performance.outcomeRebate;
       performanceView.outcomeDownstream += performance.outcomeDownstream;
+      performanceView.offer += performance.offer;
 
       if (this.direction() === 'client') {
         this.performanceViewTotal.request +=
@@ -1100,6 +1108,7 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
       this.performanceViewTotal.outcomeUpstream += performance.outcomeUpstream;
       this.performanceViewTotal.outcomeRebate += performance.outcomeRebate;
       this.performanceViewTotal.outcomeDownstream += performance.outcomeDownstream;
+      this.performanceViewTotal.offer += performance.offer;
     }
 
     for (const timestamp of this.timestamps) {
@@ -1159,6 +1168,7 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
         outcomeUpstream: 0,
         outcomeRebate: 0,
         outcomeDownstream: 0,
+        offer: 0,
       };
 
       this.performanceViewData.push(performanceView);
@@ -1176,6 +1186,7 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
       switch (property) {
         case 'request-valid': return item.requestv ?? -1;
         case 'response-valid': return item.responsev ?? -1;
+        case 'offer': return item.response ? (1.0 * (item.offer ?? 0) / 100 / item.response) : -1;
         case 'gfr': return item.requestv ? (1.0 * (item.response ?? 0) / item.requestv) : -1;
         case 'gfrv': return item.requestv ? (1.0 * (item.responsev ?? 0) / item.requestv) : -1;
         case 'er': return item.response ? (1.0 * (item.impression ?? 0) / item.response) : -1;
@@ -1286,6 +1297,7 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
           outcomeUpstream: 0,
           outcomeRebate: 0,
           outcomeDownstream: 0,
+          offer: 0,
         };
 
         this.performanceViewDataSub.push(performanceView);
@@ -1310,6 +1322,7 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
       performanceView.outcomeUpstream += performance.outcomeUpstream;
       performanceView.outcomeRebate += performance.outcomeRebate;
       performanceView.outcomeDownstream += performance.outcomeDownstream;
+      performanceView.offer += performance.offer;
     }
 
     this.performanceViewDataSub = Array.from(this.performanceViewMapSub.values());
