@@ -25,4 +25,5 @@ export interface PerformancePartner {
   outcomeUpstream: number
   outcomeRebate: number;
   outcomeDownstream: number;
+  offer: number;
 }

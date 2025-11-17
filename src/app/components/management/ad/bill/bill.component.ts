@@ -987,6 +987,7 @@ export class BillComponent implements OnInit, AfterViewInit, DoCheck {
           outcomeUpstream: 0,
           outcomeRebate: 0,
           outcomeDownstream: 0,
+          offer: 0,
         };
 
         this.performanceViewData.push(performanceView);
