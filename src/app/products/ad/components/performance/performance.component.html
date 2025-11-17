@@ -385,6 +385,17 @@
           {{ performanceViewTotal.requestv ? (performanceViewTotal.responsev / performanceViewTotal.requestv | percent: '0.2-2') : '-' }}
         </mat-footer-cell>
       </ng-container>
+      <ng-container matColumnDef="offer">
+        <mat-header-cell class="number" *matHeaderCellDef mat-sort-header>
+          平均出价
+        </mat-header-cell>
+        <mat-cell class="number" *matCellDef="let row">
+          {{ row.response ? (row.offer / 100 / row.response | number: '0.2-2') : '-' }}
+        </mat-cell>
+        <mat-footer-cell class="number" *matFooterCellDef>
+          {{ performanceViewTotal.response ? (performanceViewTotal.offer / 100 / performanceViewTotal.response | number: '0.2-2') : '-' }}
+        </mat-footer-cell>
+      </ng-container>
       <ng-container matColumnDef="impression">
         <mat-header-cell class="number" *matHeaderCellDef mat-sort-header>
           展现
@@ -613,6 +624,11 @@
               <ng-container matColumnDef="gfrv">
                 <mat-cell class="number" *matCellDef="let rowSub">
                   {{ rowSub.requestv ? (rowSub.responsev / rowSub.requestv | percent: '0.2-2') : '-' }}
+                </mat-cell>
+              </ng-container>
+              <ng-container matColumnDef="offer">
+                <mat-cell class="number" *matCellDef="let rowSub">
+                  {{ rowSub.response ? (rowSub.offer / 100 / rowSub.response | number: '0.2-2') : '-' }}
                 </mat-cell>
               </ng-container>
               <ng-container matColumnDef="impression">

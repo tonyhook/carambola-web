@@ -170,6 +170,7 @@ export class SummaryComponent implements OnInit, AfterViewInit, DoCheck {
     outcomeUpstream: 0,
     outcomeRebate: 0,
     outcomeDownstream: 0,
+    offer: 0,
   };
   mediumViewTotal: PerformanceView = {
     time: '',
@@ -191,6 +192,7 @@ export class SummaryComponent implements OnInit, AfterViewInit, DoCheck {
     outcomeUpstream: 0,
     outcomeRebate: 0,
     outcomeDownstream: 0,
+    offer: 0,
   };
   signViewTotal: PerformanceView = {
     time: '',
@@ -212,6 +214,7 @@ export class SummaryComponent implements OnInit, AfterViewInit, DoCheck {
     outcomeUpstream: 0,
     outcomeRebate: 0,
     outcomeDownstream: 0,
+    offer: 0,
   };
 
   @ViewChild(MatSort, {static: false}) sort: MatSort | null = null;
@@ -272,6 +275,7 @@ export class SummaryComponent implements OnInit, AfterViewInit, DoCheck {
         outcomeUpstream: 0,
         outcomeRebate: 0,
         outcomeDownstream: 0,
+        offer: 0,
       };
       this.mediumViewTotal = {
         time: '',
@@ -293,6 +297,7 @@ export class SummaryComponent implements OnInit, AfterViewInit, DoCheck {
         outcomeUpstream: 0,
         outcomeRebate: 0,
         outcomeDownstream: 0,
+        offer: 0,
       };
       this.signViewTotal = {
         time: '',
@@ -314,6 +319,7 @@ export class SummaryComponent implements OnInit, AfterViewInit, DoCheck {
         outcomeUpstream: 0,
         outcomeRebate: 0,
         outcomeDownstream: 0,
+        offer: 0,
       };
 
       forkJoin([
@@ -992,6 +998,7 @@ export class SummaryComponent implements OnInit, AfterViewInit, DoCheck {
       outcomeUpstream: 0,
       outcomeRebate: 0,
       outcomeDownstream: 0,
+      offer: 0,
     };
     this.mediumViewTotal = {
       time: '',
@@ -1013,6 +1020,7 @@ export class SummaryComponent implements OnInit, AfterViewInit, DoCheck {
       outcomeUpstream: 0,
       outcomeRebate: 0,
       outcomeDownstream: 0,
+      offer: 0,
     };
     this.signViewTotal = {
       time: '',
@@ -1034,6 +1042,7 @@ export class SummaryComponent implements OnInit, AfterViewInit, DoCheck {
       outcomeUpstream: 0,
       outcomeRebate: 0,
       outcomeDownstream: 0,
+      offer: 0,
     };
 
     const pairedPortKeySet: Set<string> = new Set<string>();
@@ -1077,6 +1086,7 @@ export class SummaryComponent implements OnInit, AfterViewInit, DoCheck {
         outcomeUpstream: 0,
         outcomeRebate: 0,
         outcomeDownstream: 0,
+        offer: 0,
       };
 
       performanceView.request +=
@@ -1442,6 +1452,7 @@ export class SummaryComponent implements OnInit, AfterViewInit, DoCheck {
               outcomeUpstream: 0,
               outcomeRebate: 0,
               outcomeDownstream: 0,
+              offer: 0,
             };
 
             this.performanceViewData.push(performanceView);
@@ -1619,6 +1630,7 @@ export class SummaryComponent implements OnInit, AfterViewInit, DoCheck {
               outcomeUpstream: 0,
               outcomeRebate: 0,
               outcomeDownstream: 0,
+              offer: 0,
             };
 
             this.performanceViewData.push(performanceView);
@@ -1744,6 +1756,7 @@ export class SummaryComponent implements OnInit, AfterViewInit, DoCheck {
               outcomeUpstream: 0,
               outcomeRebate: 0,
               outcomeDownstream: 0,
+              offer: 0,
             };
 
             this.performanceViewData.push(performanceView);
@@ -1806,6 +1819,7 @@ export class SummaryComponent implements OnInit, AfterViewInit, DoCheck {
           outcomeUpstream: 0,
           outcomeRebate: 0,
           outcomeDownstream: 0,
+          offer: 0,
         };
 
         this.performanceViewData.push(performanceView);
