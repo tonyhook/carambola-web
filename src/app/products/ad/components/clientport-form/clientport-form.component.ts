@@ -38,6 +38,7 @@ import { ConnectionComponent, FilteredSelectClientComponent, FilteredSelectClien
 import { ConfirmDialogComponent } from '../../../../shared';
 import { AntiFraudComponent } from '../anti-fraud/anti-fraud.component';
 import { AntiFraudDialogComponent } from '../anti-fraud-dialog/anti-fraud-dialog.component';
+import { ChartPostlinkComponent } from '../chart-postlink/chart-postlink.component';
 import { TrafficControlComponent } from '../traffic-control/traffic-control.component';
 import { TrafficControlDialogComponent } from '../traffic-control-dialog/traffic-control-dialog.component';
 
@@ -75,6 +76,7 @@ import { TrafficControlDialogComponent } from '../traffic-control-dialog/traffic
     FilteredSelectClientMediaComponent,
     TrafficControlComponent,
     AntiFraudComponent,
+    ChartPostlinkComponent,
   ],
   templateUrl: './clientport-form.component.html',
   styleUrls: ['./clientport-form.component.scss'],
@@ -382,7 +384,7 @@ export class ClientPortFormComponent implements AfterViewInit {
               this.connections = clientPort.connection.filter(connection => !connection.deleted).filter(connection => !connection.vendorPort.deleted);
               this.trafficControls = trafficControls;
               this.antiFrauds = antifrauds;
-              this.selectedIndex = tab === 'property' ? 0 : tab === 'connection' ? 1 : 2;
+              this.selectedIndex = tab === 'property' ? 0 : tab === 'connection' ? 1 : tab === 'deeplink' ? 2 : 3;
 
               this.formGroup.setControl('client', this.formBuilder.control({value: client, disabled: this.readonly}, Validators.required), {emitEvent: false});
               this.formGroup.setControl('clientMedia', this.formBuilder.control({value: clientMedia, disabled: this.readonly}, Validators.required), {emitEvent: false});
