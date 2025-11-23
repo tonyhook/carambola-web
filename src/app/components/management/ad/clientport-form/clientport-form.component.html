@@ -297,6 +297,16 @@
             </div>
           </mat-tab>
         }
+        @if (isConnectionObserver && clientPort() !== null) {
+          <mat-tab label="后链路分析">
+            <ng-template mat-tab-label>
+              <mat-icon>conversion_path</mat-icon>Deeplink分析
+            </ng-template>
+            <ng-template matTabContent>
+              <carambola-chart-postlink [clientPort]="clientPort()" />
+            </ng-template>
+          </mat-tab>
+        }
         @if (isConnectionManager && clientPort() !== null) {
           <mat-tab label="上游分析">
             <ng-template mat-tab-label>

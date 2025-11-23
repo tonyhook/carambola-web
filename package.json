@@ -23,6 +23,8 @@
     "@angular/platform-browser-dynamic": "^20.0.0",
     "@angular/router": "^20.0.0",
     "@solidexpert/ngx-query-builder": "^20.0.0",
+    "echarts": "^6.0.0",
+    "ngx-echarts": "^20.0.0",
     "ngx-mat-select-search": "^8.0.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",

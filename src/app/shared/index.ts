@@ -15,6 +15,7 @@ export * from './localization/date-adapter';
 export * from './localization/paginator';
 
 export * from './components/ad-entity/ad-entity.component';
+export * from './components/chart-postlink/chart-postlink.component';
 export * from './components/connection/connection.component';
 export * from './components/connection-dialog/connection-dialog.component';
 export * from './components/filtered-select-client/filtered-select-client.component';

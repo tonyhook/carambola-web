@@ -87,6 +87,16 @@
             </div>
           </mat-tab>
         }
+        @if (isConnectionObserver && vendorPort() !== null) {
+          <mat-tab label="后链路分析">
+            <ng-template mat-tab-label>
+              <mat-icon>conversion_path</mat-icon>Deeplink分析
+            </ng-template>
+            <ng-template matTabContent>
+              <carambola-chart-postlink [vendorPort]="vendorPort()" />
+            </ng-template>
+          </mat-tab>
+        }
       </mat-tab-group>
     </mat-card-content>
   </mat-card>
