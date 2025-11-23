@@ -36,3 +36,4 @@ export * from './traffic-control/traffic-control.component';
 export * from './traffic-control-dialog/traffic-control-dialog.component';
 export * from './anti-fraud/anti-fraud.component';
 export * from './anti-fraud-dialog/anti-fraud-dialog.component';
+export * from './chart-postlink/chart-postlink.component';

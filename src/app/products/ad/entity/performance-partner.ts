@@ -19,6 +19,7 @@ export interface PerformancePartner {
   eventM: number;
   eventN: number;
   eventO: number;
+  general: Record<string, number>;
   impression: number;
   click: number;
   income: number;
