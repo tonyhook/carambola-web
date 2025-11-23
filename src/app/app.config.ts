@@ -3,10 +3,17 @@ import { provideRouter } from '@angular/router';
 import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { MatPaginatorIntl } from '@angular/material/paginator';
+import { provideEchartsCore } from 'ngx-echarts';
+import * as echarts from 'echarts/core';
+import { LineChart, PieChart } from 'echarts/charts';
+import { GridComponent, TooltipComponent, LegendComponent, DatasetComponent } from 'echarts/components';
+import { CanvasRenderer, SVGRenderer } from 'echarts/renderers';
 
 import { routes } from './app.routes';
 import { provideCarambolaDateAdapter } from './shared';
 import { CarambolaMatPaginatorIntl, HttpErrorInterceptor } from './shared';
+
+echarts.use([LineChart, PieChart, GridComponent, TooltipComponent, LegendComponent, DatasetComponent, CanvasRenderer, SVGRenderer]);
 
 export const CARAMBOLA_FORMATS = {
   parse: {
@@ -32,6 +39,9 @@ export const appConfig: ApplicationConfig = {
     ),
     provideAnimationsAsync(),
     provideCarambolaDateAdapter(),
+    provideEchartsCore(
+      { echarts }
+    ),
     {
       provide: HTTP_INTERCEPTORS,
       useClass: HttpErrorInterceptor,

@@ -34,7 +34,7 @@ import {
 
 import { AntiFraud, AntiFraudAPI, AntiFraudPeriod, Client, ClientAPI, ClientMedia, ClientMediaAPI, ClientPort, ClientPortAPI, Connection, PartnerType, PortType, TrafficControl, TrafficControlAPI, TrafficControlIndicator, TrafficControlPeriod } from '../../../../core';
 import { TenantService } from '../../../../services';
-import { AntiFraudComponent, AntiFraudDialogComponent, ConfirmDialogComponent, ConnectionComponent, FilteredSelectClientComponent, FilteredSelectClientMediaComponent, TrafficControlComponent, TrafficControlDialogComponent } from '../../../../shared';
+import { AntiFraudComponent, AntiFraudDialogComponent, ChartPostlinkComponent, ConfirmDialogComponent, ConnectionComponent, FilteredSelectClientComponent, FilteredSelectClientMediaComponent, TrafficControlComponent, TrafficControlDialogComponent } from '../../../../shared';
 
 @Component({
   selector: 'carambola-clientport-form',
@@ -70,6 +70,7 @@ import { AntiFraudComponent, AntiFraudDialogComponent, ConfirmDialogComponent, C
     FilteredSelectClientMediaComponent,
     TrafficControlComponent,
     AntiFraudComponent,
+    ChartPostlinkComponent,
   ],
   templateUrl: './clientport-form.component.html',
   styleUrls: ['./clientport-form.component.scss'],
@@ -376,7 +377,7 @@ export class ClientPortFormComponent implements AfterViewInit {
               this.connections = clientPort.connection.filter(connection => !connection.deleted).filter(connection => !connection.vendorPort.deleted);
               this.trafficControls = trafficControls;
               this.antiFrauds = antifrauds;
-              this.selectedIndex = tab === 'property' ? 0 : tab === 'connection' ? 1 : 2;
+              this.selectedIndex = tab === 'property' ? 0 : tab === 'connection' ? 1 : tab === 'deeplink' ? 2 : 3;
 
               this.formGroup.setControl('client', this.formBuilder.control({value: client, disabled: this.readonly}, Validators.required), {emitEvent: false});
               this.formGroup.setControl('clientMedia', this.formBuilder.control({value: clientMedia, disabled: this.readonly}, Validators.required), {emitEvent: false});

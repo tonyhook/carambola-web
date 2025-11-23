@@ -60,6 +60,9 @@
       }
     }
     @if (type() === 'clientPort') {
+      @if (mode() === 'full') {
+        <div class="name">{{ clientPort()?.client?.name }}</div>
+      }
       <div class="entity-property" [matBadge]="clientPort()?.createTime | isNew" matBadgeSize="medium" matBadgeOverlap="false">
         <div class="name">{{ clientPort()?.name }}</div>
         @if (mode() === 'tiny') {
@@ -69,7 +72,7 @@
           <div class="sub">{{ clientPort()?.tagId!.split('|')[0] }}</div>
         }
       </div>
-      @if (mode() === 'brief') {
+      @if (mode() === 'brief' || mode() === 'full') {
         <div class="entity-property">
           @if (debug()) {
             <div class="sub">[{{ clientPort()?.id }}]</div>
@@ -127,6 +130,9 @@
       }
     }
     @if (type() === 'vendorPort') {
+      @if (mode() === 'full') {
+        <div class="name">{{ vendorPort()?.vendor?.name }}</div>
+      }
       <div class="entity-property" [matBadge]="vendorPort()?.createTime | isNew" matBadgeSize="medium" matBadgeOverlap="false">
         <div class="name">{{ vendorPort()?.name }}</div>
         @if (mode() === 'tiny') {
@@ -136,7 +142,7 @@
           <div class="sub">{{ vendorPort()?.tagId }}</div>
         }
       </div>
-      @if (mode() === 'brief') {
+      @if (mode() === 'brief' || mode() === 'full') {
         <div class="entity-property">
           @if (debug()) {
             <div class="sub">[{{ vendorPort()?.id }}]</div>
