@@ -16,6 +16,8 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { Connection, PartnerType, PortType, Vendor, VendorAPI, VendorMedia, VendorMediaAPI, VendorPort, VendorPortAPI } from '../../../../core';
 import { TenantService } from '../../../../services';
 import { ChartPostlinkComponent, ConnectionComponent, FilteredSelectVendorComponent, FilteredSelectVendorMediaComponent } from '../../../../shared';
+import { ChartTrafficComponent } from "../../../../shared/components/chart-traffic/chart-traffic.component";
+import { ChartFinanceComponent } from "../../../../shared/components/chart-finance/chart-finance.component";
 
 @Component({
   selector: 'carambola-vendorport-form',
@@ -38,6 +40,8 @@ import { ChartPostlinkComponent, ConnectionComponent, FilteredSelectVendorCompon
     FilteredSelectVendorComponent,
     FilteredSelectVendorMediaComponent,
     ChartPostlinkComponent,
+    ChartTrafficComponent,
+    ChartFinanceComponent,
   ],
   templateUrl: './vendorport-form.component.html',
   styleUrls: ['./vendorport-form.component.scss'],
@@ -154,7 +158,7 @@ export class VendorPortFormComponent implements AfterViewInit {
               this.formVendorId.set(vendor.id!);
               this.managedVendorMedias.set(vendorMedias.filter(vendorMedia => vendorMedia.vendor.id === vendor.id));
               this.connections = vendorPort.connection.filter(connection => !connection.deleted).filter(connection => !connection.clientPort.deleted);
-              this.selectedIndex = tab === 'property' ? 0 : tab === 'connection' ? 1 : 2;
+              this.selectedIndex = tab === 'property' ? 0 : tab === 'connection' ? 1 : tab === 'deeplink' ? 2 : tab === 'traffic' ? 3 : 4;
 
               this.formGroup.setControl('vendor', this.formBuilder.control({value: vendor, disabled: this.readonly}, Validators.required), {emitEvent: false});
               this.formGroup.setControl('vendorMedia', this.formBuilder.control({value: vendorMedia, disabled: this.readonly}, Validators.required), {emitEvent: false});
