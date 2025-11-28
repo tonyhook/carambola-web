@@ -97,6 +97,26 @@
             </ng-template>
           </mat-tab>
         }
+        @if (isConnectionObserver && vendorPort() !== null) {
+          <mat-tab label="流量分析">
+            <ng-template mat-tab-label>
+              <mat-icon>trending_up</mat-icon>流量分析
+            </ng-template>
+            <ng-template matTabContent>
+              <carambola-chart-traffic [vendorPort]="vendorPort()" />
+            </ng-template>
+          </mat-tab>
+        }
+        @if (isConnectionObserver && vendorPort() !== null) {
+          <mat-tab label="费用分析">
+            <ng-template mat-tab-label>
+              <mat-icon>attach_money</mat-icon>费用分析
+            </ng-template>
+            <ng-template matTabContent>
+              <carambola-chart-finance [vendorPort]="vendorPort()" />
+            </ng-template>
+          </mat-tab>
+        }
       </mat-tab-group>
     </mat-card-content>
   </mat-card>
