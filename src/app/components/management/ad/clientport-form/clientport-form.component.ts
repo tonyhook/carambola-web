@@ -275,8 +275,6 @@ export class ClientPortFormComponent implements AfterViewInit {
       'name': ['', Validators.required],
       'format': ['banner', Validators.required],
       'mode': [PortType.PORT_TYPE_SHARE, Validators.required],
-      'ekey': ['', null],
-      'ikey': ['', null],
       'appname': ['', null],
       'apppackage': ['', null],
       'filter': [false, null],
@@ -389,8 +387,6 @@ export class ClientPortFormComponent implements AfterViewInit {
               this.formGroup.setControl('name', this.formBuilder.control({value: clientPort.name, disabled: this.readonly}, Validators.required), {emitEvent: false});
               this.formGroup.setControl('format', this.formBuilder.control({value: clientPort.format, disabled: this.readonly}, Validators.required), {emitEvent: false});
               this.formGroup.setControl('mode', this.formBuilder.control({value: clientPort.mode, disabled: this.readonly}, Validators.required), {emitEvent: false});
-              this.formGroup.setControl('ekey', this.formBuilder.control({value: clientPort.ekey, disabled: this.readonly}, null), {emitEvent: false});
-              this.formGroup.setControl('ikey', this.formBuilder.control({value: clientPort.ikey, disabled: this.readonly}), {emitEvent: false});
               this.formGroup.setControl('appname', this.formBuilder.control({value: clientPort.appname, disabled: this.readonly}), {emitEvent: false});
               this.formGroup.setControl('apppackage', this.formBuilder.control({value: clientPort.apppackage, disabled: this.readonly}), {emitEvent: false});
               this.formGroup.setControl('filter', this.formBuilder.control({value: clientPort.filter !== null && clientPort.filter.length > 0, disabled: this.readonly}, null), {emitEvent: false});
@@ -571,8 +567,6 @@ export class ClientPortFormComponent implements AfterViewInit {
       format: this.formGroup.value.format,
       tagId: protocolKey,
       mode: this.formGroup.getRawValue().mode,
-      ekey: this.formGroup.value.ekey,
-      ikey: this.formGroup.value.ikey,
       appname: this.formGroup.value.appname,
       apppackage: this.formGroup.value.apppackage,
       filter: this.formGroup.value.filter ? JSON.stringify(this.query) : null,
@@ -641,8 +635,6 @@ export class ClientPortFormComponent implements AfterViewInit {
     clientPort.format = this.formGroup.value.format;
     clientPort.tagId = protocolKey;
     clientPort.mode = this.formGroup.getRawValue().mode;
-    clientPort.ekey = this.formGroup.value.ekey;
-    clientPort.ikey = this.formGroup.value.ikey;
     clientPort.appname = this.formGroup.value.appname;
     clientPort.apppackage = this.formGroup.value.apppackage;
     clientPort.filter = this.formGroup.value.filter ? JSON.stringify(this.query) : null;
