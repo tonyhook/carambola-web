@@ -11,8 +11,6 @@ export interface ClientPort {
   format: string;
   tagId: string;
   mode: number;
-  ekey: number | null;
-  ikey: number | null;
   appname: string | null;
   apppackage: string | null;
   filter: string | null;
