@@ -9,6 +9,7 @@ export interface ClientPort {
   clientMedia: ClientMedia;
   name: string;
   format: string;
+  budget: string;
   tagId: string;
   mode: number;
   appname: string | null;

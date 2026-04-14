@@ -50,7 +50,7 @@ export class ClientPortManagerComponent implements OnInit, AfterViewInit {
 
   PortType = PortType;
 
-  displayedColumns: string[] = ['client', 'clientMedia', 'name', 'format', 'connection', 'actions'];
+  displayedColumns: string[] = ['client', 'clientMedia', 'name', 'format', 'budget', 'connection', 'actions'];
   hoverRow: ClientPort | null = null;
 
   mode: WritableSignal<PartnerType> = signal(PartnerType.PARTNER_TYPE_UNKNOWN);
@@ -58,6 +58,7 @@ export class ClientPortManagerComponent implements OnInit, AfterViewInit {
   filterClient: Client[] = [];
   filterClientMedia: ClientMedia[] = [];
   filterFormat: Map<string, string>;
+  filterBudget: Map<string, string>;
   filterMode: Map<string, string>;
   filterStatus: Map<string, string>;
   formQuery: Query<ClientPort> = {
@@ -77,6 +78,7 @@ export class ClientPortManagerComponent implements OnInit, AfterViewInit {
       'client': [[], null],
       'clientMedia': [[], null],
       'format': [[], null],
+      'budget': [[], null],
       'mode': [[], null],
       'status': [[], null],
       'search': ['', null],
@@ -88,6 +90,24 @@ export class ClientPortManagerComponent implements OnInit, AfterViewInit {
       ['splash', '开屏'],
       ['feeds', '信息流'],
       ['video', '视频'],
+    ]);
+    this.filterBudget = new Map([
+      ['unknown', '未知'],
+      ['k2', 'k2'],
+      ['tanx', 'tanx'],
+      ['jd', '京东'],
+      ['qihang', '启航'],
+      ['dahanghai', '大航海'],
+      ['kuaishou', '快手'],
+      ['pinduoduo', '拼多多'],
+      ['huichuan', '汇川'],
+      ['game', '游戏'],
+      ['didi', '滴滴'],
+      ['iqiyi', '爱奇艺'],
+      ['baidu', '百度'],
+      ['meituan', '美团'],
+      ['juheshangcheng', '聚合电商'],
+      ['mangguo', '芒果'],
     ]);
     this.filterMode = new Map([
       ['1', '分成模式'],
@@ -182,6 +202,8 @@ export class ClientPortManagerComponent implements OnInit, AfterViewInit {
             return item.name;
           case 'format':
             return item.format;
+          case 'budget':
+            return item.budget;
           case 'tagId':
             return item.tagId;
           case 'mode':
@@ -204,6 +226,7 @@ export class ClientPortManagerComponent implements OnInit, AfterViewInit {
       this.formGroupQuery.controls['client'].setValue([]);
       this.formGroupQuery.controls['clientMedia'].setValue([]);
       this.formGroupQuery.controls['format'].setValue([]);
+      this.formGroupQuery.controls['budget'].setValue([]);
       this.formGroupQuery.controls['mode'].setValue([]);
       this.formGroupQuery.controls['search'].setValue('');
       this.dataSource.data = [];
@@ -271,6 +294,7 @@ export class ClientPortManagerComponent implements OnInit, AfterViewInit {
         client: (this.formGroupQuery.value.client as Client[]).map(client => client.id!.toString()),
         clientMedia: (this.formGroupQuery.value.clientMedia as ClientMedia[]).map(clientMedia => clientMedia.id!.toString()),
         format: this.formGroupQuery.value.format,
+        budget: this.formGroupQuery.value.budget,
         mode: this.formGroupQuery.value.mode,
       },
       searchKey: ['name', 'tagId'],

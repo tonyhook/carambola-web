@@ -9,6 +9,7 @@ export interface VendorPort {
   vendorMedia: VendorMedia;
   name: string;
   format: string;
+  budget: string;
   tagId: string;
   mode: number;
   timeout: number;

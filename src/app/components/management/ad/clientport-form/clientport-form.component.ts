@@ -273,6 +273,7 @@ export class ClientPortFormComponent implements AfterViewInit {
       'clientMedia': [null, Validators.required],
       'name': ['', Validators.required],
       'format': ['banner', Validators.required],
+      'budget': ['unknown', Validators.required],
       'mode': [PortType.PORT_TYPE_SHARE, Validators.required],
       'appname': ['', null],
       'apppackage': ['', null],
@@ -385,6 +386,7 @@ export class ClientPortFormComponent implements AfterViewInit {
               this.formGroup.setControl('clientMedia', this.formBuilder.control({value: clientMedia, disabled: this.readonly}, Validators.required), {emitEvent: false});
               this.formGroup.setControl('name', this.formBuilder.control({value: clientPort.name, disabled: this.readonly}, Validators.required), {emitEvent: false});
               this.formGroup.setControl('format', this.formBuilder.control({value: clientPort.format, disabled: this.readonly}, Validators.required), {emitEvent: false});
+              this.formGroup.setControl('budget', this.formBuilder.control({value: clientPort.budget, disabled: this.readonly}, Validators.required), {emitEvent: false});
               this.formGroup.setControl('mode', this.formBuilder.control({value: clientPort.mode, disabled: this.readonly}, Validators.required), {emitEvent: false});
               this.formGroup.setControl('appname', this.formBuilder.control({value: clientPort.appname, disabled: this.readonly}), {emitEvent: false});
               this.formGroup.setControl('apppackage', this.formBuilder.control({value: clientPort.apppackage, disabled: this.readonly}), {emitEvent: false});
@@ -564,6 +566,7 @@ export class ClientPortFormComponent implements AfterViewInit {
       clientMedia: this.formGroup.value.clientMedia,
       name: this.formGroup.value.name,
       format: this.formGroup.value.format,
+      budget: this.formGroup.value.budget,
       tagId: protocolKey,
       mode: this.formGroup.getRawValue().mode,
       appname: this.formGroup.value.appname,
@@ -632,6 +635,7 @@ export class ClientPortFormComponent implements AfterViewInit {
     clientPort.clientMedia = this.formGroup.value.clientMedia;
     clientPort.name = this.formGroup.value.name;
     clientPort.format = this.formGroup.value.format;
+    clientPort.budget = this.formGroup.value.budget;
     clientPort.tagId = protocolKey;
     clientPort.mode = this.formGroup.getRawValue().mode;
     clientPort.appname = this.formGroup.value.appname;

@@ -86,6 +86,7 @@ export class VendorPortFormComponent implements AfterViewInit {
       'vendorMedia': [null, Validators.required],
       'name': ['', Validators.required],
       'format': ['banner', Validators.required],
+      'budget': ['unknown', Validators.required],
       'tagId': ['', null],
       'mode': [PortType.PORT_TYPE_SHARE, Validators.required],
       'timeout': [1000, null],
@@ -164,6 +165,7 @@ export class VendorPortFormComponent implements AfterViewInit {
               this.formGroup.setControl('vendorMedia', this.formBuilder.control({value: vendorMedia, disabled: this.readonly}, Validators.required), {emitEvent: false});
               this.formGroup.setControl('name', this.formBuilder.control({value: vendorPort.name, disabled: this.readonly}, Validators.required), {emitEvent: false});
               this.formGroup.setControl('format', this.formBuilder.control({value: vendorPort.format, disabled: this.readonly}, Validators.required), {emitEvent: false});
+              this.formGroup.setControl('budget', this.formBuilder.control({value: vendorPort.budget, disabled: this.readonly}, Validators.required), {emitEvent: false});
               this.formGroup.setControl('tagId', this.formBuilder.control({value: vendorPort.tagId, disabled: true}, Validators.required), {emitEvent: false});
               this.formGroup.setControl('mode', this.formBuilder.control({value: vendorPort.mode, disabled: this.readonly}, Validators.required), {emitEvent: false});
               this.formGroup.setControl('timeout', this.formBuilder.control({value: vendorPort.timeout, disabled: this.readonly}, null), {emitEvent: false});
@@ -236,6 +238,7 @@ export class VendorPortFormComponent implements AfterViewInit {
       vendorMedia: this.formGroup.value.vendorMedia,
       name: this.formGroup.value.name,
       format: this.formGroup.value.format,
+      budget: this.formGroup.value.budget,
       tagId: this.formGroup.getRawValue().tagId,
       mode: this.formGroup.getRawValue().mode,
       timeout: this.formGroup.value.timeout,
@@ -269,6 +272,7 @@ export class VendorPortFormComponent implements AfterViewInit {
     vendorPort.vendorMedia = this.formGroup.value.vendorMedia;
     vendorPort.name = this.formGroup.value.name;
     vendorPort.format = this.formGroup.value.format;
+    vendorPort.budget = this.formGroup.value.budget;
     vendorPort.tagId = this.formGroup.getRawValue().tagId;
     vendorPort.mode = this.formGroup.getRawValue().mode;
     vendorPort.timeout = this.formGroup.value.timeout;
