@@ -33,6 +33,19 @@
         }
       </mat-form-field>
       <mat-form-field subscriptSizing="dynamic">
+        <mat-label>预算类型</mat-label>
+        <mat-select multiple panelWidth="" formControlName="budget">
+          @for (key of filterBudget.keys(); track key) {
+            <mat-option [value]="key">{{ filterBudget.get(key) }}</mat-option>
+          }
+        </mat-select>
+        @if (formGroupQuery.value.budget.length > 0) {
+          <button type="button" matSuffix mat-icon-button (click)="clear($event, 'budget', [])">
+            <mat-icon>clear</mat-icon>
+          </button>
+        }
+      </mat-form-field>
+      <mat-form-field subscriptSizing="dynamic">
         <mat-label>广告位模式</mat-label>
         <mat-select multiple panelWidth="" formControlName="mode">
           @for (key of filterMode.keys(); track key) {
@@ -105,6 +118,27 @@
           row.format === 'splash' ? '开屏' :
           row.format === 'feeds' ? '信息流' :
           row.format === 'video' ? '视频' : '未知' }}
+      </mat-cell>
+    </ng-container>
+    <ng-container matColumnDef="budget">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>预算类型</mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        {{ row.budget === 'unknown' ? '未知' :
+          row.budget === 'k2' ? 'k2' :
+          row.budget === 'tanx' ? 'tanx' :
+          row.budget === 'jd' ? '京东' :
+          row.budget === 'qihang' ? '启航' :
+          row.budget === 'dahanghai' ? '大航海' :
+          row.budget === 'kuaishou' ? '快手' :
+          row.budget === 'pinduoduo' ? '拼多多' :
+          row.budget === 'huichuan' ? '汇川' :
+          row.budget === 'game' ? '游戏' :
+          row.budget === 'didi' ? '滴滴' :
+          row.budget === 'iqiyi' ? '爱奇艺' :
+          row.budget === 'baidu' ? '百度' :
+          row.budget === 'meituan' ? '美团' :
+          row.budget === 'juheshangcheng' ? '聚合电商' :
+          row.budget === 'mangguo' ? '芒果' : '未知' }}
       </mat-cell>
     </ng-container>
     <ng-container matColumnDef="connection">
