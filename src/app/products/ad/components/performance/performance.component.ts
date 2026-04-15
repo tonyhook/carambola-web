@@ -309,11 +309,17 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
 
         this.candidateColumns = new Map([]);
         this.candidateColumns.set('request', '请求');
-        this.candidateColumns.set('request-valid', '有效请求');
+        if (direction === 'client' || this.tenantService.isTenantManager() || this.tenantService.isTenantOperator() || this.tenantService.isTenantObserver() || this.tenantService.isManager()) {
+          this.candidateColumns.set('request-valid', '有效请求');
+        }
         this.candidateColumns.set('response', '响应');
-        this.candidateColumns.set('response-valid', '有效响应');
+        if (direction === 'client' || this.tenantService.isTenantManager() || this.tenantService.isTenantOperator() || this.tenantService.isTenantObserver() || this.tenantService.isManager()) {
+          this.candidateColumns.set('response-valid', '有效响应');
+        }
         this.candidateColumns.set('gfr', '填充率');
-        this.candidateColumns.set('gfrv', '有效填充率');
+        if (direction === 'client' || this.tenantService.isTenantManager() || this.tenantService.isTenantOperator() || this.tenantService.isTenantObserver() || this.tenantService.isManager()) {
+          this.candidateColumns.set('gfrv', '有效填充率');
+        }
         if (direction === 'client') {
           this.candidateColumns.set('offer', '平均出价');
         }
@@ -321,12 +327,16 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
         this.candidateColumns.set('click', '点击');
         this.candidateColumns.set('er', '展现率');
         this.candidateColumns.set('ctr', '点击率');
-        this.candidateColumns.set('income', '收入');
+        if (direction === 'client' || this.tenantService.isTenantManager() || this.tenantService.isTenantOperator() || this.tenantService.isTenantObserver() || this.tenantService.isManager()) {
+          this.candidateColumns.set('income', '收入');
+        }
         this.candidateColumns.set('outcome', '成本');
-        this.candidateColumns.set('profit', '利润');
-        this.candidateColumns.set('rv', '请求价值');
-        this.candidateColumns.set('cpmu', '上游CPM');
-        this.candidateColumns.set('cpmd', '下游CPM');
+        if (direction === 'client' || this.tenantService.isTenantManager() || this.tenantService.isTenantOperator() || this.tenantService.isTenantObserver() || this.tenantService.isManager()) {
+          this.candidateColumns.set('profit', '利润');
+          this.candidateColumns.set('rv', '请求价值');
+          this.candidateColumns.set('cpmu', '上游CPM');
+          this.candidateColumns.set('cpmd', '下游CPM');
+        }
         this.formGroupColumn.patchValue({['column']: [...this.candidateColumns.keys()]});
 
         this.prepareDisplayColumns();
@@ -648,6 +658,10 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
     event.stopPropagation();
     this.formGroupQuery.patchValue({[field]: value});
     this.query();
+  }
+
+  canViewConnection(): boolean {
+    return this.tenantService.isTenantManager() || this.tenantService.isTenantOperator() || this.tenantService.isTenantObserver() || this.tenantService.isManager();
   }
 
   changePerformanceInterval(event: MatButtonToggleChange) {
