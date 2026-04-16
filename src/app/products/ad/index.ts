@@ -4,3 +4,4 @@ export * from './api';
 export * from './shared';
 export * from './services';
 export * from './entity';
+export * from './utils';
