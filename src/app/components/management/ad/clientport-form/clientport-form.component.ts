@@ -34,7 +34,7 @@ import {
 
 import { AntiFraud, AntiFraudAPI, AntiFraudPeriod, Client, ClientAPI, ClientMedia, ClientMediaAPI, ClientPort, ClientPortAPI, Connection, PartnerType, PortType, TrafficControl, TrafficControlAPI, TrafficControlIndicator, TrafficControlPeriod } from '../../../../core';
 import { TenantService } from '../../../../services';
-import { AntiFraudComponent, AntiFraudDialogComponent, ChartPostlinkComponent, ConfirmDialogComponent, ConnectionComponent, FilteredSelectClientComponent, FilteredSelectClientMediaComponent, TrafficControlComponent, TrafficControlDialogComponent } from '../../../../shared';
+import { AntiFraudComponent, AntiFraudDialogComponent, buildPortNameTemplate, ChartPostlinkComponent, ConfirmDialogComponent, ConnectionComponent, FilteredSelectClientComponent, FilteredSelectClientMediaComponent, TrafficControlComponent, TrafficControlDialogComponent } from '../../../../shared';
 import { ChartTrafficComponent } from "../../../../shared/components/chart-traffic/chart-traffic.component";
 import { ChartFinanceComponent } from '../../../../shared/components/chart-finance/chart-finance.component';
 
@@ -107,6 +107,9 @@ export class ClientPortFormComponent implements AfterViewInit {
   formClientId: WritableSignal<number> = signal(0);
 
   initialized = false;
+  autoNameManaged = true;
+  lastGeneratedName = '';
+  syncingAutoName = false;
 
   formProtocolKey: string[] = [];
 
@@ -324,6 +327,8 @@ export class ClientPortFormComponent implements AfterViewInit {
                   }
                   this.formGroup.setControl('mode', this.formBuilder.control({value: PortType.PORT_TYPE_SHARE, disabled: false}, Validators.required), {emitEvent: false});
                 }
+
+                this.initializeAutoName(null);
               }
             }
           } else {
@@ -350,6 +355,8 @@ export class ClientPortFormComponent implements AfterViewInit {
             if (this.mode() === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
               this.formGroup.setControl('mode', this.formBuilder.control({value: PortType.PORT_TYPE_SHARE, disabled: false}, Validators.required), {emitEvent: false});
             }
+
+            this.initializeAutoName(null);
           }
         } else {
           forkJoin([
@@ -423,6 +430,8 @@ export class ClientPortFormComponent implements AfterViewInit {
                 }
                 this.formGroup.setControl('mode', this.formBuilder.control({value: clientPort.mode, disabled: this.readonly}, Validators.required), {emitEvent: false});
               }
+
+              this.initializeAutoName(clientPort.name);
             }
           });
         }
@@ -502,6 +511,20 @@ export class ClientPortFormComponent implements AfterViewInit {
         if (this.tenantService.isTenantManager() || this.tenantService.isManager()) {
           this.managedClientMedias.set(this.clientMedias().filter(clientMedia => clientMedia.client.id === data.client.id));
         }
+
+        this.syncAutoName();
+      }
+
+      this.syncAutoName();
+    });
+
+    this.formGroup.controls['name'].valueChanges.subscribe(name => {
+      if (this.syncingAutoName || !this.autoNameManaged) {
+        return;
+      }
+
+      if ((name ?? '') !== this.lastGeneratedName) {
+        this.autoNameManaged = false;
       }
     });
 
@@ -517,6 +540,41 @@ export class ClientPortFormComponent implements AfterViewInit {
     const filterValue = value.toLowerCase();
 
     return this.simpleFields.filter(field => field[1].name.toLowerCase().includes(filterValue));
+  }
+
+  private buildAutoName(): string {
+    const clientMedia = this.formGroup.controls['clientMedia']?.value as ClientMedia | null;
+
+    return buildPortNameTemplate({
+      mediaName: clientMedia?.name,
+      platform: clientMedia?.platform,
+      format: this.formGroup.controls['format']?.value,
+      budget: this.formGroup.controls['budget']?.value,
+      mode: this.formGroup.controls['mode']?.getRawValue(),
+    });
+  }
+
+  private setNameWithoutTracking(name: string) {
+    this.syncingAutoName = true;
+    this.formGroup.controls['name'].setValue(name, {emitEvent: false});
+    this.formGroup.controls['name'].markAsPristine();
+    this.syncingAutoName = false;
+  }
+
+  private initializeAutoName(savedName: string | null) {
+    this.lastGeneratedName = this.buildAutoName();
+    this.autoNameManaged = !savedName || savedName === this.lastGeneratedName;
+
+    if (this.autoNameManaged) {
+      this.setNameWithoutTracking(this.lastGeneratedName);
+    }
+  }
+
+  private syncAutoName() {
+    this.lastGeneratedName = this.buildAutoName();
+    if (this.autoNameManaged) {
+      this.setNameWithoutTracking(this.lastGeneratedName);
+    }
   }
 
   remove(field: [string, Field], control: FormControl | null, fields: [string, Field][]): void {
