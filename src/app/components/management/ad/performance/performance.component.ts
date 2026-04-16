@@ -107,7 +107,9 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
   rapid: WritableSignal<boolean> = signal(false);
   direction: WritableSignal<string> = signal('none');
   formGroupQuery: UntypedFormGroup;
+  filterPlatform: Map<string, string>;
   filterFormat: Map<string, string>;
+  filterBudget: Map<string, string>;
   filterMode: Map<string, string>;
   formQuery: Query<PerformancePlaceholder> = {
     filter: {},
@@ -184,17 +186,42 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
       'vendor': [[], null],
       'clientMedia': [[], null],
       'vendorMedia': [[], null],
+      'platform': [[], null],
       'format': [[], null],
+      'budget': [[], null],
       'mode': [[], null],
       'search': ['', null],
     });
 
+    this.filterPlatform = new Map([
+      ['iOS', 'iOS'],
+      ['Android', 'Android'],
+      ['Web', 'Web'],
+    ]);
     this.filterFormat = new Map([
       ['banner', '横幅'],
       ['interstitial', '插屏'],
       ['splash', '开屏'],
       ['feeds', '信息流'],
       ['video', '视频'],
+    ]);
+    this.filterBudget = new Map([
+      ['unknown', '未知'],
+      ['k2', 'k2'],
+      ['tanx', 'tanx'],
+      ['jd', '京东'],
+      ['qihang', '启航'],
+      ['dahanghai', '大航海'],
+      ['kuaishou', '快手'],
+      ['pinduoduo', '拼多多'],
+      ['huichuan', '汇川'],
+      ['game', '游戏'],
+      ['didi', '滴滴'],
+      ['iqiyi', '爱奇艺'],
+      ['baidu', '百度'],
+      ['meituan', '美团'],
+      ['juheshangcheng', '聚合电商'],
+      ['mangguo', '芒果'],
     ]);
     this.filterMode = new Map([
       ['1', '分成模式'],
@@ -565,7 +592,9 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
         vendor: (this.formGroupQuery.value.vendor as Vendor[]).map(vendor => vendor.id!.toString()),
         clientMedia: (this.formGroupQuery.value.clientMedia as ClientMedia[]).map(clientMedia => clientMedia.id!.toString()),
         vendorMedia: (this.formGroupQuery.value.vendorMedia as ClientMedia[]).map(vendorMedia => vendorMedia.id!.toString()),
+        platform: this.formGroupQuery.value.platform,
         format: this.formGroupQuery.value.format,
+        budget: this.formGroupQuery.value.budget,
         mode: this.formGroupQuery.value.mode,
       },
       searchKey: ['name', 'tagId'],

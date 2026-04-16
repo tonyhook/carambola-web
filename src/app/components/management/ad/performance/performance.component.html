@@ -21,6 +21,19 @@
           }
         </mat-form-field>
         <mat-form-field subscriptSizing="dynamic">
+          <mat-label>平台</mat-label>
+          <mat-select multiple panelWidth="" formControlName="platform">
+            @for (key of filterPlatform.keys(); track key) {
+              <mat-option [value]="key">{{ filterPlatform.get(key) }}</mat-option>
+            }
+          </mat-select>
+          @if (formGroupQuery.value.platform.length > 0) {
+            <button type="button" matSuffix mat-icon-button (click)="clear($event, 'platform', [])">
+              <mat-icon>clear</mat-icon>
+            </button>
+          }
+        </mat-form-field>
+        <mat-form-field subscriptSizing="dynamic">
           <mat-label>广告形式</mat-label>
           <mat-select multiple panelWidth="" formControlName="format">
             @for (key of filterFormat.keys(); track key) {
@@ -29,6 +42,19 @@
           </mat-select>
           @if (formGroupQuery.value.format.length > 0) {
             <button type="button" matSuffix mat-icon-button (click)="clear($event, 'format', [])">
+              <mat-icon>clear</mat-icon>
+            </button>
+          }
+        </mat-form-field>
+        <mat-form-field subscriptSizing="dynamic">
+          <mat-label>预算</mat-label>
+          <mat-select multiple panelWidth="" formControlName="budget">
+            @for (key of filterBudget.keys(); track key) {
+              <mat-option [value]="key">{{ filterBudget.get(key) }}</mat-option>
+            }
+          </mat-select>
+          @if (formGroupQuery.value.budget.length > 0) {
+            <button type="button" matSuffix mat-icon-button (click)="clear($event, 'budget', [])">
               <mat-icon>clear</mat-icon>
             </button>
           }
@@ -117,6 +143,19 @@
           }
         </mat-form-field>
         <mat-form-field subscriptSizing="dynamic">
+          <mat-label>平台</mat-label>
+          <mat-select multiple panelWidth="" formControlName="platform">
+            @for (key of filterPlatform.keys(); track key) {
+              <mat-option [value]="key">{{ filterPlatform.get(key) }}</mat-option>
+            }
+          </mat-select>
+          @if (formGroupQuery.value.platform.length > 0) {
+            <button type="button" matSuffix mat-icon-button (click)="clear($event, 'platform', [])">
+              <mat-icon>clear</mat-icon>
+            </button>
+          }
+        </mat-form-field>
+        <mat-form-field subscriptSizing="dynamic">
           <mat-label>广告形式</mat-label>
           <mat-select multiple panelWidth="" formControlName="format">
             @for (key of filterFormat.keys(); track key) {
@@ -125,6 +164,19 @@
           </mat-select>
           @if (formGroupQuery.value.format.length > 0) {
             <button type="button" matSuffix mat-icon-button (click)="clear($event, 'format', [])">
+              <mat-icon>clear</mat-icon>
+            </button>
+          }
+        </mat-form-field>
+        <mat-form-field subscriptSizing="dynamic">
+          <mat-label>预算</mat-label>
+          <mat-select multiple panelWidth="" formControlName="budget">
+            @for (key of filterBudget.keys(); track key) {
+              <mat-option [value]="key">{{ filterBudget.get(key) }}</mat-option>
+            }
+          </mat-select>
+          @if (formGroupQuery.value.budget.length > 0) {
+            <button type="button" matSuffix mat-icon-button (click)="clear($event, 'budget', [])">
               <mat-icon>clear</mat-icon>
             </button>
           }

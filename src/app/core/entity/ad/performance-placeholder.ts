@@ -9,6 +9,7 @@ export interface PerformancePlaceholder {
   vendorPort: VendorPort;
   mode: number;
   format: string;
+  budget: string;
   name: string;
   tagId: string;
 }

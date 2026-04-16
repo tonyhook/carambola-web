@@ -56,7 +56,9 @@ export class ClientPortManagerComponent implements OnInit, AfterViewInit {
   mode: WritableSignal<PartnerType> = signal(PartnerType.PARTNER_TYPE_UNKNOWN);
   formGroupQuery: UntypedFormGroup;
   filterClient: Client[] = [];
+  allClientMedia: ClientMedia[] = [];
   filterClientMedia: ClientMedia[] = [];
+  filterPlatform: Map<string, string>;
   filterFormat: Map<string, string>;
   filterBudget: Map<string, string>;
   filterMode: Map<string, string>;
@@ -77,6 +79,7 @@ export class ClientPortManagerComponent implements OnInit, AfterViewInit {
     this.formGroupQuery = this.formBuilder.group({
       'client': [[], null],
       'clientMedia': [[], null],
+      'platform': [[], null],
       'format': [[], null],
       'budget': [[], null],
       'mode': [[], null],
@@ -84,6 +87,11 @@ export class ClientPortManagerComponent implements OnInit, AfterViewInit {
       'search': ['', null],
     });
 
+    this.filterPlatform = new Map([
+      ['iOS', 'iOS'],
+      ['Android', 'Android'],
+      ['Web', 'Web'],
+    ]);
     this.filterFormat = new Map([
       ['banner', '横幅'],
       ['interstitial', '插屏'],
@@ -148,6 +156,7 @@ export class ClientPortManagerComponent implements OnInit, AfterViewInit {
         searchValue: '',
       }).subscribe(clientMedias => {
         clientMedias = clientMedias.filter(clientMedia => !clientMedia.deleted);
+        this.allClientMedia = clientMedias;
         this.filterClientMedia = clientMedias;
       });
 
@@ -225,6 +234,7 @@ export class ClientPortManagerComponent implements OnInit, AfterViewInit {
     this.route.queryParams.subscribe(params => {
       this.formGroupQuery.controls['client'].setValue([]);
       this.formGroupQuery.controls['clientMedia'].setValue([]);
+      this.formGroupQuery.controls['platform'].setValue([]);
       this.formGroupQuery.controls['format'].setValue([]);
       this.formGroupQuery.controls['budget'].setValue([]);
       this.formGroupQuery.controls['mode'].setValue([]);
@@ -288,11 +298,19 @@ export class ClientPortManagerComponent implements OnInit, AfterViewInit {
   }
 
   query() {
+    const selectedPlatforms: string[] = this.formGroupQuery.value.platform;
+    if (selectedPlatforms.length > 0) {
+      this.filterClientMedia = this.allClientMedia.filter(clientMedia => selectedPlatforms.indexOf(clientMedia.platform) >= 0);
+    } else {
+      this.filterClientMedia = this.allClientMedia;
+    }
+
     this.formQuery = {
       filter: {
         clientMode: [String(this.mode())],
         client: (this.formGroupQuery.value.client as Client[]).map(client => client.id!.toString()),
         clientMedia: (this.formGroupQuery.value.clientMedia as ClientMedia[]).map(clientMedia => clientMedia.id!.toString()),
+        platform: this.formGroupQuery.value.platform,
         format: this.formGroupQuery.value.format,
         budget: this.formGroupQuery.value.budget,
         mode: this.formGroupQuery.value.mode,

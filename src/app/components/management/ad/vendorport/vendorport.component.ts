@@ -56,7 +56,9 @@ export class VendorPortManagerComponent implements OnInit, AfterViewInit {
   mode: WritableSignal<PartnerType> = signal(PartnerType.PARTNER_TYPE_UNKNOWN);
   formGroupQuery: UntypedFormGroup;
   filterVendor: Vendor[] = [];
+  allVendorMedia: VendorMedia[] = [];
   filterVendorMedia: VendorMedia[] = [];
+  filterPlatform: Map<string, string>;
   filterFormat: Map<string, string>;
   filterBudget: Map<string, string>;
   filterMode: Map<string, string>;
@@ -77,6 +79,7 @@ export class VendorPortManagerComponent implements OnInit, AfterViewInit {
     this.formGroupQuery = this.formBuilder.group({
       'vendor': [[], null],
       'vendorMedia': [[], null],
+      'platform': [[], null],
       'format': [[], null],
       'budget': [[], null],
       'mode': [[], null],
@@ -84,6 +87,11 @@ export class VendorPortManagerComponent implements OnInit, AfterViewInit {
       'search': ['', null],
     });
 
+    this.filterPlatform = new Map([
+      ['iOS', 'iOS'],
+      ['Android', 'Android'],
+      ['Web', 'Web'],
+    ]);
     this.filterFormat = new Map([
       ['banner', '横幅'],
       ['interstitial', '插屏'],
@@ -148,6 +156,7 @@ export class VendorPortManagerComponent implements OnInit, AfterViewInit {
         searchValue: '',
       }).subscribe(vendorMedias => {
         vendorMedias = vendorMedias.filter(vendorMedia => !vendorMedia.deleted);
+        this.allVendorMedia = vendorMedias;
         this.filterVendorMedia = vendorMedias;
       });
 
@@ -225,6 +234,7 @@ export class VendorPortManagerComponent implements OnInit, AfterViewInit {
     this.route.queryParams.subscribe(params => {
       this.formGroupQuery.controls['vendor'].setValue([]);
       this.formGroupQuery.controls['vendorMedia'].setValue([]);
+      this.formGroupQuery.controls['platform'].setValue([]);
       this.formGroupQuery.controls['format'].setValue([]);
       this.formGroupQuery.controls['budget'].setValue([]);
       this.formGroupQuery.controls['mode'].setValue([]);
@@ -288,11 +298,19 @@ export class VendorPortManagerComponent implements OnInit, AfterViewInit {
   }
 
   query() {
+    const selectedPlatforms: string[] = this.formGroupQuery.value.platform;
+    if (selectedPlatforms.length > 0) {
+      this.filterVendorMedia = this.allVendorMedia.filter(vendorMedia => selectedPlatforms.indexOf(vendorMedia.platform) >= 0);
+    } else {
+      this.filterVendorMedia = this.allVendorMedia;
+    }
+
     this.formQuery = {
       filter: {
         vendorMode: [String(this.mode())],
         vendor: (this.formGroupQuery.value.vendor as Vendor[]).map(vendor => vendor.id!.toString()),
         vendorMedia: (this.formGroupQuery.value.vendorMedia as VendorMedia[]).map(vendorMedia => vendorMedia.id!.toString()),
+        platform: this.formGroupQuery.value.platform,
         format: this.formGroupQuery.value.format,
         budget: this.formGroupQuery.value.budget,
         mode: this.formGroupQuery.value.mode,
