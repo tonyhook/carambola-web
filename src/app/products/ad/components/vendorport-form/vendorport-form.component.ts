@@ -13,13 +13,12 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTabsModule } from '@angular/material/tabs';
 
-import { Connection, PartnerType, PortType, Vendor, VendorAPI, VendorMedia, VendorMediaAPI, VendorPort, VendorPortAPI } from '../..';
+import { buildPortNameTemplate, Connection, PartnerType, PortType, Vendor, VendorAPI, VendorMedia, VendorMediaAPI, VendorPort, VendorPortAPI } from '../..';
 import { TenantService } from '../..';
 import { ConnectionComponent, FilteredSelectVendorComponent, FilteredSelectVendorMediaComponent } from '../..';
 import { ChartFinanceComponent } from '../chart-finance/chart-finance.component';
 import { ChartPostlinkComponent } from '../chart-postlink/chart-postlink.component';
 import { ChartTrafficComponent } from '../chart-traffic/chart-traffic.component';
-
 @Component({
   selector: 'carambola-vendorport-form',
   imports: [
@@ -66,6 +65,9 @@ export class VendorPortFormComponent implements AfterViewInit {
   formVendorId: WritableSignal<number> = signal(0);
 
   initialized = false;
+  autoNameManaged = true;
+  lastGeneratedName = '';
+  syncingAutoName = false;
 
   isConnectionManager = false;
   isConnectionObserver = false;
@@ -125,6 +127,8 @@ export class VendorPortFormComponent implements AfterViewInit {
                 if (this.mode() === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
                   this.formGroup.setControl('mode', this.formBuilder.control({value: PortType.PORT_TYPE_SHARE, disabled: false}, Validators.required), {emitEvent: false});
                 }
+
+                this.initializeAutoName(null);
               }
             }
           } else {
@@ -143,6 +147,8 @@ export class VendorPortFormComponent implements AfterViewInit {
             if (this.mode() === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
               this.formGroup.setControl('mode', this.formBuilder.control({value: PortType.PORT_TYPE_SHARE, disabled: false}, Validators.required), {emitEvent: false});
             }
+
+            this.initializeAutoName(null);
           }
         } else {
           this.vendorPortAPI.getVendorPort(this.vendorPort()!.id!).subscribe(vendorPort => {
@@ -178,6 +184,8 @@ export class VendorPortFormComponent implements AfterViewInit {
               if (this.mode() === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
                 this.formGroup.setControl('mode', this.formBuilder.control({value: vendorPort.mode, disabled: this.readonly}, Validators.required), {emitEvent: false});
               }
+
+              this.initializeAutoName(vendorPort.name);
             }
           });
         }
@@ -222,8 +230,57 @@ export class VendorPortFormComponent implements AfterViewInit {
         if (this.tenantService.isTenantManager() || this.tenantService.isManager() || this.tenantService.isVendorManager(data.vendor)) {
           this.managedVendorMedias.set(this.vendorMedias().filter(vendorMedia => vendorMedia.vendor.id === data.vendor.id));
         }
+
+        this.syncAutoName();
+      }
+
+      this.syncAutoName();
+    });
+
+    this.formGroup.controls['name'].valueChanges.subscribe(name => {
+      if (this.syncingAutoName || !this.autoNameManaged) {
+        return;
+      }
+
+      if ((name ?? '') !== this.lastGeneratedName) {
+        this.autoNameManaged = false;
       }
     });
+  }
+
+  private buildAutoName(): string {
+    const vendorMedia = this.formGroup.controls['vendorMedia']?.value as VendorMedia | null;
+
+    return buildPortNameTemplate({
+      mediaName: vendorMedia?.name,
+      platform: vendorMedia?.platform,
+      format: this.formGroup.controls['format']?.value,
+      budget: this.formGroup.controls['budget']?.value,
+      mode: this.formGroup.controls['mode']?.getRawValue(),
+    });
+  }
+
+  private setNameWithoutTracking(name: string) {
+    this.syncingAutoName = true;
+    this.formGroup.controls['name'].setValue(name, {emitEvent: false});
+    this.formGroup.controls['name'].markAsPristine();
+    this.syncingAutoName = false;
+  }
+
+  private initializeAutoName(savedName: string | null) {
+    this.lastGeneratedName = this.buildAutoName();
+    this.autoNameManaged = !savedName || savedName === this.lastGeneratedName;
+
+    if (this.autoNameManaged) {
+      this.setNameWithoutTracking(this.lastGeneratedName);
+    }
+  }
+
+  private syncAutoName() {
+    this.lastGeneratedName = this.buildAutoName();
+    if (this.autoNameManaged) {
+      this.setNameWithoutTracking(this.lastGeneratedName);
+    }
   }
 
   addVendorPort() {
