@@ -14,6 +14,8 @@ export * from './interceptor/http-error.interceptor';
 export * from './localization/date-adapter';
 export * from './localization/paginator';
 
+export * from './utils/port-name-template';
+
 export * from './components/ad-entity/ad-entity.component';
 export * from './components/chart-postlink/chart-postlink.component';
 export * from './components/connection/connection.component';
