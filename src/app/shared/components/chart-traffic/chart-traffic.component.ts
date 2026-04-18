@@ -15,7 +15,7 @@ type TrafficMetricKey =
   | 'validResponse'
   | 'eventA' | 'eventB' | 'eventC' | 'eventD' | 'eventE'
   | 'eventF' | 'eventG' | 'eventH' | 'eventK' | 'eventL'
-  | 'eventM' | 'eventN' | 'eventO';
+  | 'eventM' | 'eventN' | 'eventO' | 'eventP';
 
 interface TrafficMetricDefinition {
   key: TrafficMetricKey;
@@ -56,6 +56,7 @@ export class ChartTrafficComponent {
     { key: 'eventL', label: '超流控', color: '#6a1b9a' },
     { key: 'eventM', label: '缺失关键字段', color: '#00838f' },
     { key: 'eventN', label: '反作弊拦截', color: '#ad1457' },
+    { key: 'eventP', label: '底价无效', color: '#827717' },
   ];
 
   private readonly clientLostResponseMetrics: TrafficMetricDefinition[] = [
@@ -310,6 +311,7 @@ export class ChartTrafficComponent {
       point.eventM += performance.eventM;
       point.eventN += performance.eventN;
       point.eventO += performance.eventO;
+      point.eventP += performance.eventP;
 
       performanceMap.set(timeKey, point);
     }
@@ -357,7 +359,7 @@ export class ChartTrafficComponent {
   private getClientRequestCount(performance: PerformancePartner) {
     return performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE +
       performance.eventF + performance.eventG + performance.eventH + performance.eventK + performance.eventL +
-      performance.eventM + performance.eventN + performance.eventO;
+      performance.eventM + performance.eventN + performance.eventO + performance.eventP;
   }
 
   private getClientValidRequestCount(performance: PerformancePartner) {
@@ -395,7 +397,7 @@ export class ChartTrafficComponent {
       validResponse: 0,
       eventA: 0, eventB: 0, eventC: 0, eventD: 0, eventE: 0,
       eventF: 0, eventG: 0, eventH: 0, eventK: 0, eventL: 0,
-      eventM: 0, eventN: 0, eventO: 0,
+      eventM: 0, eventN: 0, eventO: 0, eventP: 0,
     };
   }
 
