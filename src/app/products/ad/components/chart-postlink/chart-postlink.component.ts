@@ -256,6 +256,7 @@ export class ChartPostlinkComponent {
           eventM: 0,
           eventN: 0,
           eventO: 0,
+          eventP: 0,
           general: {},
           impression: 0,
           click: 0,
@@ -282,6 +283,7 @@ export class ChartPostlinkComponent {
       existing.eventM += performance.eventM;
       existing.eventN += performance.eventN;
       existing.eventO += performance.eventO;
+      existing.eventP += performance.eventP;
       existing.impression += performance.impression;
       existing.click += performance.click;
       existing.income += performance.income;
