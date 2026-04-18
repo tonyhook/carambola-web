@@ -1092,7 +1092,7 @@ export class SummaryComponent implements OnInit, AfterViewInit, DoCheck {
       performanceView.request +=
         performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE +
         performance.eventF + performance.eventG + performance.eventH + performance.eventK + performance.eventL +
-        performance.eventM + performance.eventN + performance.eventO;
+        performance.eventM + performance.eventN + performance.eventO + performance.eventP;
       performanceView.requestv +=
         performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventK +
         performance.eventO;
@@ -1469,7 +1469,7 @@ export class SummaryComponent implements OnInit, AfterViewInit, DoCheck {
           performanceView.request +=
             performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE +
             performance.eventF + performance.eventG + performance.eventH + performance.eventK + performance.eventL +
-            performance.eventM + performance.eventN + performance.eventO;
+            performance.eventM + performance.eventN + performance.eventO + performance.eventP;
           performanceView.requestv +=
             performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventK +
             performance.eventO;
@@ -1493,7 +1493,7 @@ export class SummaryComponent implements OnInit, AfterViewInit, DoCheck {
           this.performanceViewTotal.request +=
             performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE +
             performance.eventF + performance.eventG + performance.eventH + performance.eventK + performance.eventL +
-            performance.eventM + performance.eventN + performance.eventO;
+            performance.eventM + performance.eventN + performance.eventO + performance.eventP;
           this.performanceViewTotal.requestv +=
             performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventK +
             performance.eventO;
