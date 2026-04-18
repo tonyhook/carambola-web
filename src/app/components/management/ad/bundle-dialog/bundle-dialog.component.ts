@@ -302,7 +302,7 @@ export class BundleDialogComponent implements AfterViewInit {
         performanceView.request +=
           performance.eventA + performance.eventB + performance.eventC + performance.eventD + performance.eventE +
           performance.eventF + performance.eventG + performance.eventH + performance.eventK + performance.eventL +
-          performance.eventM + performance.eventN + performance.eventO;
+          performance.eventM + performance.eventN + performance.eventO + performance.eventP;
         performanceView.requestv +=
           performance.eventC + performance.eventD + performance.eventE + performance.eventF + performance.eventK +
           performance.eventO;
