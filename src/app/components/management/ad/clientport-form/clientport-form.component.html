@@ -84,6 +84,10 @@
                   <mat-button-toggle-group #queryTypeToggleGroup="matButtonToggleGroup" [value]="queryType" (change)="changeFilterType($event)">
                     <mat-button-toggle [value]="'simple'">精简版（支持必需字段）</mat-button-toggle>
                     <mat-button-toggle [value]="'advanced'">高级版（支持条件组合）</mat-button-toggle>
+                    <mat-button-toggle [value]="'predefined1'">阿里安卓</mat-button-toggle>
+                    <mat-button-toggle [value]="'predefined2'">阿里iOS</mat-button-toggle>
+                    <mat-button-toggle [value]="'predefined3'">汇川安卓</mat-button-toggle>
+                    <mat-button-toggle [value]="'predefined4'">汇川iOS</mat-button-toggle>
                   </mat-button-toggle-group>
                 }
               </div>
@@ -229,6 +233,19 @@
                     </ng-container>
                   </query-builder>
                 </div>
+              }
+              @if (formGroup.value.filter && queryType.startsWith('predefined')) {
+                <mat-form-field class="full-width-input" subscriptSizing="dynamic">
+                  <mat-label>预定义字段</mat-label>
+                  <mat-chip-grid #chipGridFilter>
+                    @for (field of selectedFilters; track field[0]) {
+                      <mat-chip-row [value]="field">
+                        {{ field[1].name }}
+                      </mat-chip-row>
+                    }
+                  </mat-chip-grid>
+                  <input hidden #inputFilter matInput [matChipInputFor]="chipGridFilter"/>
+                </mat-form-field>
               }
               <div class="full-width-input flex">
                 <div class="rule-wrapper">
