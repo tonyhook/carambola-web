@@ -404,7 +404,7 @@ export class ClientPortFormComponent implements AfterViewInit {
                 this.query = JSON.parse(clientPort.filter);
                 this.queryType = clientPort.filterType;
 
-                if (this.queryType === 'simple') {
+                if (this.queryType === 'simple' || this.queryType.startsWith('predefined')) {
                   this.selectedFilters = this.query.rules.map(rule => {
                     const field = rule.field;
                     return this.simpleFields[this.simpleFields.map(field => field[0]).indexOf(field)];
@@ -786,7 +786,7 @@ export class ClientPortFormComponent implements AfterViewInit {
   changeFilterType(event: MatButtonToggleChange) {
     if (event.value === 'simple') {
       const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-        data: '从高级版切换回精简版会清空已配置的过滤条件，是否继续？',
+        data: '切换到精简版会清空已配置的过滤条件，是否继续？',
         maxWidth: '40vw',
         maxHeight: '40vh',
       });
@@ -805,9 +805,105 @@ export class ClientPortFormComponent implements AfterViewInit {
           }
         }
       });
-    } else {
+    }
+    if (event.value === 'advanced') {
       this.selectedFilters = [];
       this.queryType = 'advanced';
+    }
+    if (event.value === 'predefined1') {
+      this.query = {
+        condition: 'and',
+        rules:[
+          { field: 'device#ua', operator: 'is not null', value: null },
+          { field: 'device#ip' , operator: 'is not null', value: null },
+          { field: 'device#type', operator: 'is not null', value: null },
+          { field: 'device#make', operator: 'is not null', value: null },
+          { field: 'device#model', operator: 'is not null', value: null },
+          { field: 'device#os', operator: 'is not null', value: null },
+          { field: 'device#osv', operator: 'is not null', value: null },
+          { field: 'device#oslevel', operator: 'is not null', value: null },
+          { field: 'device#carrier', operator: 'is not null', value: null },
+          { field: 'device#contype', operator: 'is not null', value: null },
+          { field: 'device#w', operator: 'is not null', value: null },
+          { field: 'device#h', operator: 'is not null', value: null },
+          { field: 'id#501', operator: 'is not null', value: null },
+          { field: 'id#505', operator: 'is not null', value: null },
+          { field: 'id#509', operator: 'is not null', value: null },
+        ]
+      };
+      this.selectedFilters = this.query.rules.map(rule => {
+        const field = rule.field;
+        return this.simpleFields[this.simpleFields.map(field => field[0]).indexOf(field)];
+      });
+      this.queryType = 'predefined1';
+    }
+    if (event.value === 'predefined2') {
+      this.query = {
+        condition: 'and',
+        rules:[
+          { field: 'device#ua', operator: 'is not null', value: null },
+          { field: 'device#ip' , operator: 'is not null', value: null },
+          { field: 'device#type', operator: 'is not null', value: null },
+          { field: 'device#make', operator: 'is not null', value: null },
+          { field: 'device#model', operator: 'is not null', value: null },
+          { field: 'device#os', operator: 'is not null', value: null },
+          { field: 'device#osv', operator: 'is not null', value: null },
+          { field: 'device#oslevel', operator: 'is not null', value: null },
+          { field: 'device#carrier', operator: 'is not null', value: null },
+          { field: 'device#contype', operator: 'is not null', value: null },
+          { field: 'device#w', operator: 'is not null', value: null },
+          { field: 'device#h', operator: 'is not null', value: null },
+          { field: 'device#sysdisksize', operator: 'is not null', value: null },
+          { field: 'device#sysmemory', operator: 'is not null', value: null },
+          { field: 'device#hwname', operator: 'is not null', value: null },
+          { field: 'device#hwmachine', operator: 'is not null', value: null },
+          { field: 'device#hwmodel', operator: 'is not null', value: null },
+          { field: 'device#country', operator: 'is not null', value: null },
+          { field: 'device#lang', operator: 'is not null', value: null },
+          { field: 'device#timezone', operator: 'is not null', value: null },
+          { field: 'device#boottime', operator: 'is not null', value: null },
+          { field: 'device#updatetime', operator: 'is not null', value: null },
+          { field: 'id#513', operator: 'is not null', value: null },
+          { field: 'id#505', operator: 'is not null', value: null },
+          { field: 'id#509', operator: 'is not null', value: null },
+        ]
+      };
+      this.selectedFilters = this.query.rules.map(rule => {
+        const field = rule.field;
+        return this.simpleFields[this.simpleFields.map(field => field[0]).indexOf(field)];
+      });
+      this.queryType = 'predefined2';
+    }
+    if (event.value === 'predefined3') {
+      this.query = {
+        condition: 'and',
+        rules:[
+          { field: 'device#brand', operator: 'is not null', value: null },
+          { field: 'device#inittime' , operator: 'is not null', value: null },
+          { field: 'device#updatetime', operator: 'is not null', value: null },
+          { field: 'device#updatetime', operator: 'is not null', value: null },
+        ]
+      };
+      this.selectedFilters = this.query.rules.map(rule => {
+        const field = rule.field;
+        return this.simpleFields[this.simpleFields.map(field => field[0]).indexOf(field)];
+      });
+      this.queryType = 'predefined3';
+    }
+    if (event.value === 'predefined4') {
+      this.query = {
+        condition: 'and',
+        rules:[
+          { field: 'device#boottime', operator: 'is not null', value: null },
+          { field: 'device#inittime' , operator: 'is not null', value: null },
+          { field: 'device#updatetime', operator: 'is not null', value: null },
+        ]
+      };
+      this.selectedFilters = this.query.rules.map(rule => {
+        const field = rule.field;
+        return this.simpleFields[this.simpleFields.map(field => field[0]).indexOf(field)];
+      });
+      this.queryType = 'predefined4';
     }
   }
 
