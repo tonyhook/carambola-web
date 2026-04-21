@@ -1,5 +1,5 @@
 export interface Login {
   username: string;
   password: string;
-  rememberMe: string;
+  rememberMe: boolean;
 }

@@ -67,8 +67,8 @@
                 }
               </mat-select>
             </mat-form-field>
-            <carambola-operation [permission]="permissionFormGroup.value.permission" [basePermission]="''" (permissionChange)="preparePermission($event)" />
-            <button type="button" class="form-button" mat-stroked-button [disabled]="permissionFormGroup.value.permission.length === 0" (click)="addPermission()">Submit</button>
+            <carambola-operation [permission]="permissionFormGroup.controls.permission.value" [basePermission]="''" (permissionChange)="preparePermission($event)" />
+            <button type="button" class="form-button" mat-stroked-button [disabled]="permissionFormGroup.controls.permission.value.length === 0" (click)="addPermission()">Submit</button>
           </div>
         </form>
       </mat-card-content>

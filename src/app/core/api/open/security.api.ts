@@ -19,7 +19,7 @@ export class OpenSecurityAPI {
     const formData = new FormData();
     formData.append('username', post.username);
     formData.append('password', post.password);
-    formData.append('remember-me', post.rememberMe);
+    formData.append('remember-me', String(post.rememberMe));
 
     return this.http.post(environment.apipath + '/login', formData, { withCredentials: true });
   }
