@@ -1,6 +1,13 @@
 import { Component, effect, input, output, inject } from '@angular/core';
-import { UntypedFormGroup, UntypedFormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+
+type OperationFormGroup = FormGroup<{
+  create: FormControl<boolean>;
+  read: FormControl<boolean>;
+  update: FormControl<boolean>;
+  delete: FormControl<boolean>;
+}>;
 
 @Component({
   selector: 'carambola-operation',
@@ -12,9 +19,9 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
   styleUrls: ['./operation.component.scss'],
 })
 export class OperationComponent {
-  private formBuilder = inject(UntypedFormBuilder);
+  private formBuilder = inject(FormBuilder);
 
-  formGroup: UntypedFormGroup;
+  formGroup: OperationFormGroup;
 
   permission = input<string | null>('');
   permissionChange = output<string | null>();
@@ -24,10 +31,10 @@ export class OperationComponent {
 
   constructor() {
     this.formGroup = this.formBuilder.group({
-      'create': [{value: false, disabled: false}, null],
-      'read':   [{value: false, disabled: false}, null],
-      'update': [{value: false, disabled: false}, null],
-      'delete': [{value: false, disabled: false}, null],
+      create: this.formBuilder.nonNullable.control(false),
+      read: this.formBuilder.nonNullable.control(false),
+      update: this.formBuilder.nonNullable.control(false),
+      delete: this.formBuilder.nonNullable.control(false),
     });
 
     effect(() => {
@@ -36,10 +43,10 @@ export class OperationComponent {
       const disabled = this.disabled();
 
       this.formGroup = this.formBuilder.group({
-        'create': [{value: permission?.includes('c') || basePermission?.includes('c'), disabled: disabled || (!permission?.includes('c') && basePermission?.includes('c'))}, null],
-        'read':   [{value: permission?.includes('r') || basePermission?.includes('r'), disabled: disabled || (!permission?.includes('r') && basePermission?.includes('r'))}, null],
-        'update': [{value: permission?.includes('u') || basePermission?.includes('u'), disabled: disabled || (!permission?.includes('u') && basePermission?.includes('u'))}, null],
-        'delete': [{value: permission?.includes('d') || basePermission?.includes('d'), disabled: disabled || (!permission?.includes('d') && basePermission?.includes('d'))}, null],
+        create: this.formBuilder.nonNullable.control({value: !!permission?.includes('c') || !!basePermission?.includes('c'), disabled: disabled || (!permission?.includes('c') && !!basePermission?.includes('c'))}),
+        read: this.formBuilder.nonNullable.control({value: !!permission?.includes('r') || !!basePermission?.includes('r'), disabled: disabled || (!permission?.includes('r') && !!basePermission?.includes('r'))}),
+        update: this.formBuilder.nonNullable.control({value: !!permission?.includes('u') || !!basePermission?.includes('u'), disabled: disabled || (!permission?.includes('u') && !!basePermission?.includes('u'))}),
+        delete: this.formBuilder.nonNullable.control({value: !!permission?.includes('d') || !!basePermission?.includes('d'), disabled: disabled || (!permission?.includes('d') && !!basePermission?.includes('d'))}),
       });
     });
   }
@@ -47,16 +54,16 @@ export class OperationComponent {
   toggle() {
     let ops = '';
 
-    if (this.formGroup.value.create) {
+    if (this.formGroup.controls.create.value) {
       ops += 'c';
     }
-    if (this.formGroup.value.read) {
+    if (this.formGroup.controls.read.value) {
       ops += 'r';
     }
-    if (this.formGroup.value.update) {
+    if (this.formGroup.controls.update.value) {
       ops += 'u';
     }
-    if (this.formGroup.value.delete) {
+    if (this.formGroup.controls.delete.value) {
       ops += 'd';
     }
 
@@ -73,10 +80,10 @@ export class OperationComponent {
     const disabled = this.disabled();
 
     this.formGroup = this.formBuilder.group({
-      'create': [{value: permission?.includes('c') || basePermission?.includes('c'), disabled: disabled || (!permission?.includes('c') && basePermission?.includes('c'))}, null],
-      'read':   [{value: permission?.includes('r') || basePermission?.includes('r'), disabled: disabled || (!permission?.includes('r') && basePermission?.includes('r'))}, null],
-      'update': [{value: permission?.includes('u') || basePermission?.includes('u'), disabled: disabled || (!permission?.includes('u') && basePermission?.includes('u'))}, null],
-      'delete': [{value: permission?.includes('d') || basePermission?.includes('d'), disabled: disabled || (!permission?.includes('d') && basePermission?.includes('d'))}, null],
+      create: this.formBuilder.nonNullable.control({value: !!permission?.includes('c') || !!basePermission?.includes('c'), disabled: disabled || (!permission?.includes('c') && !!basePermission?.includes('c'))}),
+      read: this.formBuilder.nonNullable.control({value: !!permission?.includes('r') || !!basePermission?.includes('r'), disabled: disabled || (!permission?.includes('r') && !!basePermission?.includes('r'))}),
+      update: this.formBuilder.nonNullable.control({value: !!permission?.includes('u') || !!basePermission?.includes('u'), disabled: disabled || (!permission?.includes('u') && !!basePermission?.includes('u'))}),
+      delete: this.formBuilder.nonNullable.control({value: !!permission?.includes('d') || !!basePermission?.includes('d'), disabled: disabled || (!permission?.includes('d') && !!basePermission?.includes('d'))}),
     });
   }
 
