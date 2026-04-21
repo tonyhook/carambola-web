@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, OnInit, ViewChild, inject } from '@angular/core';
-import { UntypedFormGroup, UntypedFormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Subject, switchMap } from 'rxjs';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatButtonModule } from '@angular/material/button';
@@ -17,6 +17,10 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { Query, User, UserAPI } from '../../../../core';
 import { IsNewPipe } from '../../../../shared';
 import { UserDialogComponent } from '../user-dialog/user-dialog.component';
+
+type UserQueryFormGroup = FormGroup<{
+  search: FormControl<string>;
+}>;
 
 @Component({
   selector: 'carambola-user-manager',
@@ -42,14 +46,14 @@ import { UserDialogComponent } from '../user-dialog/user-dialog.component';
   styleUrls: ['./user.component.scss'],
 })
 export class UserManagerComponent implements OnInit, AfterViewInit {
-  private formBuilder = inject(UntypedFormBuilder);
+  private formBuilder = inject(FormBuilder);
   private dialog = inject(MatDialog);
   private userAPI = inject(UserAPI);
 
   displayedColumns: string[] = ['username', 'actions'];
   hoverRow: User | null = null;
 
-  formGroupQuery: UntypedFormGroup;
+  formGroupQuery: UserQueryFormGroup;
   formQuery: Query<User> = {
     filter: {},
     searchKey: ['username'],
@@ -64,7 +68,7 @@ export class UserManagerComponent implements OnInit, AfterViewInit {
 
   constructor() {
     this.formGroupQuery = this.formBuilder.group({
-      'search': ['', null],
+      search: this.formBuilder.nonNullable.control(''),
     });
   }
 
@@ -94,7 +98,7 @@ export class UserManagerComponent implements OnInit, AfterViewInit {
     this.formQuery = {
       filter: {},
       searchKey: ['username'],
-      searchValue: this.formGroupQuery.value.search,
+      searchValue: this.formGroupQuery.controls.search.value,
     };
 
     this.dataRequest$.next(this.formQuery);

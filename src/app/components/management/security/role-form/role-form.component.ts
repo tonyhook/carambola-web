@@ -1,5 +1,5 @@
 import { Component, effect, input, OnInit, output, signal, WritableSignal, inject } from '@angular/core';
-import { UntypedFormGroup, UntypedFormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatCheckboxChange, MatCheckboxModule } from '@angular/material/checkbox';
@@ -11,6 +11,10 @@ import { MatTabsModule } from '@angular/material/tabs';
 
 import { Authority, AuthorityAPI, Permission, PermissionAPI, Role, RoleAPI } from '../../../../core';
 import { OperationComponent } from '../../../../shared/components/operation/operation.component';
+
+type RoleFormGroup = FormGroup<{
+  name: FormControl<string>;
+}>;
 
 @Component({
   selector: 'carambola-role-form',
@@ -29,13 +33,13 @@ import { OperationComponent } from '../../../../shared/components/operation/oper
   styleUrls: ['./role-form.component.scss'],
 })
 export class RoleFormComponent implements OnInit {
-  private formBuilder = inject(UntypedFormBuilder);
+  private formBuilder = inject(FormBuilder);
   private snackBar = inject(MatSnackBar);
   private permissionAPI = inject(PermissionAPI);
   private authorityAPI = inject(AuthorityAPI);
   private roleAPI = inject(RoleAPI);
 
-  formGroup: UntypedFormGroup;
+  formGroup: RoleFormGroup;
 
   authorities: WritableSignal<Authority[]> = signal([]);
   resourcesTypes: WritableSignal<string[]> = signal([]);
@@ -51,13 +55,13 @@ export class RoleFormComponent implements OnInit {
 
   constructor() {
     this.formGroup = this.formBuilder.group({
-      'name': ['', Validators.required],
+      name: this.formBuilder.nonNullable.control('', Validators.required),
     });
 
     effect(() => {
       const role = this.role();
       this.formGroup = this.formBuilder.group({
-        'name': [role ? role.name : '', Validators.required],
+        name: this.formBuilder.nonNullable.control(role ? role.name : '', Validators.required),
       });
     });
 
@@ -107,7 +111,7 @@ export class RoleFormComponent implements OnInit {
 
     const role: Role = {
       id: null,
-      name: this.formGroup.value.name,
+      name: this.formGroup.controls.name.value,
       createTime: null,
       updateTime: null,
       authorities: [],
@@ -130,7 +134,7 @@ export class RoleFormComponent implements OnInit {
 
     const role = this.role();
     if (role) {
-      role.name = this.formGroup.value.name;
+      role.name = this.formGroup.controls.name.value;
 
       this.roleAPI.updateRole(role.id!, role).subscribe(() => {
         this.snackBar.open('Role updated', 'OK', {
