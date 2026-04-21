@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit, signal, WritableSignal, inject } from '@angular/core';
-import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -13,6 +13,13 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { Menu, MenuAPI } from '../../../../core';
 import { MenuService } from '../../../../services';
 import { ItemChangeEvent, ItemDeleteEvent, ItemNewEvent, ItemSelectEvent, TreeViewComponent, PermissionComponent } from '../../../../shared';
+
+type MenuFormGroup = FormGroup<{
+  name: FormControl<string>;
+  icon: FormControl<string | null>;
+  link: FormControl<string | null>;
+  disabled: FormControl<boolean>;
+}>;
 
 @Component({
   selector: 'carambola-menu-manager',
@@ -32,7 +39,7 @@ import { ItemChangeEvent, ItemDeleteEvent, ItemNewEvent, ItemSelectEvent, TreeVi
   styleUrls: ['./menu.component.scss'],
 })
 export class MenuManagerComponent implements OnInit, OnDestroy {
-  private formBuilder = inject(UntypedFormBuilder);
+  private formBuilder = inject(FormBuilder);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private menuService = inject(MenuService);
@@ -42,10 +49,15 @@ export class MenuManagerComponent implements OnInit, OnDestroy {
 
   menus: WritableSignal<Menu[]> = signal([]);
   menu: WritableSignal<Menu | null> = signal(null);
-  formGroup: UntypedFormGroup;
+  formGroup: MenuFormGroup;
 
   constructor() {
-    this.formGroup = this.formBuilder.group({});
+    this.formGroup = this.formBuilder.group({
+      name: this.formBuilder.nonNullable.control('', Validators.required),
+      icon: this.formBuilder.control<string | null>(null),
+      link: this.formBuilder.control<string | null>(null),
+      disabled: this.formBuilder.nonNullable.control(false),
+    });
   }
 
   ngOnInit() {
@@ -84,10 +96,10 @@ export class MenuManagerComponent implements OnInit, OnDestroy {
       this.menu.set(menu);
 
       this.formGroup = this.formBuilder.group({
-        'name': [menu.name, Validators.required],
-        'icon': [menu.icon, null],
-        'link': [menu.link, null],
-        'disabled': [menu.disabled, null],
+        name: this.formBuilder.nonNullable.control(menu.name, Validators.required),
+        icon: this.formBuilder.control<string | null>(menu.icon),
+        link: this.formBuilder.control<string | null>(menu.link),
+        disabled: this.formBuilder.nonNullable.control(menu.disabled),
       });
     } else {
       this.router.navigate(['admin', 'backend', 'menu']);
@@ -238,10 +250,10 @@ export class MenuManagerComponent implements OnInit, OnDestroy {
     const menu = this.menu();
 
     if (menu && menu.id) {
-      menu.name = this.formGroup.value.name;
-      menu.icon = this.formGroup.value.icon;
-      menu.link = this.formGroup.value.link;
-      menu.disabled = this.formGroup.value.disabled;
+      menu.name = this.formGroup.controls.name.value;
+      menu.icon = this.formGroup.controls.icon.value;
+      menu.link = this.formGroup.controls.link.value;
+      menu.disabled = this.formGroup.controls.disabled.value;
       this.menus.update(menus => [...menus]);
       this.scheduleMenuUpdate(menu.id);
     }

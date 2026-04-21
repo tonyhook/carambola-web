@@ -1,5 +1,5 @@
 import { Component, effect, input, output, inject } from '@angular/core';
-import { UntypedFormGroup, UntypedFormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -8,6 +8,10 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTabsModule } from '@angular/material/tabs';
 
 import { Authority, AuthorityAPI } from '../../../../core';
+
+type AuthorityFormGroup = FormGroup<{
+  name: FormControl<string>;
+}>;
 
 @Component({
   selector: 'carambola-authority-form',
@@ -23,24 +27,24 @@ import { Authority, AuthorityAPI } from '../../../../core';
   styleUrls: ['./authority-form.component.scss'],
 })
 export class AuthorityFormComponent {
-  private formBuilder = inject(UntypedFormBuilder);
+  private formBuilder = inject(FormBuilder);
   private snackBar = inject(MatSnackBar);
   private authorityAPI = inject(AuthorityAPI);
 
-  formGroup: UntypedFormGroup;
+  formGroup: AuthorityFormGroup;
 
   authority = input<Authority | null>(null);
   changed = output<boolean>();
 
   constructor() {
     this.formGroup = this.formBuilder.group({
-      'name': ['', Validators.required],
+      name: this.formBuilder.nonNullable.control('', Validators.required),
     });
 
     effect(() => {
       const authority = this.authority();
       this.formGroup = this.formBuilder.group({
-        'name': [authority ? authority.name : '', Validators.required],
+        name: this.formBuilder.nonNullable.control(authority ? authority.name : '', Validators.required),
       });
     });
   }
@@ -53,7 +57,7 @@ export class AuthorityFormComponent {
 
     const authority: Authority = {
       id: null,
-      name: this.formGroup.value.name,
+      name: this.formGroup.controls.name.value,
       createTime: null,
       updateTime: null,
     };
@@ -75,7 +79,7 @@ export class AuthorityFormComponent {
 
     const authority = this.authority();
     if (authority) {
-      authority.name = this.formGroup.value.name;
+      authority.name = this.formGroup.controls.name.value;
 
       this.authorityAPI.updateAuthority(authority.id!, authority).subscribe(() => {
         this.snackBar.open('Authority updated', 'OK', {

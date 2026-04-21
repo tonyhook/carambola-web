@@ -1,6 +1,6 @@
 import { Component, effect, input, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { UntypedFormGroup, UntypedFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatCheckboxChange, MatCheckboxModule } from '@angular/material/checkbox';
@@ -15,6 +15,15 @@ import { Permission, Role, PermissionAPI, RoleAPI, ManagedResource } from '../..
 import { OperationComponent } from '../operation/operation.component';
 import { GetRoleNamePipe } from '../../pipes/get-role-name.pipe';
 import { GetUserNamePipe } from '../../pipes/get-user-name.pipe';
+
+type PermissionInheritedFormGroup = FormGroup<{
+  inherited: FormControl<boolean>;
+}>;
+
+type PermissionEditorFormGroup = FormGroup<{
+  roleid: FormControl<number>;
+  permission: FormControl<string>;
+}>;
 
 @Component({
   selector: 'carambola-permission',
@@ -36,7 +45,7 @@ import { GetUserNamePipe } from '../../pipes/get-user-name.pipe';
   styleUrls: ['./permission.component.scss'],
 })
 export class PermissionComponent implements OnInit {
-  private formBuilder = inject(UntypedFormBuilder);
+  private formBuilder = inject(FormBuilder);
   private permissionAPI = inject(PermissionAPI);
   private roleAPI = inject(RoleAPI);
   private snackBar = inject(MatSnackBar);
@@ -50,8 +59,8 @@ export class PermissionComponent implements OnInit {
   inheritedPermissionMap: Map<number, Permission> = new Map<number, Permission>();
   itemPermissionRoleIds: number[] = [];
 
-  formGroup: UntypedFormGroup;
-  permissionFormGroup: UntypedFormGroup;
+  formGroup: PermissionInheritedFormGroup;
+  permissionFormGroup: PermissionEditorFormGroup;
 
   inherited = false;
   inheritedPermissionId = 0;
@@ -79,11 +88,11 @@ export class PermissionComponent implements OnInit {
 
   constructor() {
     this.formGroup = this.formBuilder.group({
-      'inherited': [false, null],
+      inherited: this.formBuilder.nonNullable.control(false),
     });
     this.permissionFormGroup = this.formBuilder.group({
-      'roleid': [0, null],
-      'permission': ['', Validators.required],
+      roleid: this.formBuilder.nonNullable.control(0),
+      permission: this.formBuilder.nonNullable.control('', Validators.required),
     });
 
     effect(() => {
@@ -150,12 +159,12 @@ export class PermissionComponent implements OnInit {
           }
 
           this.formGroup.patchValue({
-            'inherited': this.inherited,
+            inherited: this.inherited,
           });
 
           this.permissionFormGroup.patchValue({
-            'roleid': 0,
-            'permission': '',
+            roleid: 0,
+            permission: '',
           });
         });
       }
@@ -174,9 +183,7 @@ export class PermissionComponent implements OnInit {
     const nextInherited = event.checked;
 
     event.source.checked = !nextInherited;
-    this.formGroup.patchValue({
-      'inherited': !nextInherited,
-    }, {emitEvent: false});
+    this.formGroup.controls.inherited.setValue(!nextInherited, {emitEvent: false});
 
     if (nextInherited && item && item.id && itemType) {
       const permission: Permission = {
@@ -191,9 +198,7 @@ export class PermissionComponent implements OnInit {
         next: data => {
           this.inherited = true;
           this.inheritedPermissionId = data.id!;
-          this.formGroup.patchValue({
-            'inherited': true,
-          }, {emitEvent: false});
+          this.formGroup.controls.inherited.setValue(true, {emitEvent: false});
           this.savingInherited = false;
 
           this.permissionAPI.getInheritedPermissionList(itemType, item.id!).subscribe(data => {
@@ -229,9 +234,7 @@ export class PermissionComponent implements OnInit {
           this.inheritedPermissionId = 0;
           this.inheritedPermissions = [];
           this.inheritedPermissionMap.clear();
-          this.formGroup.patchValue({
-            'inherited': false,
-          }, {emitEvent: false});
+          this.formGroup.controls.inherited.setValue(false, {emitEvent: false});
           this.savingInherited = false;
 
           this.itemPermissionRoleIds = [...this.itemPermissionMap.keys()];
@@ -344,7 +347,7 @@ export class PermissionComponent implements OnInit {
   preparePermission(event: string | null) {
     if (event && event.length > 0) {
       this.permissionFormGroup.patchValue({
-        'permission': event,
+        permission: event,
       });
     }
   }
@@ -358,12 +361,12 @@ export class PermissionComponent implements OnInit {
         id: null,
         resourceType: itemType,
         resourceId: item.id,
-        roleId: this.permissionFormGroup.value.roleid,
-        permission: this.permissionFormGroup.value.permission,
+        roleId: this.permissionFormGroup.controls.roleid.value,
+        permission: this.permissionFormGroup.controls.permission.value,
       }
       this.permissionAPI.addPermission(permission).subscribe(data => {
         this.itemPermissions.push(data);
-        this.itemPermissionMap.set(this.permissionFormGroup.value.roleid, data);
+        this.itemPermissionMap.set(this.permissionFormGroup.controls.roleid.value, data);
         this.itemPermissionRoleIds = [...this.itemPermissionMap.keys(), ...this.inheritedPermissionMap.keys()];
         this.itemPermissionRoleIds = Array.from(new Set(this.itemPermissionRoleIds)).sort((a, b) => {
           if (a < b) {
