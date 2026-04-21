@@ -1,5 +1,5 @@
 import { Component, effect, input, OnInit, output, signal, WritableSignal, inject } from '@angular/core';
-import { UntypedFormGroup, UntypedFormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatCheckboxChange, MatCheckboxModule } from '@angular/material/checkbox';
@@ -10,6 +10,12 @@ import { MatTableModule } from '@angular/material/table';
 import { MatTabsModule } from '@angular/material/tabs';
 
 import { Role, RoleAPI, User, UserAPI } from '../../../../core';
+
+type UserFormGroup = FormGroup<{
+  username: FormControl<string>;
+  password: FormControl<string>;
+  enabled: FormControl<boolean>;
+}>;
 
 @Component({
   selector: 'carambola-user-form',
@@ -27,12 +33,12 @@ import { Role, RoleAPI, User, UserAPI } from '../../../../core';
   styleUrls: ['./user-form.component.scss'],
 })
 export class UserFormComponent implements OnInit {
-  private formBuilder = inject(UntypedFormBuilder);
+  private formBuilder = inject(FormBuilder);
   private snackBar = inject(MatSnackBar);
   private roleAPI = inject(RoleAPI);
   private userAPI = inject(UserAPI);
 
-  formGroup: UntypedFormGroup;
+  formGroup: UserFormGroup;
 
   roles: WritableSignal<Role[]> = signal([]);
 
@@ -45,17 +51,17 @@ export class UserFormComponent implements OnInit {
 
   constructor() {
     this.formGroup = this.formBuilder.group({
-      'username': ['', Validators.required],
-      'password': ['', Validators.required],
-      'enabled': [true, Validators.required],
+      username: this.formBuilder.nonNullable.control('', Validators.required),
+      password: this.formBuilder.nonNullable.control('', Validators.required),
+      enabled: this.formBuilder.nonNullable.control(true, Validators.required),
     });
 
     effect(() => {
       const user = this.user();
       this.formGroup = this.formBuilder.group({
-        'username': [user ? user.username : '', Validators.required],
-        'password': [user ? '********' : '', Validators.required],
-        'enabled': [user ? user.enabled : true, Validators.required],
+        username: this.formBuilder.nonNullable.control(user ? user.username : '', Validators.required),
+        password: this.formBuilder.nonNullable.control(user ? '********' : '', Validators.required),
+        enabled: this.formBuilder.nonNullable.control(user ? user.enabled : true, Validators.required),
       });
     });
 
@@ -89,9 +95,9 @@ export class UserFormComponent implements OnInit {
 
     const user: User = {
       id: null,
-      username: this.formGroup.value.username,
-      password: this.formGroup.value.password,
-      enabled: this.formGroup.value.enabled,
+      username: this.formGroup.controls.username.value,
+      password: this.formGroup.controls.password.value,
+      enabled: this.formGroup.controls.enabled.value,
       createTime: null,
       updateTime: null,
       roles: [],
@@ -114,13 +120,13 @@ export class UserFormComponent implements OnInit {
 
     const user = this.user();
     if (user) {
-      user.username = this.formGroup.value.username;
-      if (this.formGroup.controls['password'].touched) {
-        user.password = this.formGroup.value.password;
+      user.username = this.formGroup.controls.username.value;
+      if (this.formGroup.controls.password.touched) {
+        user.password = this.formGroup.controls.password.value;
       } else {
         user.password = null;
       }
-      user.enabled = this.formGroup.value.enabled;
+      user.enabled = this.formGroup.controls.enabled.value;
 
       this.userAPI.updateUser(user.id!, user).subscribe(() => {
         this.snackBar.open('User updated', 'OK', {
@@ -150,11 +156,11 @@ export class UserFormComponent implements OnInit {
   }
 
   touchPassword() {
-    if (this.formGroup.controls['password'].touched) {
+    if (this.formGroup.controls.password.touched) {
       return;
     }
 
-    this.formGroup.controls['password'].setValue('');
+    this.formGroup.controls.password.setValue('');
   }
 
   toggleRole(role: Role, event: MatCheckboxChange) {
