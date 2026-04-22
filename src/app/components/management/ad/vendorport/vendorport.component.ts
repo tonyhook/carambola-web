@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, effect, OnInit, signal, ViewChild, WritableSignal, inject } from '@angular/core';
-import { UntypedFormGroup, UntypedFormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
@@ -16,6 +16,17 @@ import { PartnerType, PortType, Query, Vendor, VendorAPI, VendorMedia, VendorMed
 import { AdEntityComponent, FilteredSelectVendorComponent, FilteredSelectVendorMediaComponent } from '../../../../shared';
 import { TenantService } from '../../../../services';
 import { VendorPortDialogComponent, VendorPortDialogData } from '../vendorport-dialog/vendorport-dialog.component';
+
+interface VendorPortQueryControls {
+  vendor: FormControl<Vendor[]>;
+  vendorMedia: FormControl<VendorMedia[]>;
+  platform: FormControl<string[]>;
+  format: FormControl<string[]>;
+  budget: FormControl<string[]>;
+  mode: FormControl<string[]>;
+  status: FormControl<string[]>;
+  search: FormControl<string>;
+}
 
 @Component({
   selector: 'carambola-vendorport-manager',
@@ -39,7 +50,7 @@ import { VendorPortDialogComponent, VendorPortDialogData } from '../vendorport-d
   styleUrls: ['./vendorport.component.scss'],
 })
 export class VendorPortManagerComponent implements OnInit, AfterViewInit {
-  private formBuilder = inject(UntypedFormBuilder);
+  private formBuilder = inject(FormBuilder);
   private dialog = inject(MatDialog);
   private tenantService = inject(TenantService);
   private vendorAPI = inject(VendorAPI);
@@ -54,7 +65,7 @@ export class VendorPortManagerComponent implements OnInit, AfterViewInit {
   hoverRow: VendorPort | null = null;
 
   mode: WritableSignal<PartnerType> = signal(PartnerType.PARTNER_TYPE_UNKNOWN);
-  formGroupQuery: UntypedFormGroup;
+  formGroupQuery: FormGroup<VendorPortQueryControls>;
   filterVendor: Vendor[] = [];
   allVendorMedia: VendorMedia[] = [];
   filterVendorMedia: VendorMedia[] = [];
@@ -77,14 +88,14 @@ export class VendorPortManagerComponent implements OnInit, AfterViewInit {
 
   constructor() {
     this.formGroupQuery = this.formBuilder.group({
-      'vendor': [[], null],
-      'vendorMedia': [[], null],
-      'platform': [[], null],
-      'format': [[], null],
-      'budget': [[], null],
-      'mode': [[], null],
-      'status': [[], null],
-      'search': ['', null],
+      vendor: this.formBuilder.nonNullable.control<Vendor[]>([]),
+      vendorMedia: this.formBuilder.nonNullable.control<VendorMedia[]>([]),
+      platform: this.formBuilder.nonNullable.control<string[]>([]),
+      format: this.formBuilder.nonNullable.control<string[]>([]),
+      budget: this.formBuilder.nonNullable.control<string[]>([]),
+      mode: this.formBuilder.nonNullable.control<string[]>([]),
+      status: this.formBuilder.nonNullable.control<string[]>([]),
+      search: this.formBuilder.nonNullable.control(''),
     });
 
     this.filterPlatform = new Map([
@@ -164,6 +175,38 @@ export class VendorPortManagerComponent implements OnInit, AfterViewInit {
     });
   }
 
+  get selectedVendors(): Vendor[] {
+    return this.formGroupQuery.controls.vendor.value;
+  }
+
+  get selectedVendorMedias(): VendorMedia[] {
+    return this.formGroupQuery.controls.vendorMedia.value;
+  }
+
+  get selectedPlatforms(): string[] {
+    return this.formGroupQuery.controls.platform.value;
+  }
+
+  get selectedFormats(): string[] {
+    return this.formGroupQuery.controls.format.value;
+  }
+
+  get selectedBudgets(): string[] {
+    return this.formGroupQuery.controls.budget.value;
+  }
+
+  get selectedModes(): string[] {
+    return this.formGroupQuery.controls.mode.value;
+  }
+
+  get selectedStatuses(): string[] {
+    return this.formGroupQuery.controls.status.value;
+  }
+
+  get searchValue(): string {
+    return this.formGroupQuery.controls.search.value;
+  }
+
   ngOnInit() {
     this.dataRequest$.pipe(
       debounceTime(500),
@@ -176,13 +219,13 @@ export class VendorPortManagerComponent implements OnInit, AfterViewInit {
       ),
     ).subscribe(vendorPorts => {
       let data = vendorPorts.filter(vendorPort => !vendorPort.deleted);
-      if (this.formGroupQuery.value.status.length > 0) {
-        if (this.formGroupQuery.value.status.indexOf('1') < 0) {
+      if (this.selectedStatuses.length > 0) {
+        if (this.selectedStatuses.indexOf('1') < 0) {
           data = data.filter(vendorPort => {
             return vendorPort.connection.filter(connection => connection.enabled).length === 0;
           });
         }
-        if (this.formGroupQuery.value.status.indexOf('2') < 0) {
+        if (this.selectedStatuses.indexOf('2') < 0) {
           data = data.filter(vendorPort => {
             return vendorPort.connection.filter(connection => connection.enabled).length > 0;
           });
@@ -232,13 +275,14 @@ export class VendorPortManagerComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit() {
     this.route.queryParams.subscribe(params => {
-      this.formGroupQuery.controls['vendor'].setValue([]);
-      this.formGroupQuery.controls['vendorMedia'].setValue([]);
-      this.formGroupQuery.controls['platform'].setValue([]);
-      this.formGroupQuery.controls['format'].setValue([]);
-      this.formGroupQuery.controls['budget'].setValue([]);
-      this.formGroupQuery.controls['mode'].setValue([]);
-      this.formGroupQuery.controls['search'].setValue('');
+      this.formGroupQuery.controls.vendor.setValue([]);
+      this.formGroupQuery.controls.vendorMedia.setValue([]);
+      this.formGroupQuery.controls.platform.setValue([]);
+      this.formGroupQuery.controls.format.setValue([]);
+      this.formGroupQuery.controls.budget.setValue([]);
+      this.formGroupQuery.controls.mode.setValue([]);
+      this.formGroupQuery.controls.status.setValue([]);
+      this.formGroupQuery.controls.search.setValue('');
       this.dataSource.data = [];
 
       if (params['directMode']) {
@@ -248,16 +292,16 @@ export class VendorPortManagerComponent implements OnInit, AfterViewInit {
       }
 
       if (this.mode() === PartnerType.PARTNER_TYPE_DIRECT) {
-        if (this.formGroupQuery.value.mode.indexOf(PartnerType.PARTNER_TYPE_DIRECT) < 0) {
-          this.formGroupQuery.controls['mode'].setValue([]);
+        if (this.selectedModes.indexOf(String(PartnerType.PARTNER_TYPE_DIRECT)) < 0) {
+          this.formGroupQuery.controls.mode.setValue([]);
         }
         this.filterMode = new Map([
           ['3', '直通模式'],
         ]);
       }
       if (this.mode() === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
-        if (this.formGroupQuery.value.mode.indexOf(PartnerType.PARTNER_TYPE_DIRECT) >= 0) {
-          this.formGroupQuery.controls['mode'].setValue([]);
+        if (this.selectedModes.indexOf(String(PartnerType.PARTNER_TYPE_DIRECT)) >= 0) {
+          this.formGroupQuery.controls.mode.setValue([]);
         }
         this.filterMode = new Map([
           ['1', '分成模式'],
@@ -298,9 +342,8 @@ export class VendorPortManagerComponent implements OnInit, AfterViewInit {
   }
 
   query() {
-    const selectedPlatforms: string[] = this.formGroupQuery.value.platform;
-    if (selectedPlatforms.length > 0) {
-      this.filterVendorMedia = this.allVendorMedia.filter(vendorMedia => selectedPlatforms.indexOf(vendorMedia.platform) >= 0);
+    if (this.selectedPlatforms.length > 0) {
+      this.filterVendorMedia = this.allVendorMedia.filter(vendorMedia => this.selectedPlatforms.indexOf(vendorMedia.platform) >= 0);
     } else {
       this.filterVendorMedia = this.allVendorMedia;
     }
@@ -308,21 +351,25 @@ export class VendorPortManagerComponent implements OnInit, AfterViewInit {
     this.formQuery = {
       filter: {
         vendorMode: [String(this.mode())],
-        vendor: (this.formGroupQuery.value.vendor as Vendor[]).map(vendor => vendor.id!.toString()),
-        vendorMedia: (this.formGroupQuery.value.vendorMedia as VendorMedia[]).map(vendorMedia => vendorMedia.id!.toString()),
-        platform: this.formGroupQuery.value.platform,
-        format: this.formGroupQuery.value.format,
-        budget: this.formGroupQuery.value.budget,
-        mode: this.formGroupQuery.value.mode,
+        vendor: this.selectedVendors.map(vendor => vendor.id!.toString()),
+        vendorMedia: this.selectedVendorMedias.map(vendorMedia => vendorMedia.id!.toString()),
+        platform: this.selectedPlatforms,
+        format: this.selectedFormats,
+        budget: this.selectedBudgets,
+        mode: this.selectedModes,
       },
       searchKey: ['name', 'tagId'],
-      searchValue: this.formGroupQuery.value.search,
+      searchValue: this.searchValue,
     };
 
     this.dataRequest$.next(this.formQuery);
   }
 
-  clear(event: Event, field: string, value: string | unknown[]) {
+  clear(
+    event: Event,
+    field: keyof VendorPortQueryControls,
+    value: string | Vendor[] | VendorMedia[] | string[]
+  ) {
     event.stopPropagation();
     this.formGroupQuery.patchValue({[field]: value});
     this.query();

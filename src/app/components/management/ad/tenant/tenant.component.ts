@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, OnInit, ViewChild, inject } from '@angular/core';
-import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatButtonModule } from '@angular/material/button';
@@ -19,6 +19,10 @@ import { catchError, debounceTime, of, Subject, switchMap } from 'rxjs';
 import { Query, Tenant, TenantAPI } from '../../../../core';
 import { IsNewPipe } from '../../../../shared';
 import { TenantDialogComponent } from '../tenant-dialog/tenant-dialog.component';
+
+interface TenantQueryControls {
+  search: FormControl<string>;
+}
 
 @Component({
   selector: 'carambola-tenant-manager',
@@ -45,14 +49,14 @@ import { TenantDialogComponent } from '../tenant-dialog/tenant-dialog.component'
   styleUrls: ['./tenant.component.scss'],
 })
 export class TenantManagerComponent implements OnInit, AfterViewInit {
-  private formBuilder = inject(UntypedFormBuilder);
+  private formBuilder = inject(FormBuilder);
   private dialog = inject(MatDialog);
   private tenantAPI = inject(TenantAPI);
 
   displayedColumns: string[] = ['name', 'actions'];
   hoverRow: Tenant | null = null;
 
-  formGroupQuery: UntypedFormGroup;
+  formGroupQuery: FormGroup<TenantQueryControls>;
   formQuery: Query<Tenant> = {
     filter: {},
     searchKey: ['name'],
@@ -67,8 +71,12 @@ export class TenantManagerComponent implements OnInit, AfterViewInit {
 
   constructor() {
     this.formGroupQuery = this.formBuilder.group({
-      'search': ['', null],
+      search: this.formBuilder.nonNullable.control(''),
     });
+  }
+
+  get searchValue(): string {
+    return this.formGroupQuery.controls.search.value;
   }
 
   ngOnInit() {
@@ -118,13 +126,13 @@ export class TenantManagerComponent implements OnInit, AfterViewInit {
     this.formQuery = {
       filter: {},
       searchKey: ['name'],
-      searchValue: this.formGroupQuery.value.search,
+      searchValue: this.searchValue,
     };
 
     this.dataRequest$.next(this.formQuery);
   }
 
-  clear(event: Event, field: string, value: string | unknown[]) {
+  clear(event: Event, field: keyof TenantQueryControls, value: string) {
     event.stopPropagation();
     this.formGroupQuery.patchValue({[field]: value});
     this.query();

@@ -1,6 +1,6 @@
 import { formatDate } from '@angular/common';
 import { AfterViewInit, Component, OnInit, inject } from '@angular/core';
-import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -20,6 +20,24 @@ import { FilteredSelectVendorComponent } from '../filtered-select-vendor/filtere
 import { FilteredSelectVendorPortComponent } from '../filtered-select-vendorport/filtered-select-vendorport.component';
 import { TrafficControlComponent } from '../traffic-control/traffic-control.component';
 import { TrafficControlDialogComponent } from '../traffic-control-dialog/traffic-control-dialog.component';
+
+interface ConnectionPortControls {
+  client: FormControl<Client | null>;
+  clientPort: FormControl<ClientPort | null>;
+  vendor: FormControl<Vendor | null>;
+  vendorPort: FormControl<VendorPort | null>;
+}
+
+interface ConnectionFormControls {
+  test: FormControl<boolean | null>;
+  validFrom: FormControl<Date | null>;
+  validTo: FormControl<Date | null>;
+  upstreamRatio: FormControl<number | null>;
+  rebateRatio: FormControl<number | null>;
+  platformRatio: FormControl<number | null>;
+  defaultPrice: FormControl<number | null>;
+  priority: FormControl<number | null>;
+}
 
 export interface ConnectionDialogData {
   clientPort: ClientPort | null;
@@ -49,7 +67,7 @@ export interface ConnectionDialogData {
   styleUrls: ['./connection-dialog.component.scss'],
 })
 export class ConnectionDialogComponent implements OnInit, AfterViewInit {
-  private formBuilder = inject(UntypedFormBuilder);
+  private formBuilder = inject(FormBuilder);
   private route = inject(ActivatedRoute);
   private clientAPI = inject(ClientAPI);
   private clientPortAPI = inject(ClientPortAPI);
@@ -80,8 +98,8 @@ export class ConnectionDialogComponent implements OnInit, AfterViewInit {
   validVendorMedias: VendorMedia[] = [];
   validVendorPorts: VendorPort[] = [];
 
-  formGroupPort: UntypedFormGroup;
-  formGroupConnection: UntypedFormGroup;
+  formGroupPort: FormGroup<ConnectionPortControls>;
+  formGroupConnection: FormGroup<ConnectionFormControls>;
 
   readonly = false;
 
@@ -89,21 +107,21 @@ export class ConnectionDialogComponent implements OnInit, AfterViewInit {
     const data = this.data;
 
     this.formGroupPort = this.formBuilder.group({
-      'client': [null, Validators.required],
-      'clientPort': [null, Validators.required],
-      'vendor': [null, Validators.required],
-      'vendorPort': [null, Validators.required],
+      client: this.formBuilder.control<Client | null>(null, Validators.required),
+      clientPort: this.formBuilder.control<ClientPort | null>(null, Validators.required),
+      vendor: this.formBuilder.control<Vendor | null>(null, Validators.required),
+      vendorPort: this.formBuilder.control<VendorPort | null>(null, Validators.required),
     });
 
     this.formGroupConnection = this.formBuilder.group({
-      'test': [false, Validators.required],
-      'validFrom': ['', Validators.required],
-      'validTo': ['', Validators.required],
-      'upstreamRatio': [0, [Validators.required, Validators.pattern('^[0-9]*[\\.,]?[0-9]*$'), Validators.min(0), Validators.max(100)]],
-      'rebateRatio': [0, [Validators.required, Validators.pattern('^[0-9]*[\\.,]?[0-9]*$'), Validators.min(0), Validators.max(100)]],
-      'platformRatio': [50, [Validators.required, Validators.pattern('^[0-9]*[\\.,]?[0-9]*$'), Validators.min(0), Validators.max(100)]],
-      'defaultPrice': [0, [Validators.required, Validators.min(1)]],
-      'priority': [1, Validators.required],
+      test: this.formBuilder.control<boolean | null>(false, Validators.required),
+      validFrom: this.formBuilder.control<Date | null>(null, Validators.required),
+      validTo: this.formBuilder.control<Date | null>(null, Validators.required),
+      upstreamRatio: this.formBuilder.control<number | null>(0, [Validators.required, Validators.pattern('^[0-9]*[\\.,]?[0-9]*$'), Validators.min(0), Validators.max(100)]),
+      rebateRatio: this.formBuilder.control<number | null>(0, [Validators.required, Validators.pattern('^[0-9]*[\\.,]?[0-9]*$'), Validators.min(0), Validators.max(100)]),
+      platformRatio: this.formBuilder.control<number | null>(50, [Validators.required, Validators.pattern('^[0-9]*[\\.,]?[0-9]*$'), Validators.min(0), Validators.max(100)]),
+      defaultPrice: this.formBuilder.control<number | null>(0, [Validators.required, Validators.min(1)]),
+      priority: this.formBuilder.control<number | null>(1, Validators.required),
     });
 
     if (data) {
@@ -116,7 +134,7 @@ export class ConnectionDialogComponent implements OnInit, AfterViewInit {
         this.clientPort = data.clientPort;
 
         this.formGroupConnection.setControl('validFrom', this.formBuilder.control({value: new Date(), disabled: this.readonly}, Validators.required), {emitEvent: false,});
-        this.formGroupConnection.setControl('validTo', this.formBuilder.control({value: '2099-12-31', disabled: this.readonly}, Validators.required), {emitEvent: false,});
+        this.formGroupConnection.setControl('validTo', this.formBuilder.control({value: new Date('2099-12-31'), disabled: this.readonly}, Validators.required), {emitEvent: false,});
       }
       if (data.vendorPort) {
         this.vendorPortAPI.getVendorPort(data.vendorPort.id!).subscribe(vendorPort => {
@@ -127,7 +145,7 @@ export class ConnectionDialogComponent implements OnInit, AfterViewInit {
         this.vendorPort = data.vendorPort;
 
         this.formGroupConnection.setControl('validFrom', this.formBuilder.control({value: new Date(), disabled: this.readonly}, Validators.required), {emitEvent: false,});
-        this.formGroupConnection.setControl('validTo', this.formBuilder.control({value: '2099-12-31', disabled: this.readonly}, Validators.required), {emitEvent: false,});
+        this.formGroupConnection.setControl('validTo', this.formBuilder.control({value: new Date('2099-12-31'), disabled: this.readonly}, Validators.required), {emitEvent: false,});
       }
       if (data.connection) {
         this.connection = data.connection;
@@ -145,8 +163,8 @@ export class ConnectionDialogComponent implements OnInit, AfterViewInit {
         this.vendorPort = data.connection.vendorPort;
 
         this.formGroupConnection.setControl('test', this.formBuilder.control({value: this.connection.test, disabled: this.readonly}, Validators.required), {emitEvent: false,});
-        this.formGroupConnection.setControl('validFrom', this.formBuilder.control({value: this.connection.validFrom, disabled: this.readonly}, Validators.required), {emitEvent: false,});
-        this.formGroupConnection.setControl('validTo', this.formBuilder.control({value: this.connection.validTo, disabled: this.readonly}, Validators.required), {emitEvent: false,});
+        this.formGroupConnection.setControl('validFrom', this.formBuilder.control({value: new Date(this.connection.validFrom), disabled: this.readonly}, Validators.required), {emitEvent: false,});
+        this.formGroupConnection.setControl('validTo', this.formBuilder.control({value: new Date(this.connection.validTo), disabled: this.readonly}, Validators.required), {emitEvent: false,});
         this.formGroupConnection.setControl('upstreamRatio', this.formBuilder.control({value: this.connection.upstreamRatio * 100, disabled: this.readonly}, [Validators.required, Validators.pattern('^[0-9]*[\\.,]?[0-9]*$'), Validators.min(0), Validators.max(100)]), {emitEvent: false,});
         this.formGroupConnection.setControl('rebateRatio', this.formBuilder.control({value: this.connection.rebateRatio * 100, disabled: this.readonly}, [Validators.required, Validators.pattern('^[0-9]*[\\.,]?[0-9]*$'), Validators.min(0), Validators.max(100)]), {emitEvent: false,});
         this.formGroupConnection.setControl('platformRatio', this.formBuilder.control({value: this.connection.platformRatio * 100, disabled: this.readonly}, [Validators.required, Validators.pattern('^[0-9]*[\\.,]?[0-9]*$'), Validators.min(0), Validators.max(100)]), {emitEvent: false,});
@@ -159,23 +177,25 @@ export class ConnectionDialogComponent implements OnInit, AfterViewInit {
 
   ngOnInit() {
     this.formGroupPort.valueChanges.subscribe(() => {
-      if (this.formGroupPort.getRawValue().client !== null && this.formGroupPort.getRawValue().client !== this.client) {
-        this.client = this.formGroupPort.getRawValue().client;
+      const rawPort = this.formGroupPort.getRawValue();
+
+      if (rawPort.client !== null && rawPort.client !== this.client) {
+        this.client = rawPort.client;
         this.clientPort = null;
-        this.validClientPorts = this.clientPorts.filter(clientPort => clientPort.client.id === this.formGroupPort.getRawValue().client.id);
+        this.validClientPorts = this.clientPorts.filter(clientPort => clientPort.client.id === rawPort.client!.id);
         this.formGroupPort.setControl('clientPort', this.formBuilder.control({value: this.clientPort, disabled: false}, Validators.required), {emitEvent: false,});
       }
-      if (this.formGroupPort.getRawValue().clientPort !== null && this.formGroupPort.getRawValue().clientPort !== this.clientPort) {
-        this.clientPort = this.formGroupPort.getRawValue().clientPort;
+      if (rawPort.clientPort !== null && rawPort.clientPort !== this.clientPort) {
+        this.clientPort = rawPort.clientPort;
       }
-      if (this.formGroupPort.getRawValue().vendor !== null && this.formGroupPort.getRawValue().vendor !== this.vendor) {
-        this.vendor = this.formGroupPort.getRawValue().vendor;
+      if (rawPort.vendor !== null && rawPort.vendor !== this.vendor) {
+        this.vendor = rawPort.vendor;
         this.vendorPort = null;
-        this.validVendorPorts = this.vendorPorts.filter(vendorPort => vendorPort.vendor.id === this.formGroupPort.getRawValue().vendor.id);
+        this.validVendorPorts = this.vendorPorts.filter(vendorPort => vendorPort.vendor.id === rawPort.vendor!.id);
         this.formGroupPort.setControl('vendorPort', this.formBuilder.control({value: this.vendorPort, disabled: false}, Validators.required), {emitEvent: false,});
       }
-      if (this.formGroupPort.getRawValue().vendorPort !== null && this.formGroupPort.getRawValue().vendorPort !== this.vendorPort) {
-        this.vendorPort = this.formGroupPort.getRawValue().vendorPort;
+      if (rawPort.vendorPort !== null && rawPort.vendorPort !== this.vendorPort) {
+        this.vendorPort = rawPort.vendorPort;
       }
     });
   }
@@ -268,8 +288,9 @@ export class ConnectionDialogComponent implements OnInit, AfterViewInit {
   }
 
   confirm() {
-    const clientPort: ClientPort = this.formGroupPort.getRawValue().clientPort;
-    const vendorPort: VendorPort = this.formGroupPort.getRawValue().vendorPort;
+    const rawPort = this.formGroupPort.getRawValue();
+    const clientPort = rawPort.clientPort;
+    const vendorPort = rawPort.vendorPort;
 
     if (clientPort && vendorPort && clientPort.mode === PortType.PORT_TYPE_SHARE && vendorPort.mode === PortType.PORT_TYPE_BIDDING) {
       this.snackBar.open('竞价模式的下游端口不能对应分成模式的上游端口', undefined, {
@@ -305,8 +326,8 @@ export class ConnectionDialogComponent implements OnInit, AfterViewInit {
     }
 
     if (this.connection === null) {
-      const clientPort: ClientPort = this.formGroupPort.getRawValue().clientPort;
-      const vendorPort: VendorPort = this.formGroupPort.getRawValue().vendorPort;
+      const clientPort = rawPort.clientPort!;
+      const vendorPort = rawPort.vendorPort!;
 
       if (vendorPort.connection.filter(connection => !connection.deleted).map(connection => connection.clientPort.id).indexOf(clientPort.id) >= 0) {
         this.snackBar.open('连接已经存在，不能重复创建', undefined, {
@@ -320,8 +341,8 @@ export class ConnectionDialogComponent implements OnInit, AfterViewInit {
       }
     }
 
-    const validFrom = new Date(this.formGroupConnection.value.validFrom);
-    const validTo = new Date(this.formGroupConnection.value.validTo);
+    const validFrom = this.formGroupConnection.controls.validFrom.value!;
+    const validTo = this.formGroupConnection.controls.validTo.value!;
 
     const validFromTime = new Date(
       validFrom.getFullYear(),
@@ -340,18 +361,22 @@ export class ConnectionDialogComponent implements OnInit, AfterViewInit {
     const connection: Connection = {
       id: this.connection === null ? null : this.connection.id,
       deleted: false,
-      clientPort: this.formGroupPort.getRawValue().clientPort,
-      vendorPort: this.formGroupPort.getRawValue().vendorPort,
-      priority: this.formGroupConnection.value.priority,
+      clientPort: rawPort.clientPort!,
+      vendorPort: rawPort.vendorPort!,
+      priority: this.formGroupConnection.controls.priority.value!,
       enabled: this.connection === null ? false : this.connection.enabled,
-      test: this.formGroupConnection.value.test,
+      test: this.formGroupConnection.controls.test.value!,
       validFrom: formatDate(validFromTime, 'yyyy-MM-dd\'T\'HH:mm:ss.sssZ', 'en-US'),
       validTo: formatDate(validToTime, 'yyyy-MM-dd\'T\'HH:mm:ss.sssZ', 'en-US'),
-      upstreamRatio: this.formGroupConnection.value.upstreamRatio / 100.0,
-      rebateRatio: this.formGroupConnection.value.rebateRatio / 100.0,
-      platformRatio: this.formGroupConnection.value.platformRatio / 100.0,
-      downstreamRatio: 1 - (this.formGroupConnection.value.upstreamRatio / 100.0 + this.formGroupConnection.value.rebateRatio / 100.0 + this.formGroupConnection.value.platformRatio / 100.0),
-      defaultPrice: this.formGroupConnection.value.defaultPrice,
+      upstreamRatio: this.formGroupConnection.controls.upstreamRatio.value! / 100.0,
+      rebateRatio: this.formGroupConnection.controls.rebateRatio.value! / 100.0,
+      platformRatio: this.formGroupConnection.controls.platformRatio.value! / 100.0,
+      downstreamRatio: 1 - (
+        this.formGroupConnection.controls.upstreamRatio.value! / 100.0 +
+        this.formGroupConnection.controls.rebateRatio.value! / 100.0 +
+        this.formGroupConnection.controls.platformRatio.value! / 100.0
+      ),
+      defaultPrice: this.formGroupConnection.controls.defaultPrice.value!,
     };
 
     const requests = [];

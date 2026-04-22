@@ -12,8 +12,8 @@
             <mat-form-field class="full-width-input" subscriptSizing="dynamic">
               <mat-label>租户管理员</mat-label>
               <mat-chip-grid #chipGridManager formControlName="manager">
-                @for (user of formGroup.value.manager; track user.username) {
-                  <mat-chip-row [value]="user" (removed)="remove(user, ctrlManager, formGroup.value.manager)">
+                @for (user of managerUsers; track user.username) {
+                  <mat-chip-row [value]="user" (removed)="remove(user, ctrlManager, managerUsers)">
                     {{ user.username }}
                     <button matChipRemove>
                       <mat-icon>cancel</mat-icon>
@@ -24,8 +24,8 @@
               <input placeholder="增加用户" #inputManager matInput [formControl]="ctrlManager"
                 [matChipInputFor]="chipGridManager" [matAutocomplete]="autoManager"
                 [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
-                (matChipInputTokenEnd)="add($event, ctrlManager, formGroup.value.manager)" />
-              <mat-autocomplete #autoManager="matAutocomplete" (optionSelected)="select($event, inputManager, ctrlManager, formGroup.value.manager)">
+                (matChipInputTokenEnd)="add($event, ctrlManager, managerUsers)" />
+              <mat-autocomplete #autoManager="matAutocomplete" (optionSelected)="select($event, inputManager, ctrlManager, managerUsers)">
                 @for (user of filteredManager | async; track user.username) {
                   <mat-option [value]="user.username">
                     {{ user.username }}
@@ -37,8 +37,8 @@
             <mat-form-field class="full-width-input" subscriptSizing="dynamic">
               <mat-label>租户运营</mat-label>
               <mat-chip-grid #chipGridOperator formControlName="operator">
-                @for (user of formGroup.value.operator; track user.username) {
-                  <mat-chip-row [value]="user" (removed)="remove(user, ctrlOperator, formGroup.value.operator)">
+                @for (user of operatorUsers; track user.username) {
+                  <mat-chip-row [value]="user" (removed)="remove(user, ctrlOperator, operatorUsers)">
                     {{ user.username }}
                     <button matChipRemove>
                       <mat-icon>cancel</mat-icon>
@@ -49,8 +49,8 @@
               <input placeholder="增加用户" #inputOperator matInput [formControl]="ctrlOperator"
                 [matChipInputFor]="chipGridOperator" [matAutocomplete]="autoOperator"
                 [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
-                (matChipInputTokenEnd)="add($event, ctrlOperator, formGroup.value.operator)" />
-              <mat-autocomplete #autoOperator="matAutocomplete" (optionSelected)="select($event, inputOperator, ctrlOperator, formGroup.value.operator)">
+                (matChipInputTokenEnd)="add($event, ctrlOperator, operatorUsers)" />
+              <mat-autocomplete #autoOperator="matAutocomplete" (optionSelected)="select($event, inputOperator, ctrlOperator, operatorUsers)">
                 @for (user of filteredOperator | async; track user.username) {
                   <mat-option [value]="user.username">
                     {{ user.username }}
@@ -62,8 +62,8 @@
             <mat-form-field class="full-width-input" subscriptSizing="dynamic">
               <mat-label>租户观察员</mat-label>
               <mat-chip-grid #chipGridObserver formControlName="observer">
-                @for (user of formGroup.value.observer; track user.username) {
-                  <mat-chip-row [value]="user" (removed)="remove(user, ctrlObserver, formGroup.value.observer)">
+                @for (user of observerUsers; track user.username) {
+                  <mat-chip-row [value]="user" (removed)="remove(user, ctrlObserver, observerUsers)">
                     {{ user.username }}
                     <button matChipRemove>
                       <mat-icon>cancel</mat-icon>
@@ -74,8 +74,8 @@
               <input placeholder="增加用户" #inputObserver matInput [formControl]="ctrlObserver"
                 [matChipInputFor]="chipGridObserver" [matAutocomplete]="autoObserver"
                 [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
-                (matChipInputTokenEnd)="add($event, ctrlObserver, formGroup.value.observer)" />
-              <mat-autocomplete #autoObserver="matAutocomplete" (optionSelected)="select($event, inputObserver, ctrlObserver, formGroup.value.observer)">
+                (matChipInputTokenEnd)="add($event, ctrlObserver, observerUsers)" />
+              <mat-autocomplete #autoObserver="matAutocomplete" (optionSelected)="select($event, inputObserver, ctrlObserver, observerUsers)">
                 @for (user of filteredObserver | async; track user.username) {
                   <mat-option [value]="user.username">
                     {{ user.username }}
@@ -88,8 +88,8 @@
               <mat-form-field class="full-width-input" subscriptSizing="dynamic">
                 <mat-label>上游观察员</mat-label>
                 <mat-chip-grid #chipGridUpstream formControlName="upstream">
-                  @for (user of formGroup.value.upstream; track user.username) {
-                    <mat-chip-row [value]="user" (removed)="remove(user, null, formGroup.value.upstream)">
+                  @for (user of upstreamUsers; track user.username) {
+                    <mat-chip-row [value]="user" (removed)="remove(user, null, upstreamUsers)">
                       {{ user.username }} ({{ getClientName(user.resource) }})
                       <button matChipRemove>
                         <mat-icon>cancel</mat-icon>
@@ -103,8 +103,8 @@
               <mat-form-field class="full-width-input" subscriptSizing="dynamic">
                 <mat-label>下游管理员</mat-label>
                 <mat-chip-grid #chipGridDownstream formControlName="downstream">
-                  @for (user of formGroup.value.downstream; track user.username) {
-                    <mat-chip-row [value]="user" (removed)="remove(user, null, formGroup.value.downstream)">
+                  @for (user of downstreamUsers; track user.username) {
+                    <mat-chip-row [value]="user" (removed)="remove(user, null, downstreamUsers)">
                       {{ user.username }} ({{ getVendorName(user.resource) }})
                       <button matChipRemove>
                         <mat-icon>cancel</mat-icon>

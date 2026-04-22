@@ -1,6 +1,6 @@
 import { Component, effect, ElementRef, input, output, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { UntypedFormGroup, UntypedFormBuilder, Validators, ReactiveFormsModule, FormControl } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -16,6 +16,14 @@ import { map, Observable, startWith } from 'rxjs';
 
 import { Client, ClientAPI, PartnerType, ROLE_TENANT_UPSTREAM_OBSERVER_DIRECT, ROLE_TENANT_UPSTREAM_OBSERVER_PROGRAMMATIC, TenantAPI, TenantUser, User, UserAPI } from '../../../../core';
 import { TenantService } from '../../../../services';
+
+interface ClientFormControls {
+  upstream: FormControl<TenantUser[]>;
+  name: FormControl<string>;
+  code: FormControl<string>;
+  protocolKey: FormControl<string>;
+  remark: FormControl<string | null>;
+}
 
 @Component({
   selector: 'carambola-client-form',
@@ -37,7 +45,7 @@ import { TenantService } from '../../../../services';
   styleUrls: ['./client-form.component.scss'],
 })
 export class ClientFormComponent {
-  private formBuilder = inject(UntypedFormBuilder);
+  private formBuilder = inject(FormBuilder);
   private snackBar = inject(MatSnackBar);
   private tenantService = inject(TenantService);
   private clientAPI = inject(ClientAPI);
@@ -46,10 +54,10 @@ export class ClientFormComponent {
 
   PartnerType = PartnerType;
 
-  formGroup: UntypedFormGroup;
+  formGroup: FormGroup<ClientFormControls>;
   separatorKeysCodes: number[] = [ENTER, COMMA];
   allUsers: User[] = [];
-  ctrlUpstream = new FormControl(null);
+  ctrlUpstream = new FormControl<string | null>(null);
   filteredUpstream: Observable<User[]> = new Observable<User[]>();
   @ViewChild('inputUpstream') inputUpstream: ElementRef<HTMLInputElement> | undefined;
 
@@ -61,11 +69,11 @@ export class ClientFormComponent {
 
   constructor() {
     this.formGroup = this.formBuilder.group({
-      'upstream': [[], null],
-      'name': ['', Validators.required],
-      'code': ['', Validators.required],
-      'protocolKey': ['', Validators.required],
-      'remark': ['', null],
+      upstream: this.formBuilder.nonNullable.control<TenantUser[]>([]),
+      name: this.formBuilder.nonNullable.control('', Validators.required),
+      code: this.formBuilder.nonNullable.control('', Validators.required),
+      protocolKey: this.formBuilder.nonNullable.control('', Validators.required),
+      remark: this.formBuilder.control<string | null>(''),
     });
 
     effect(() => {
@@ -73,11 +81,11 @@ export class ClientFormComponent {
       const mode = this.mode();
 
       if (!client) {
-        this.formGroup.setControl('upstream', this.formBuilder.control([], null), {emitEvent: false});
-        this.formGroup.setControl('name', this.formBuilder.control('', Validators.required), {emitEvent: false});
-        this.formGroup.setControl('code', this.formBuilder.control('', mode === PartnerType.PARTNER_TYPE_DIRECT ? null : Validators.required), {emitEvent: false});
-        this.formGroup.setControl('protocolKey', this.formBuilder.control([], mode === PartnerType.PARTNER_TYPE_DIRECT ? null : Validators.required), {emitEvent: false});
-        this.formGroup.setControl('remark', this.formBuilder.control('', null), {emitEvent: false});
+        this.formGroup.setControl('upstream', this.createUpstreamControl([]), {emitEvent: false});
+        this.formGroup.setControl('name', this.createRequiredTextControl(''), {emitEvent: false});
+        this.formGroup.setControl('code', this.createRequiredTextControl('', false, mode !== PartnerType.PARTNER_TYPE_DIRECT), {emitEvent: false});
+        this.formGroup.setControl('protocolKey', this.createRequiredTextControl('', false, mode !== PartnerType.PARTNER_TYPE_DIRECT), {emitEvent: false});
+        this.formGroup.setControl('remark', this.createOptionalTextControl(''), {emitEvent: false});
       } else {
         const tenant = this.tenantService.tenant();
 
@@ -102,13 +110,31 @@ export class ClientFormComponent {
           }
         }
 
-        this.formGroup.setControl('upstream', this.formBuilder.control({value: upstream, disabled: this.readonly}, null), {emitEvent: false});
-        this.formGroup.setControl('name', this.formBuilder.control({value: client.name, disabled: this.readonly}, Validators.required), {emitEvent: false});
-        this.formGroup.setControl('code', this.formBuilder.control({value: client.code, disabled: this.readonly}, mode === PartnerType.PARTNER_TYPE_DIRECT ? null : Validators.required), {emitEvent: false});
-        this.formGroup.setControl('protocolKey', this.formBuilder.control({value: client.protocolKey?.join(', '), disabled: this.readonly}, mode === PartnerType.PARTNER_TYPE_DIRECT ? null : Validators.required), {emitEvent: false});
-        this.formGroup.setControl('remark', this.formBuilder.control({value: client.remark, disabled: this.readonly}, null), {emitEvent: false});
+        this.formGroup.setControl('upstream', this.createUpstreamControl(upstream), {emitEvent: false});
+        this.formGroup.setControl('name', this.createRequiredTextControl(client.name), {emitEvent: false});
+        this.formGroup.setControl('code', this.createRequiredTextControl(client.code, this.readonly, mode !== PartnerType.PARTNER_TYPE_DIRECT), {emitEvent: false});
+        this.formGroup.setControl('protocolKey', this.createRequiredTextControl(client.protocolKey?.join(', ') ?? '', this.readonly, mode !== PartnerType.PARTNER_TYPE_DIRECT), {emitEvent: false});
+        this.formGroup.setControl('remark', this.createOptionalTextControl(client.remark), {emitEvent: false});
       }
     });
+  }
+
+  get upstreamUsers(): TenantUser[] {
+    return this.formGroup.controls.upstream.value;
+  }
+
+  private createUpstreamControl(value: TenantUser[], disabled = this.readonly): FormControl<TenantUser[]> {
+    return this.formBuilder.nonNullable.control({value, disabled});
+  }
+
+  private createRequiredTextControl(value: string, disabled = this.readonly, required = true): FormControl<string> {
+    return required
+      ? this.formBuilder.nonNullable.control({value, disabled}, Validators.required)
+      : this.formBuilder.nonNullable.control({value, disabled});
+  }
+
+  private createOptionalTextControl(value: string | null, disabled = this.readonly): FormControl<string | null> {
+    return this.formBuilder.control({value, disabled});
   }
 
   private _filter(value: string): User[] {
@@ -117,10 +143,10 @@ export class ClientFormComponent {
     return this.allUsers.filter(user => user.username.toLowerCase().includes(filterValue));
   }
 
-  add(event: MatChipInputEvent, control: FormControl | null, users: TenantUser[]): void {
-    const value = event.value;
+  add(event: MatChipInputEvent, control: FormControl<string | null> | null, users: TenantUser[]): void {
+    const value = event.value?.trim();
 
-    if (users.map(user => user.username).indexOf(value) < 0) {
+    if (value && users.map(user => user.username).indexOf(value) < 0) {
       users.push({id: null, username: value, role: this.mode() === PartnerType.PARTNER_TYPE_DIRECT ? ROLE_TENANT_UPSTREAM_OBSERVER_DIRECT : ROLE_TENANT_UPSTREAM_OBSERVER_PROGRAMMATIC, resource: null});
     }
 
@@ -133,7 +159,7 @@ export class ClientFormComponent {
     }
   }
 
-  remove(user: TenantUser, control: FormControl | null, users: TenantUser[]): void {
+  remove(user: TenantUser, control: FormControl<string | null> | null, users: TenantUser[]): void {
     const index = users.map(user => user.username).indexOf(user.username);
 
     if (index >= 0) {
@@ -145,8 +171,8 @@ export class ClientFormComponent {
     }
   }
 
-  select(event: MatAutocompleteSelectedEvent, input: HTMLInputElement, control: FormControl, users: TenantUser[]): void {
-    const value = event.option.value;
+  select(event: MatAutocompleteSelectedEvent, input: HTMLInputElement, control: FormControl<string | null>, users: TenantUser[]): void {
+    const value = event.option.value as string;
 
     if (users.map(user => user.username).indexOf(value) < 0) {
       users.push({id: null, username: value, role: this.mode() === PartnerType.PARTNER_TYPE_DIRECT ? ROLE_TENANT_UPSTREAM_OBSERVER_DIRECT : ROLE_TENANT_UPSTREAM_OBSERVER_PROGRAMMATIC, resource: null});
@@ -163,9 +189,9 @@ export class ClientFormComponent {
       return;
     }
 
-    let keys: string[] =[];
+    let keys: string[] = [];
     if (this.mode() === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
-      for (const key of this.formGroup.value.protocolKey.split('，')) {
+      for (const key of this.formGroup.controls.protocolKey.value.split('，')) {
         keys = [...keys, ...key.split(',')];
       }
       keys = keys.map(key => key.trim()).filter(key => key.length > 0);
@@ -175,19 +201,20 @@ export class ClientFormComponent {
       id: null,
       deleted: false,
       tenant: this.tenantService.tenant()!,
-      name: this.formGroup.value.name,
+      name: this.formGroup.controls.name.value,
       mode: this.mode(),
-      code: this.formGroup.value.code,
+      code: this.formGroup.controls.code.value,
       protocolKey: keys,
-      remark: this.formGroup.value.remark,
+      remark: this.formGroup.controls.remark.value,
       createTime: null,
       updateTime: null,
     };
 
     this.clientAPI.addClient(client).subscribe((client) => {
       const tenant = this.tenantService.tenant()!;
-      if (this.formGroup.value.upstream.length > 0) {
-        for (const user of this.formGroup.value.upstream) {
+      const upstream = this.formGroup.controls.upstream.value;
+      if (upstream.length > 0) {
+        for (const user of upstream) {
           tenant.user.push({id: null, username: user.username, role: this.mode() === PartnerType.PARTNER_TYPE_DIRECT ? ROLE_TENANT_UPSTREAM_OBSERVER_DIRECT : ROLE_TENANT_UPSTREAM_OBSERVER_PROGRAMMATIC, resource: client.id});
         }
         this.tenantAPI.updateTenant(tenant.id!, tenant).subscribe();
@@ -212,26 +239,27 @@ export class ClientFormComponent {
       return;
     }
 
-    let keys: string[] =[];
-    for (const key of this.formGroup.value.protocolKey.split('，')) {
+    let keys: string[] = [];
+    for (const key of this.formGroup.controls.protocolKey.value.split('，')) {
       keys = [...keys, ...key.split(',')];
     }
     keys = keys.map(key => key.trim()).filter(key => key.length > 0);
 
     client.tenant = this.tenantService.tenant()!;
-    client.name = this.formGroup.value.name;
-    client.code = this.formGroup.value.code;
-    client.remark = this.formGroup.value.remark;
+    client.name = this.formGroup.controls.name.value;
+    client.code = this.formGroup.controls.code.value;
+    client.remark = this.formGroup.controls.remark.value;
     client.protocolKey = keys;
 
     this.clientAPI.updateClient(client.id!, client).subscribe(() => {
       const tenant = this.tenantService.tenant()!;
-      if (this.formGroup.value.upstream.length >= 0) {
+      const upstream = this.formGroup.controls.upstream.value;
+      if (upstream.length >= 0) {
         const observers: TenantUser[] = [];
         let usersToBeChecked = tenant.user.filter(user => user.role === (this.mode() === PartnerType.PARTNER_TYPE_DIRECT ? ROLE_TENANT_UPSTREAM_OBSERVER_DIRECT : ROLE_TENANT_UPSTREAM_OBSERVER_PROGRAMMATIC) && user.resource === client.id);
         let changed = false;
 
-        for (const user of this.formGroup.value.upstream) {
+        for (const user of upstream) {
           if (usersToBeChecked.filter(u => u.username === user.username).length > 0) {
             usersToBeChecked = usersToBeChecked.filter(u => u.username !== user.username);
           } else {

@@ -1,5 +1,5 @@
 import { Component, effect, input, OnInit, output, signal, WritableSignal, inject } from '@angular/core';
-import { UntypedFormGroup, UntypedFormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatCardModule } from '@angular/material/card';
@@ -13,6 +13,18 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { Client, ClientAPI, ClientMedia, ClientMediaAPI, PartnerType } from '../../../../core';
 import { TenantService } from '../../../../services';
 import { FilteredSelectClientComponent } from '../../../../shared';
+
+interface ClientMediaFormControls {
+  client: FormControl<Client | null>;
+  name: FormControl<string>;
+  platform: FormControl<string>;
+  code: FormControl<string | null>;
+  secret: FormControl<string | null>;
+  apppackage: FormControl<string | null>;
+  appversion: FormControl<string | null>;
+  applink: FormControl<string | null>;
+  remark: FormControl<string | null>;
+}
 
 @Component({
   selector: 'carambola-clientmedia-form',
@@ -33,13 +45,13 @@ import { FilteredSelectClientComponent } from '../../../../shared';
   styleUrls: ['./clientmedia-form.component.scss'],
 })
 export class ClientMediaFormComponent implements OnInit {
-  private formBuilder = inject(UntypedFormBuilder);
+  private formBuilder = inject(FormBuilder);
   private snackBar = inject(MatSnackBar);
   private tenantService = inject(TenantService);
   private clientAPI = inject(ClientAPI);
   private clientMediaAPI = inject(ClientMediaAPI);
 
-  formGroup: UntypedFormGroup;
+  formGroup: FormGroup<ClientMediaFormControls>;
   clients: WritableSignal<Client[]> = signal([]);
   managedClients: WritableSignal<Client[]> = signal([]);
 
@@ -54,15 +66,15 @@ export class ClientMediaFormComponent implements OnInit {
 
   constructor() {
     this.formGroup = this.formBuilder.group({
-      'client': [null, Validators.required],
-      'name': ['', Validators.required],
-      'platform': ['Android', Validators.required],
-      'code': ['', null],
-      'secret': ['', null],
-      'apppackage': ['', null],
-      'appversion': ['', null],
-      'applink': ['', null],
-      'remark': ['', null],
+      client: this.formBuilder.control<Client | null>(null, Validators.required),
+      name: this.formBuilder.nonNullable.control('', Validators.required),
+      platform: this.formBuilder.nonNullable.control('Android', Validators.required),
+      code: this.formBuilder.control<string | null>(''),
+      secret: this.formBuilder.control<string | null>(''),
+      apppackage: this.formBuilder.control<string | null>(''),
+      appversion: this.formBuilder.control<string | null>(''),
+      applink: this.formBuilder.control<string | null>(''),
+      remark: this.formBuilder.control<string | null>(''),
     });
 
     effect(() => {
@@ -77,12 +89,12 @@ export class ClientMediaFormComponent implements OnInit {
             if (client) {
               this.initialized = true;
 
-              this.formGroup.setControl('client', this.formBuilder.control({value: client, disabled: this.readonly}, Validators.required), {emitEvent: false});
+              this.formGroup.setControl('client', this.createClientControl(client), {emitEvent: false});
             }
           } else {
             this.initialized = true;
 
-            this.formGroup.setControl('client', this.formBuilder.control(null, Validators.required), {emitEvent: false});
+            this.formGroup.setControl('client', this.createClientControl(null, false), {emitEvent: false});
           }
         } else {
           this.readonly = !this.tenantService.isTenantManager() && !this.tenantService.isManager();
@@ -91,19 +103,31 @@ export class ClientMediaFormComponent implements OnInit {
           if (client) {
             this.initialized = true;
 
-            this.formGroup.setControl('client', this.formBuilder.control({value: client, disabled: this.readonly}, Validators.required), {emitEvent: false});
-            this.formGroup.setControl('name', this.formBuilder.control({value: clientMedia.name, disabled: this.readonly}, Validators.required), {emitEvent: false});
-            this.formGroup.setControl('platform', this.formBuilder.control({value: clientMedia.platform, disabled: this.readonly}, Validators.required), {emitEvent: false});
-            this.formGroup.setControl('code', this.formBuilder.control({value: clientMedia.code, disabled: this.readonly}, null), {emitEvent: false});
-            this.formGroup.setControl('secret', this.formBuilder.control({value: clientMedia.secret, disabled: this.readonly}, null), {emitEvent: false});
-            this.formGroup.setControl('apppackage', this.formBuilder.control({value: clientMedia.apppackage, disabled: this.readonly}, null), {emitEvent: false});
-            this.formGroup.setControl('appversion', this.formBuilder.control({value: clientMedia.appversion, disabled: this.readonly}, null), {emitEvent: false});
-            this.formGroup.setControl('applink', this.formBuilder.control({value: clientMedia.applink, disabled: this.readonly}, null), {emitEvent: false});
-            this.formGroup.setControl('remark', this.formBuilder.control({value: clientMedia.remark, disabled: this.readonly}, null), {emitEvent: false});
+            this.formGroup.setControl('client', this.createClientControl(client), {emitEvent: false});
+            this.formGroup.setControl('name', this.createRequiredTextControl(clientMedia.name), {emitEvent: false});
+            this.formGroup.setControl('platform', this.createRequiredTextControl(clientMedia.platform), {emitEvent: false});
+            this.formGroup.setControl('code', this.createOptionalTextControl(clientMedia.code), {emitEvent: false});
+            this.formGroup.setControl('secret', this.createOptionalTextControl(clientMedia.secret), {emitEvent: false});
+            this.formGroup.setControl('apppackage', this.createOptionalTextControl(clientMedia.apppackage), {emitEvent: false});
+            this.formGroup.setControl('appversion', this.createOptionalTextControl(clientMedia.appversion), {emitEvent: false});
+            this.formGroup.setControl('applink', this.createOptionalTextControl(clientMedia.applink), {emitEvent: false});
+            this.formGroup.setControl('remark', this.createOptionalTextControl(clientMedia.remark), {emitEvent: false});
           }
         }
       }
     });
+  }
+
+  private createClientControl(value: Client | null, disabled = this.readonly): FormControl<Client | null> {
+    return this.formBuilder.control({value, disabled}, Validators.required);
+  }
+
+  private createRequiredTextControl(value: string, disabled = this.readonly): FormControl<string> {
+    return this.formBuilder.nonNullable.control({value, disabled}, Validators.required);
+  }
+
+  private createOptionalTextControl(value: string | null, disabled = this.readonly): FormControl<string | null> {
+    return this.formBuilder.control({value, disabled});
   }
 
   ngOnInit() {
@@ -125,18 +149,24 @@ export class ClientMediaFormComponent implements OnInit {
       return;
     }
 
+    const client = this.formGroup.controls.client.value;
+    if (!client) {
+      this.formGroup.markAllAsTouched();
+      return;
+    }
+
     const clientMedia: ClientMedia = {
       id: null,
       deleted: false,
-      client: this.formGroup.value.client,
-      name: this.formGroup.value.name,
-      platform: this.formGroup.value.platform,
-      code: this.formGroup.value.code,
-      secret: this.formGroup.value.secret,
-      apppackage: this.formGroup.value.apppackage,
-      appversion: this.formGroup.value.appversion,
-      applink: this.formGroup.value.applink,
-      remark: this.formGroup.value.remark,
+      client,
+      name: this.formGroup.controls.name.value,
+      platform: this.formGroup.controls.platform.value,
+      code: this.formGroup.controls.code.value,
+      secret: this.formGroup.controls.secret.value,
+      apppackage: this.formGroup.controls.apppackage.value,
+      appversion: this.formGroup.controls.appversion.value,
+      applink: this.formGroup.controls.applink.value,
+      remark: this.formGroup.controls.remark.value,
       createTime: null,
       updateTime: null,
     };
@@ -157,19 +187,20 @@ export class ClientMediaFormComponent implements OnInit {
     }
 
     const clientMedia = this.clientMedia();
-    if (!clientMedia) {
+    const client = this.formGroup.controls.client.value;
+    if (!clientMedia || !client) {
       return;
     }
 
-    clientMedia.client = this.formGroup.value.client;
-    clientMedia.name = this.formGroup.value.name;
-    clientMedia.platform = this.formGroup.value.platform;
-    clientMedia.code = this.formGroup.value.code;
-    clientMedia.secret = this.formGroup.value.secret;
-    clientMedia.apppackage = this.formGroup.value.apppackage;
-    clientMedia.appversion = this.formGroup.value.appversion;
-    clientMedia.applink = this.formGroup.value.applink;
-    clientMedia.remark = this.formGroup.value.remark;
+    clientMedia.client = client;
+    clientMedia.name = this.formGroup.controls.name.value;
+    clientMedia.platform = this.formGroup.controls.platform.value;
+    clientMedia.code = this.formGroup.controls.code.value;
+    clientMedia.secret = this.formGroup.controls.secret.value;
+    clientMedia.apppackage = this.formGroup.controls.apppackage.value;
+    clientMedia.appversion = this.formGroup.controls.appversion.value;
+    clientMedia.applink = this.formGroup.controls.applink.value;
+    clientMedia.remark = this.formGroup.controls.remark.value;
 
     this.clientMediaAPI.updateClientMedia(clientMedia.id!, clientMedia).subscribe(() => {
       this.snackBar.open('上游媒体已修改', 'OK', {

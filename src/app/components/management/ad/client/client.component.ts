@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, effect, OnInit, signal, ViewChild, WritableSignal, inject } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
@@ -15,6 +15,10 @@ import { Client, ClientAPI, PartnerType, Query } from '../../../../core';
 import { TenantService } from '../../../../services';
 import { AdEntityComponent } from '../../../../shared';
 import { ClientDialogComponent, ClientDialogData } from '../client-dialog/client-dialog.component';
+
+interface ClientQueryControls {
+  search: FormControl<string>;
+}
 
 @Component({
   selector: 'carambola-client-manager',
@@ -35,7 +39,7 @@ import { ClientDialogComponent, ClientDialogData } from '../client-dialog/client
   styleUrls: ['./client.component.scss'],
 })
 export class ClientManagerComponent implements OnInit, AfterViewInit {
-  private formBuilder = inject(UntypedFormBuilder);
+  private formBuilder = inject(FormBuilder);
   private dialog = inject(MatDialog);
   private clientAPI = inject(ClientAPI);
   private tenantService = inject(TenantService);
@@ -48,7 +52,7 @@ export class ClientManagerComponent implements OnInit, AfterViewInit {
   hoverRow: Client | null = null;
 
   mode: WritableSignal<PartnerType> = signal(PartnerType.PARTNER_TYPE_UNKNOWN);
-  formGroupQuery: UntypedFormGroup;
+  formGroupQuery: FormGroup<ClientQueryControls>;
   formQuery: Query<Client> = {
     filter: {},
     searchKey: ['name'],
@@ -63,7 +67,7 @@ export class ClientManagerComponent implements OnInit, AfterViewInit {
 
   constructor() {
     this.formGroupQuery = this.formBuilder.group({
-      'search': ['', null],
+      search: this.formBuilder.nonNullable.control(''),
     });
 
     effect(() => {
@@ -79,6 +83,10 @@ export class ClientManagerComponent implements OnInit, AfterViewInit {
 
       this.query();
     });
+  }
+
+  get searchValue(): string {
+    return this.formGroupQuery.controls.search.value;
   }
 
   ngOnInit() {
@@ -114,7 +122,7 @@ export class ClientManagerComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit() {
     this.route.queryParams.subscribe(params => {
-      this.formGroupQuery.controls['search'].setValue('');
+      this.formGroupQuery.controls.search.setValue('');
       this.dataSource.data = [];
 
       if (params['directMode']) {
@@ -139,13 +147,13 @@ export class ClientManagerComponent implements OnInit, AfterViewInit {
         mode: [String(this.mode())],
       },
       searchKey: ['name', 'code'],
-      searchValue: this.formGroupQuery.value.search,
+      searchValue: this.searchValue,
     };
 
     this.dataRequest$.next(this.formQuery);
   }
 
-  clear(event: Event, field: string, value: string | unknown[]) {
+  clear(event: Event, field: keyof ClientQueryControls, value: string) {
     event.stopPropagation();
     this.formGroupQuery.patchValue({[field]: value});
     this.query();

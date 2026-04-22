@@ -1,5 +1,5 @@
 import { Component, effect, input, output, inject } from '@angular/core';
-import { UntypedFormGroup, UntypedFormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -8,6 +8,14 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTabsModule } from '@angular/material/tabs';
 
 import { Server, ServerAPI } from '../../../../core';
+
+interface ServerFormControls {
+  domain: FormControl<string>;
+  address: FormControl<string>;
+  node: FormControl<number | null>;
+  username: FormControl<string>;
+  password: FormControl<string>;
+}
 
 @Component({
   selector: 'carambola-server-form',
@@ -24,41 +32,53 @@ import { Server, ServerAPI } from '../../../../core';
   styleUrls: ['./server-form.component.scss'],
 })
 export class ServerFormComponent {
-  private formBuilder = inject(UntypedFormBuilder);
+  private formBuilder = inject(FormBuilder);
   private snackBar = inject(MatSnackBar);
   private serverAPI = inject(ServerAPI);
 
-  formGroup: UntypedFormGroup;
+  formGroup: FormGroup<ServerFormControls>;
 
   server = input<Server | null>(null);
   changed = output<boolean>();
 
   constructor() {
     this.formGroup = this.formBuilder.group({
-      'domain': ['', null],
-      'address': ['', Validators.required],
-      'node': ['', Validators.required],
-      'username': ['', Validators.required],
-      'password': ['', Validators.required],
+      domain: this.formBuilder.nonNullable.control(''),
+      address: this.formBuilder.nonNullable.control('', Validators.required),
+      node: this.formBuilder.control<number | null>(null, Validators.required),
+      username: this.formBuilder.nonNullable.control('', Validators.required),
+      password: this.formBuilder.nonNullable.control('', Validators.required),
     });
 
     effect(() => {
       const server = this.server();
 
       if (!server) {
-        this.formGroup.setControl('domain', this.formBuilder.control('', null), {emitEvent: false});
-        this.formGroup.setControl('address', this.formBuilder.control('', Validators.required), {emitEvent: false});
-        this.formGroup.setControl('node', this.formBuilder.control('', Validators.required), {emitEvent: false});
-        this.formGroup.setControl('username', this.formBuilder.control('', Validators.required), {emitEvent: false});
-        this.formGroup.setControl('password', this.formBuilder.control('', Validators.required), {emitEvent: false});
+        this.formGroup.setControl('domain', this.createOptionalTextControl(''), {emitEvent: false});
+        this.formGroup.setControl('address', this.createRequiredTextControl(''), {emitEvent: false});
+        this.formGroup.setControl('node', this.createNodeControl(null), {emitEvent: false});
+        this.formGroup.setControl('username', this.createRequiredTextControl(''), {emitEvent: false});
+        this.formGroup.setControl('password', this.createRequiredTextControl(''), {emitEvent: false});
       } else {
-        this.formGroup.setControl('domain', this.formBuilder.control(server.domain, null), {emitEvent: false});
-        this.formGroup.setControl('address', this.formBuilder.control(server.address, Validators.required), {emitEvent: false});
-        this.formGroup.setControl('node', this.formBuilder.control(server.node, Validators.required), {emitEvent: false});
-        this.formGroup.setControl('username', this.formBuilder.control(server.username, Validators.required), {emitEvent: false});
-        this.formGroup.setControl('password', this.formBuilder.control(server.password, Validators.required), {emitEvent: false});
+        this.formGroup.setControl('domain', this.createOptionalTextControl(server.domain), {emitEvent: false});
+        this.formGroup.setControl('address', this.createRequiredTextControl(server.address), {emitEvent: false});
+        this.formGroup.setControl('node', this.createNodeControl(server.node), {emitEvent: false});
+        this.formGroup.setControl('username', this.createRequiredTextControl(server.username), {emitEvent: false});
+        this.formGroup.setControl('password', this.createRequiredTextControl(server.password), {emitEvent: false});
       }
     });
+  }
+
+  private createOptionalTextControl(value: string): FormControl<string> {
+    return this.formBuilder.nonNullable.control(value);
+  }
+
+  private createRequiredTextControl(value: string): FormControl<string> {
+    return this.formBuilder.nonNullable.control(value, Validators.required);
+  }
+
+  private createNodeControl(value: number | null): FormControl<number | null> {
+    return this.formBuilder.control<number | null>(value, Validators.required);
   }
 
   addServer() {
@@ -69,11 +89,11 @@ export class ServerFormComponent {
 
     const server: Server = {
       id: null,
-      domain: this.formGroup.value.domain,
-      address: this.formGroup.value.address,
-      node: this.formGroup.value.node,
-      username: this.formGroup.value.username,
-      password: this.formGroup.value.password,
+      domain: this.formGroup.controls.domain.value,
+      address: this.formGroup.controls.address.value,
+      node: this.formGroup.controls.node.value!,
+      username: this.formGroup.controls.username.value,
+      password: this.formGroup.controls.password.value,
     };
 
     this.serverAPI.addServer(server).subscribe(() => {
@@ -96,11 +116,11 @@ export class ServerFormComponent {
       return;
     }
 
-    server.domain = this.formGroup.value.domain;
-    server.address = this.formGroup.value.address;
-    server.node = this.formGroup.value.node;
-    server.username = this.formGroup.value.username;
-    server.password = this.formGroup.value.password;
+    server.domain = this.formGroup.controls.domain.value;
+    server.address = this.formGroup.controls.address.value;
+    server.node = this.formGroup.controls.node.value!;
+    server.username = this.formGroup.controls.username.value;
+    server.password = this.formGroup.controls.password.value;
 
     this.serverAPI.updateServer(server.id!, server).subscribe(() => {
       this.snackBar.open('服务器已修改', 'OK', {

@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, effect, OnInit, signal, ViewChild, WritableSignal, inject } from '@angular/core';
-import { UntypedFormGroup, UntypedFormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
@@ -16,6 +16,17 @@ import { Client, ClientAPI, ClientMedia, ClientMediaAPI, ClientPort, ClientPortA
 import { AdEntityComponent, FilteredSelectClientComponent, FilteredSelectClientMediaComponent } from '../../../../shared';
 import { TenantService } from '../../../../services';
 import { ClientPortDialogComponent, ClientPortDialogData } from '../clientport-dialog/clientport-dialog.component';
+
+interface ClientPortQueryControls {
+  client: FormControl<Client[]>;
+  clientMedia: FormControl<ClientMedia[]>;
+  platform: FormControl<string[]>;
+  format: FormControl<string[]>;
+  budget: FormControl<string[]>;
+  mode: FormControl<string[]>;
+  status: FormControl<string[]>;
+  search: FormControl<string>;
+}
 
 @Component({
   selector: 'carambola-clientport-manager',
@@ -39,7 +50,7 @@ import { ClientPortDialogComponent, ClientPortDialogData } from '../clientport-d
   styleUrls: ['./clientport.component.scss'],
 })
 export class ClientPortManagerComponent implements OnInit, AfterViewInit {
-  private formBuilder = inject(UntypedFormBuilder);
+  private formBuilder = inject(FormBuilder);
   private dialog = inject(MatDialog);
   private tenantService = inject(TenantService);
   private clientAPI = inject(ClientAPI);
@@ -54,7 +65,7 @@ export class ClientPortManagerComponent implements OnInit, AfterViewInit {
   hoverRow: ClientPort | null = null;
 
   mode: WritableSignal<PartnerType> = signal(PartnerType.PARTNER_TYPE_UNKNOWN);
-  formGroupQuery: UntypedFormGroup;
+  formGroupQuery: FormGroup<ClientPortQueryControls>;
   filterClient: Client[] = [];
   allClientMedia: ClientMedia[] = [];
   filterClientMedia: ClientMedia[] = [];
@@ -77,14 +88,14 @@ export class ClientPortManagerComponent implements OnInit, AfterViewInit {
 
   constructor() {
     this.formGroupQuery = this.formBuilder.group({
-      'client': [[], null],
-      'clientMedia': [[], null],
-      'platform': [[], null],
-      'format': [[], null],
-      'budget': [[], null],
-      'mode': [[], null],
-      'status': [[], null],
-      'search': ['', null],
+      client: this.formBuilder.nonNullable.control<Client[]>([]),
+      clientMedia: this.formBuilder.nonNullable.control<ClientMedia[]>([]),
+      platform: this.formBuilder.nonNullable.control<string[]>([]),
+      format: this.formBuilder.nonNullable.control<string[]>([]),
+      budget: this.formBuilder.nonNullable.control<string[]>([]),
+      mode: this.formBuilder.nonNullable.control<string[]>([]),
+      status: this.formBuilder.nonNullable.control<string[]>([]),
+      search: this.formBuilder.nonNullable.control(''),
     });
 
     this.filterPlatform = new Map([
@@ -164,6 +175,38 @@ export class ClientPortManagerComponent implements OnInit, AfterViewInit {
     });
   }
 
+  get selectedClients(): Client[] {
+    return this.formGroupQuery.controls.client.value;
+  }
+
+  get selectedClientMedias(): ClientMedia[] {
+    return this.formGroupQuery.controls.clientMedia.value;
+  }
+
+  get selectedPlatforms(): string[] {
+    return this.formGroupQuery.controls.platform.value;
+  }
+
+  get selectedFormats(): string[] {
+    return this.formGroupQuery.controls.format.value;
+  }
+
+  get selectedBudgets(): string[] {
+    return this.formGroupQuery.controls.budget.value;
+  }
+
+  get selectedModes(): string[] {
+    return this.formGroupQuery.controls.mode.value;
+  }
+
+  get selectedStatuses(): string[] {
+    return this.formGroupQuery.controls.status.value;
+  }
+
+  get searchValue(): string {
+    return this.formGroupQuery.controls.search.value;
+  }
+
   ngOnInit() {
     this.dataRequest$.pipe(
       debounceTime(500),
@@ -176,13 +219,13 @@ export class ClientPortManagerComponent implements OnInit, AfterViewInit {
       ),
     ).subscribe(clientPorts => {
       let data = clientPorts.filter(clientPort => !clientPort.deleted);
-      if (this.formGroupQuery.value.status.length > 0) {
-        if (this.formGroupQuery.value.status.indexOf('1') < 0) {
+      if (this.selectedStatuses.length > 0) {
+        if (this.selectedStatuses.indexOf('1') < 0) {
           data = data.filter(clientPort => {
             return clientPort.connection.filter(connection => connection.enabled).length === 0;
           });
         }
-        if (this.formGroupQuery.value.status.indexOf('2') < 0) {
+        if (this.selectedStatuses.indexOf('2') < 0) {
           data = data.filter(clientPort => {
             return clientPort.connection.filter(connection => connection.enabled).length > 0;
           });
@@ -232,13 +275,14 @@ export class ClientPortManagerComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit() {
     this.route.queryParams.subscribe(params => {
-      this.formGroupQuery.controls['client'].setValue([]);
-      this.formGroupQuery.controls['clientMedia'].setValue([]);
-      this.formGroupQuery.controls['platform'].setValue([]);
-      this.formGroupQuery.controls['format'].setValue([]);
-      this.formGroupQuery.controls['budget'].setValue([]);
-      this.formGroupQuery.controls['mode'].setValue([]);
-      this.formGroupQuery.controls['search'].setValue('');
+      this.formGroupQuery.controls.client.setValue([]);
+      this.formGroupQuery.controls.clientMedia.setValue([]);
+      this.formGroupQuery.controls.platform.setValue([]);
+      this.formGroupQuery.controls.format.setValue([]);
+      this.formGroupQuery.controls.budget.setValue([]);
+      this.formGroupQuery.controls.mode.setValue([]);
+      this.formGroupQuery.controls.status.setValue([]);
+      this.formGroupQuery.controls.search.setValue('');
       this.dataSource.data = [];
 
       if (params['directMode']) {
@@ -248,16 +292,16 @@ export class ClientPortManagerComponent implements OnInit, AfterViewInit {
       }
 
       if (this.mode() === PartnerType.PARTNER_TYPE_DIRECT) {
-        if (this.formGroupQuery.value.mode.indexOf(PartnerType.PARTNER_TYPE_DIRECT) < 0) {
-          this.formGroupQuery.controls['mode'].setValue([]);
+        if (this.selectedModes.indexOf(String(PartnerType.PARTNER_TYPE_DIRECT)) < 0) {
+          this.formGroupQuery.controls.mode.setValue([]);
         }
         this.filterMode = new Map([
           ['3', '直通模式'],
         ]);
       }
       if (this.mode() === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
-        if (this.formGroupQuery.value.mode.indexOf(PartnerType.PARTNER_TYPE_DIRECT) >= 0) {
-          this.formGroupQuery.controls['mode'].setValue([]);
+        if (this.selectedModes.indexOf(String(PartnerType.PARTNER_TYPE_DIRECT)) >= 0) {
+          this.formGroupQuery.controls.mode.setValue([]);
         }
         this.filterMode = new Map([
           ['1', '分成模式'],
@@ -298,9 +342,8 @@ export class ClientPortManagerComponent implements OnInit, AfterViewInit {
   }
 
   query() {
-    const selectedPlatforms: string[] = this.formGroupQuery.value.platform;
-    if (selectedPlatforms.length > 0) {
-      this.filterClientMedia = this.allClientMedia.filter(clientMedia => selectedPlatforms.indexOf(clientMedia.platform) >= 0);
+    if (this.selectedPlatforms.length > 0) {
+      this.filterClientMedia = this.allClientMedia.filter(clientMedia => this.selectedPlatforms.indexOf(clientMedia.platform) >= 0);
     } else {
       this.filterClientMedia = this.allClientMedia;
     }
@@ -308,21 +351,25 @@ export class ClientPortManagerComponent implements OnInit, AfterViewInit {
     this.formQuery = {
       filter: {
         clientMode: [String(this.mode())],
-        client: (this.formGroupQuery.value.client as Client[]).map(client => client.id!.toString()),
-        clientMedia: (this.formGroupQuery.value.clientMedia as ClientMedia[]).map(clientMedia => clientMedia.id!.toString()),
-        platform: this.formGroupQuery.value.platform,
-        format: this.formGroupQuery.value.format,
-        budget: this.formGroupQuery.value.budget,
-        mode: this.formGroupQuery.value.mode,
+        client: this.selectedClients.map(client => client.id!.toString()),
+        clientMedia: this.selectedClientMedias.map(clientMedia => clientMedia.id!.toString()),
+        platform: this.selectedPlatforms,
+        format: this.selectedFormats,
+        budget: this.selectedBudgets,
+        mode: this.selectedModes,
       },
       searchKey: ['name', 'tagId'],
-      searchValue: this.formGroupQuery.value.search,
+      searchValue: this.searchValue,
     };
 
     this.dataRequest$.next(this.formQuery);
   }
 
-  clear(event: Event, field: string, value: string | unknown[]) {
+  clear(
+    event: Event,
+    field: keyof ClientPortQueryControls,
+    value: string | Client[] | ClientMedia[] | string[]
+  ) {
     event.stopPropagation();
     this.formGroupQuery.patchValue({[field]: value});
     this.query();

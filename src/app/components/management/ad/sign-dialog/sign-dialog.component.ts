@@ -1,6 +1,6 @@
 import { Component, ElementRef, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
@@ -11,6 +11,20 @@ import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { BillView, Client, ClientAPI, ClientPort, ClientPortAPI, Medium, PartnerType, PerformancePartner, Sign, SignStatus, Vendor, VendorAPI, VendorPort, VendorPortAPI } from '../../../../core';
 import { AdEntityComponent } from '../../../../shared/components/ad-entity/ad-entity.component';
 import { forkJoin } from 'rxjs';
+
+interface SignRatioControls {
+  request: FormControl<number | null>;
+  response: FormControl<number | null>;
+  impression: FormControl<number | null>;
+  click: FormControl<number | null>;
+  cost: FormControl<number | null>;
+}
+
+interface SignLevelControls {
+  top: FormControl<number | null>;
+  middle: FormControl<number | null>;
+  bottom: FormControl<number | null>;
+}
 
 export interface SignDialogData {
   vendor: Vendor;
@@ -39,7 +53,7 @@ export interface SignDialogData {
   styleUrls: ['./sign-dialog.component.scss'],
 })
 export class SignDialogComponent {
-  private formBuilder = inject(UntypedFormBuilder);
+  private formBuilder = inject(FormBuilder);
   private clientAPI = inject(ClientAPI);
   private clientPortAPI = inject(ClientPortAPI);
   private vendorAPI = inject(VendorAPI);
@@ -69,13 +83,13 @@ export class SignDialogComponent {
   vendorMap: Map<number | null, Vendor> = new Map<number | null, Vendor>();
   vendorPortMap: Map<number | null, VendorPort> = new Map<number | null, VendorPort>();
 
-  formGroupRatio: UntypedFormGroup;
+  formGroupRatio: FormGroup<SignRatioControls>;
   requestRatio = 1;
   responseRatio = 1;
   impressionRatio = 1;
   clickRatio = 1;
   costRatio = 1;
-  formGroupLevel: UntypedFormGroup;
+  formGroupLevel: FormGroup<SignLevelControls>;
   levelTop = 0.965;
   levelMiddle = 0.9675;
   levelBottom = 0.968;
@@ -156,16 +170,16 @@ export class SignDialogComponent {
     this.performances = data.performances;
 
     this.formGroupRatio = this.formBuilder.group({
-      'request': [0, [Validators.required, Validators.pattern('^[0-9]*[\\.]?[0-9]*$'), Validators.min(0), Validators.max(100)]],
-      'response': [0, [Validators.required, Validators.pattern('^[0-9]*[\\.]?[0-9]*$'), Validators.min(0), Validators.max(100)]],
-      'impression': [0, [Validators.required, Validators.pattern('^[0-9]*[\\.]?[0-9]*$'), Validators.min(0), Validators.max(100)]],
-      'click': [0, [Validators.required, Validators.pattern('^[0-9]*[\\.]?[0-9]*$'), Validators.min(0), Validators.max(100)]],
-      'cost': [0, [Validators.required, Validators.pattern('^[0-9]*[\\.]?[0-9]*$'), Validators.min(0), Validators.max(100)]],
+      request: this.formBuilder.control<number | null>(0, [Validators.required, Validators.pattern('^[0-9]*[\\.]?[0-9]*$'), Validators.min(0), Validators.max(100)]),
+      response: this.formBuilder.control<number | null>(0, [Validators.required, Validators.pattern('^[0-9]*[\\.]?[0-9]*$'), Validators.min(0), Validators.max(100)]),
+      impression: this.formBuilder.control<number | null>(0, [Validators.required, Validators.pattern('^[0-9]*[\\.]?[0-9]*$'), Validators.min(0), Validators.max(100)]),
+      click: this.formBuilder.control<number | null>(0, [Validators.required, Validators.pattern('^[0-9]*[\\.]?[0-9]*$'), Validators.min(0), Validators.max(100)]),
+      cost: this.formBuilder.control<number | null>(0, [Validators.required, Validators.pattern('^[0-9]*[\\.]?[0-9]*$'), Validators.min(0), Validators.max(100)]),
     });
     this.formGroupLevel = this.formBuilder.group({
-      'top': [96.5, Validators.required],
-      'middle': [96.75, Validators.required],
-      'bottom': [96.8, Validators.required],
+      top: this.formBuilder.control<number | null>(96.5, Validators.required),
+      middle: this.formBuilder.control<number | null>(96.75, Validators.required),
+      bottom: this.formBuilder.control<number | null>(96.8, Validators.required),
     });
 
     forkJoin([
@@ -519,18 +533,18 @@ export class SignDialogComponent {
       this.signViews[0].cost = Math.round(this.signViewOriginal.cost! * this.costRatio);
 
       this.formGroupRatio = this.formBuilder.group({
-        'request': [Math.round((1 - this.requestRatio) * 10000) / 100, [Validators.required, Validators.pattern('^[0-9]*[\\.]?[0-9]*$'), Validators.min(0), Validators.max(100)]],
-        'response': [Math.round((1 - this.responseRatio) * 10000) / 100, [Validators.required, Validators.pattern('^[0-9]*[\\.]?[0-9]*$'), Validators.min(0), Validators.max(100)]],
-        'impression': [Math.round((1 - this.impressionRatio) * 10000) / 100, [Validators.required, Validators.pattern('^[0-9]*[\\.]?[0-9]*$'), Validators.min(0), Validators.max(100)]],
-        'click': [Math.round((1 - this.clickRatio) * 10000) / 100, [Validators.required, Validators.pattern('^[0-9]*[\\.]?[0-9]*$'), Validators.min(0), Validators.max(100)]],
-        'cost': [Math.round((1 - this.costRatio) * 10000) / 100, [Validators.required, Validators.pattern('^[0-9]*[\\.]?[0-9]*$'), Validators.min(0), Validators.max(100)]],
+        request: this.formBuilder.control<number | null>(Math.round((1 - this.requestRatio) * 10000) / 100, [Validators.required, Validators.pattern('^[0-9]*[\\.]?[0-9]*$'), Validators.min(0), Validators.max(100)]),
+        response: this.formBuilder.control<number | null>(Math.round((1 - this.responseRatio) * 10000) / 100, [Validators.required, Validators.pattern('^[0-9]*[\\.]?[0-9]*$'), Validators.min(0), Validators.max(100)]),
+        impression: this.formBuilder.control<number | null>(Math.round((1 - this.impressionRatio) * 10000) / 100, [Validators.required, Validators.pattern('^[0-9]*[\\.]?[0-9]*$'), Validators.min(0), Validators.max(100)]),
+        click: this.formBuilder.control<number | null>(Math.round((1 - this.clickRatio) * 10000) / 100, [Validators.required, Validators.pattern('^[0-9]*[\\.]?[0-9]*$'), Validators.min(0), Validators.max(100)]),
+        cost: this.formBuilder.control<number | null>(Math.round((1 - this.costRatio) * 10000) / 100, [Validators.required, Validators.pattern('^[0-9]*[\\.]?[0-9]*$'), Validators.min(0), Validators.max(100)]),
       });
       this.formGroupRatio.valueChanges.subscribe(() => {
-        this.requestRatio = 1 - this.formGroupRatio.value.request / 100;
-        this.responseRatio = 1 - this.formGroupRatio.value.response / 100;
-        this.impressionRatio = 1 - this.formGroupRatio.value.impression / 100;
-        this.clickRatio = 1 - this.formGroupRatio.value.click / 100;
-        this.costRatio = 1 - this.formGroupRatio.value.cost / 100;
+        this.requestRatio = 1 - (this.formGroupRatio.controls.request.value ?? 0) / 100;
+        this.responseRatio = 1 - (this.formGroupRatio.controls.response.value ?? 0) / 100;
+        this.impressionRatio = 1 - (this.formGroupRatio.controls.impression.value ?? 0) / 100;
+        this.clickRatio = 1 - (this.formGroupRatio.controls.click.value ?? 0) / 100;
+        this.costRatio = 1 - (this.formGroupRatio.controls.cost.value ?? 0) / 100;
 
         this.signViews[0].request = Math.round(this.signViewOriginal.request! * this.requestRatio);
         this.signViews[0].response = Math.round(this.signViewOriginal.response! * this.responseRatio);
@@ -577,9 +591,9 @@ export class SignDialogComponent {
       });
 
       this.formGroupLevel = this.formBuilder.group({
-        'top': [96.5, Validators.required],
-        'middle': [96.75, Validators.required],
-        'bottom': [96.8, Validators.required],
+        top: this.formBuilder.control<number | null>(96.5, Validators.required),
+        middle: this.formBuilder.control<number | null>(96.75, Validators.required),
+        bottom: this.formBuilder.control<number | null>(96.8, Validators.required),
       });
     }
 
@@ -699,18 +713,18 @@ export class SignDialogComponent {
       this.dataSource.data = this.signViews;
 
       this.formGroupRatio = this.formBuilder.group({
-        'request': [0, [Validators.required, Validators.pattern('^[0-9]*[\\.]?[0-9]*$'), Validators.min(0), Validators.max(100)]],
-        'response': [0, [Validators.required, Validators.pattern('^[0-9]*[\\.]?[0-9]*$'), Validators.min(0), Validators.max(100)]],
-        'impression': [0, [Validators.required, Validators.pattern('^[0-9]*[\\.]?[0-9]*$'), Validators.min(0), Validators.max(100)]],
-        'click': [0, [Validators.required, Validators.pattern('^[0-9]*[\\.]?[0-9]*$'), Validators.min(0), Validators.max(100)]],
-        'cost': [0, [Validators.required, Validators.pattern('^[0-9]*[\\.]?[0-9]*$'), Validators.min(0), Validators.max(100)]],
+        request: this.formBuilder.control<number | null>(0, [Validators.required, Validators.pattern('^[0-9]*[\\.]?[0-9]*$'), Validators.min(0), Validators.max(100)]),
+        response: this.formBuilder.control<number | null>(0, [Validators.required, Validators.pattern('^[0-9]*[\\.]?[0-9]*$'), Validators.min(0), Validators.max(100)]),
+        impression: this.formBuilder.control<number | null>(0, [Validators.required, Validators.pattern('^[0-9]*[\\.]?[0-9]*$'), Validators.min(0), Validators.max(100)]),
+        click: this.formBuilder.control<number | null>(0, [Validators.required, Validators.pattern('^[0-9]*[\\.]?[0-9]*$'), Validators.min(0), Validators.max(100)]),
+        cost: this.formBuilder.control<number | null>(0, [Validators.required, Validators.pattern('^[0-9]*[\\.]?[0-9]*$'), Validators.min(0), Validators.max(100)]),
       });
       this.formGroupRatio.valueChanges.subscribe(() => {
-        this.requestRatio = 1 - this.formGroupRatio.value.request / 100;
-        this.responseRatio = 1 - this.formGroupRatio.value.response / 100;
-        this.impressionRatio = 1 - this.formGroupRatio.value.impression / 100;
-        this.clickRatio = 1 - this.formGroupRatio.value.click / 100;
-        this.costRatio = 1 - this.formGroupRatio.value.cost / 100;
+        this.requestRatio = 1 - (this.formGroupRatio.controls.request.value ?? 0) / 100;
+        this.responseRatio = 1 - (this.formGroupRatio.controls.response.value ?? 0) / 100;
+        this.impressionRatio = 1 - (this.formGroupRatio.controls.impression.value ?? 0) / 100;
+        this.clickRatio = 1 - (this.formGroupRatio.controls.click.value ?? 0) / 100;
+        this.costRatio = 1 - (this.formGroupRatio.controls.cost.value ?? 0) / 100;
       });
     }
   }

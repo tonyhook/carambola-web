@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, DoCheck, effect, ElementRef, HostListener, KeyValueDiffer, KeyValueDiffers, OnInit, signal, ViewChild, WritableSignal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { animate, state, style, transition, trigger } from '@angular/animations';
-import { UntypedFormGroup, UntypedFormBuilder, ReactiveFormsModule, UntypedFormControl } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleChange, MatButtonToggleModule } from '@angular/material/button-toggle';
@@ -26,6 +26,24 @@ import { TenantService } from '../../../../services';
 import { AdEntityComponent, FilteredSelectClientComponent, FilteredSelectClientMediaComponent, FilteredSelectVendorComponent, FilteredSelectVendorMediaComponent } from '../../../../shared';
 import { ClientPortDialogComponent, ClientPortDialogData } from '../clientport-dialog/clientport-dialog.component';
 import { VendorPortDialogComponent, VendorPortDialogData } from '../vendorport-dialog/vendorport-dialog.component';
+
+interface SummaryColumnControls {
+  column: FormControl<string[]>;
+}
+
+interface SummaryQueryControls {
+  client: FormControl<Client[]>;
+  clientMedia: FormControl<ClientMedia[]>;
+  vendor: FormControl<Vendor[]>;
+  vendorMedia: FormControl<VendorMedia[]>;
+  searchUpstream: FormControl<string>;
+  searchDownstream: FormControl<string>;
+}
+
+interface SummaryRangeControls {
+  start: FormControl<Date | null>;
+  end: FormControl<Date | null>;
+}
 
 @Component({
   selector: 'carambola-summary',
@@ -66,7 +84,7 @@ import { VendorPortDialogComponent, VendorPortDialogData } from '../vendorport-d
   ],
 })
 export class SummaryComponent implements OnInit, AfterViewInit, DoCheck {
-  private formBuilder = inject(UntypedFormBuilder);
+  private formBuilder = inject(FormBuilder);
   private tenantService = inject(TenantService);
   private clientAPI = inject(ClientAPI);
   private clientMediaAPI = inject(ClientMediaAPI);
@@ -91,7 +109,7 @@ export class SummaryComponent implements OnInit, AfterViewInit, DoCheck {
   scrollRight = 0;
   tableWidth = 0;
   candidateColumns: Map<string, string> = new Map<string, string>();
-  formGroupColumn: UntypedFormGroup;
+  formGroupColumn: FormGroup<SummaryColumnControls>;
 
   clients: Client[] = [];
   vendors: Vendor[] = [];
@@ -108,7 +126,7 @@ export class SummaryComponent implements OnInit, AfterViewInit, DoCheck {
   vendorPortMap: Map<number | null, VendorPort> = new Map<number | null, VendorPort>();
 
   mode: WritableSignal<PartnerType> = signal(PartnerType.PARTNER_TYPE_UNKNOWN);
-  formGroupQuery: UntypedFormGroup;
+  formGroupQuery: FormGroup<SummaryQueryControls>;
   formQueryUpstream: Query<PerformancePlaceholder> = {
     filter: {},
     searchKey: ['name', 'tagId'],
@@ -119,7 +137,7 @@ export class SummaryComponent implements OnInit, AfterViewInit, DoCheck {
     searchKey: ['name', 'tagId'],
     searchValue: '',
   };
-  range: UntypedFormGroup;
+  range: FormGroup<SummaryRangeControls>;
   differ: KeyValueDiffer<string, unknown>;
 
   summaryAggregateUpstream = 'all';
@@ -225,22 +243,22 @@ export class SummaryComponent implements OnInit, AfterViewInit, DoCheck {
 
   constructor() {
     this.formGroupColumn = this.formBuilder.group({
-      'column': [[], null],
+      column: this.formBuilder.nonNullable.control<string[]>([]),
     });
     this.formGroupQuery = this.formBuilder.group({
-      'client': [[], null],
-      'clientMedia': [[], null],
-      'vendor': [[], null],
-      'vendorMedia': [[], null],
-      'searchUpstream': ['', null],
-      'searchDownstream': ['', null],
+      client: this.formBuilder.nonNullable.control<Client[]>([]),
+      clientMedia: this.formBuilder.nonNullable.control<ClientMedia[]>([]),
+      vendor: this.formBuilder.nonNullable.control<Vendor[]>([]),
+      vendorMedia: this.formBuilder.nonNullable.control<VendorMedia[]>([]),
+      searchUpstream: this.formBuilder.nonNullable.control(''),
+      searchDownstream: this.formBuilder.nonNullable.control(''),
     });
 
-    this.range = new UntypedFormGroup({
-      start: new UntypedFormControl(),
-      end: new UntypedFormControl(),
+    this.range = this.formBuilder.group({
+      start: this.formBuilder.control<Date | null>(null),
+      end: this.formBuilder.control<Date | null>(null),
     });
-    this.differ = this.differs.find(this.range.value).create();
+    this.differ = this.differs.find(this.range.getRawValue()).create();
 
     effect(() => {
       const mode = this.mode();
@@ -392,13 +410,43 @@ export class SummaryComponent implements OnInit, AfterViewInit, DoCheck {
         this.candidateColumns.set('er', '展现率');
         this.candidateColumns.set('rv', '请求价值');
         this.candidateColumns.set('profit', '利润');
-        this.formGroupColumn.patchValue({['column']: [...this.candidateColumns.keys()]});
+        this.formGroupColumn.patchValue({
+          column: [...this.candidateColumns.keys()],
+        });
 
         this.prepareDisplayColumns();
 
         this.query();
       });
     });
+  }
+
+  get selectedColumns(): string[] {
+    return this.formGroupColumn.controls.column.value;
+  }
+
+  get selectedClients(): Client[] {
+    return this.formGroupQuery.controls.client.value;
+  }
+
+  get selectedClientMedias(): ClientMedia[] {
+    return this.formGroupQuery.controls.clientMedia.value;
+  }
+
+  get selectedVendors(): Vendor[] {
+    return this.formGroupQuery.controls.vendor.value;
+  }
+
+  get selectedVendorMedias(): VendorMedia[] {
+    return this.formGroupQuery.controls.vendorMedia.value;
+  }
+
+  get searchUpstreamValue(): string {
+    return this.formGroupQuery.controls.searchUpstream.value;
+  }
+
+  get searchDownstreamValue(): string {
+    return this.formGroupQuery.controls.searchDownstream.value;
   }
 
   toISOStringWithTimezone(date: Date) {
@@ -425,17 +473,19 @@ export class SummaryComponent implements OnInit, AfterViewInit, DoCheck {
         const time = new Date();
         let timeStart = new Date(time);
         let timeEnd = new Date(time);
+        const start = this.range.controls.start.value;
+        const end = this.range.controls.end.value;
 
-        if (this.range.value.start && this.range.value.end) {
-          timeStart = new Date(Date.parse(this.range.value.start));
-          timeEnd = new Date(Date.parse(this.range.value.end) + 86399999);
+        if (start && end) {
+          timeStart = new Date(Date.parse(String(start)));
+          timeEnd = new Date(Date.parse(String(end)) + 86399999);
           if (timeEnd.getTime() > time.getTime()) {
             timeEnd = new Date(time);
           }
         }
 
         if (this.summaryInterval === 'day') {
-          if (this.range.value.start && this.range.value.end) {
+          if (start && end) {
             this.summaryStart = new Date(timeStart);
             this.summaryEnd = new Date(timeEnd);
           } else {
@@ -449,7 +499,7 @@ export class SummaryComponent implements OnInit, AfterViewInit, DoCheck {
           }
         }
         if (this.summaryInterval === 'month') {
-          if (this.range.value.start && this.range.value.end) {
+          if (start && end) {
             this.summaryStart = new Date(timeStart);
             this.summaryEnd = new Date(timeEnd);
           } else {
@@ -463,7 +513,7 @@ export class SummaryComponent implements OnInit, AfterViewInit, DoCheck {
           }
         }
         if (this.summaryInterval === 'year') {
-          if (this.range.value.start && this.range.value.end) {
+          if (start && end) {
             this.summaryStart = new Date(timeStart);
             this.summaryEnd = new Date(timeEnd);
           } else {
@@ -536,9 +586,9 @@ export class SummaryComponent implements OnInit, AfterViewInit, DoCheck {
   }
 
   ngDoCheck(): void {
-    const changes = this.differ.diff(this.range.value);
+    const changes = this.differ.diff(this.range.getRawValue());
     if (changes) {
-      if (this.range.value.start && this.range.value.end) {
+      if (this.range.controls.start.value && this.range.controls.end.value) {
         this.query();
       }
     }
@@ -549,21 +599,21 @@ export class SummaryComponent implements OnInit, AfterViewInit, DoCheck {
       filter: {
         clientMode: [String(this.mode())],
         vendorMode: [String(this.mode())],
-        client: (this.formGroupQuery.value.client as Client[]).map(client => client.id!.toString()),
-        clientMedia: (this.formGroupQuery.value.clientMedia as ClientMedia[]).map(clientMedia => clientMedia.id!.toString()),
+        client: this.selectedClients.map(client => client.id!.toString()),
+        clientMedia: this.selectedClientMedias.map(clientMedia => clientMedia.id!.toString()),
       },
       searchKey: ['name', 'tagId'],
-      searchValue: this.formGroupQuery.value.searchUpstream,
+      searchValue: this.searchUpstreamValue,
     };
     this.formQueryDownstream = {
       filter: {
         clientMode: [String(this.mode())],
         vendorMode: [String(this.mode())],
-        vendor: (this.formGroupQuery.value.vendor as Vendor[]).map(vendor => vendor.id!.toString()),
-        vendorMedia: (this.formGroupQuery.value.vendorMedia as VendorMedia[]).map(clientMedia => clientMedia.id!.toString()),
+        vendor: this.selectedVendors.map(vendor => vendor.id!.toString()),
+        vendorMedia: this.selectedVendorMedias.map(clientMedia => clientMedia.id!.toString()),
       },
       searchKey: ['name', 'tagId'],
-      searchValue: this.formGroupQuery.value.searchDownstream,
+      searchValue: this.searchDownstreamValue,
     };
 
     this.dataRequest$.next([this.formQueryUpstream, this.formQueryDownstream]);
@@ -573,17 +623,19 @@ export class SummaryComponent implements OnInit, AfterViewInit, DoCheck {
     const time = new Date();
     let timeStart = new Date(time);
     let timeEnd = new Date(time);
+    const start = this.range.controls.start.value;
+    const end = this.range.controls.end.value;
 
-    if (this.range.value.start && this.range.value.end) {
-      timeStart = new Date(Date.parse(this.range.value.start));
-      timeEnd = new Date(Date.parse(this.range.value.end) + 86399999);
+    if (start && end) {
+      timeStart = new Date(Date.parse(String(start)));
+      timeEnd = new Date(Date.parse(String(end)) + 86399999);
       if (timeEnd.getTime() > time.getTime()) {
         timeEnd = new Date(time);
       }
     }
 
     if (this.summaryInterval === 'day') {
-      if (this.range.value.start && this.range.value.end) {
+      if (start && end) {
         this.summaryStart = new Date(timeStart);
         this.summaryEnd = new Date(timeEnd);
       } else {
@@ -597,7 +649,7 @@ export class SummaryComponent implements OnInit, AfterViewInit, DoCheck {
       }
     }
     if (this.summaryInterval === 'month') {
-      if (this.range.value.start && this.range.value.end) {
+      if (start && end) {
         this.summaryStart = new Date(timeStart);
         this.summaryEnd = new Date(timeEnd);
       } else {
@@ -611,7 +663,7 @@ export class SummaryComponent implements OnInit, AfterViewInit, DoCheck {
       }
     }
     if (this.summaryInterval === 'year') {
-      if (this.range.value.start && this.range.value.end) {
+      if (start && end) {
         this.summaryStart = new Date(timeStart);
         this.summaryEnd = new Date(timeEnd);
       } else {
@@ -678,17 +730,19 @@ export class SummaryComponent implements OnInit, AfterViewInit, DoCheck {
     const time = new Date();
     let timeStart = new Date(time);
     let timeEnd = new Date(time);
+    const start = this.range.controls.start.value;
+    const end = this.range.controls.end.value;
 
-    if (this.range.value.start && this.range.value.end) {
-      timeStart = new Date(Date.parse(this.range.value.start));
-      timeEnd = new Date(Date.parse(this.range.value.end) + 86399999);
+    if (start && end) {
+      timeStart = new Date(Date.parse(String(start)));
+      timeEnd = new Date(Date.parse(String(end)) + 86399999);
       if (timeEnd.getTime() > time.getTime()) {
         timeEnd = new Date(time);
       }
     }
 
     if (this.summaryInterval === 'day') {
-      if (this.range.value.start && this.range.value.end) {
+      if (start && end) {
         this.summaryStart = new Date(timeStart);
         this.summaryEnd = new Date(timeEnd);
       } else {
@@ -702,7 +756,7 @@ export class SummaryComponent implements OnInit, AfterViewInit, DoCheck {
       }
     }
     if (this.summaryInterval === 'month') {
-      if (this.range.value.start && this.range.value.end) {
+      if (start && end) {
         this.summaryStart = new Date(timeStart);
         this.summaryEnd = new Date(timeEnd);
       } else {
@@ -716,7 +770,7 @@ export class SummaryComponent implements OnInit, AfterViewInit, DoCheck {
       }
     }
     if (this.summaryInterval === 'year') {
-      if (this.range.value.start && this.range.value.end) {
+      if (start && end) {
         this.summaryStart = new Date(timeStart);
         this.summaryEnd = new Date(timeEnd);
       } else {
@@ -781,17 +835,19 @@ export class SummaryComponent implements OnInit, AfterViewInit, DoCheck {
     const time = new Date();
     let timeStart = new Date(time);
     let timeEnd = new Date(time);
+    const start = this.range.controls.start.value;
+    const end = this.range.controls.end.value;
 
-    if (this.range.value.start && this.range.value.end) {
-      timeStart = new Date(Date.parse(this.range.value.start));
-      timeEnd = new Date(Date.parse(this.range.value.end) + 86399999);
+    if (start && end) {
+      timeStart = new Date(Date.parse(String(start)));
+      timeEnd = new Date(Date.parse(String(end)) + 86399999);
       if (timeEnd.getTime() > time.getTime()) {
         timeEnd = new Date(time);
       }
     }
 
     if (this.summaryInterval === 'day') {
-      if (this.range.value.start && this.range.value.end) {
+      if (start && end) {
         this.summaryStart = new Date(timeStart);
         this.summaryEnd = new Date(timeEnd);
       } else {
@@ -805,7 +861,7 @@ export class SummaryComponent implements OnInit, AfterViewInit, DoCheck {
       }
     }
     if (this.summaryInterval === 'month') {
-      if (this.range.value.start && this.range.value.end) {
+      if (start && end) {
         this.summaryStart = new Date(timeStart);
         this.summaryEnd = new Date(timeEnd);
       } else {
@@ -819,7 +875,7 @@ export class SummaryComponent implements OnInit, AfterViewInit, DoCheck {
       }
     }
     if (this.summaryInterval === 'year') {
-      if (this.range.value.start && this.range.value.end) {
+      if (start && end) {
         this.summaryStart = new Date(timeStart);
         this.summaryEnd = new Date(timeEnd);
       } else {
@@ -860,7 +916,11 @@ export class SummaryComponent implements OnInit, AfterViewInit, DoCheck {
     a.click();
   }
 
-  clear(event: Event, field: string, value: string | unknown[]) {
+  clear(
+    event: Event,
+    field: keyof SummaryQueryControls,
+    value: string | Client[] | ClientMedia[] | Vendor[] | VendorMedia[]
+  ) {
     event.stopPropagation();
     this.formGroupQuery.patchValue({[field]: value});
     this.query();
@@ -922,8 +982,8 @@ export class SummaryComponent implements OnInit, AfterViewInit, DoCheck {
       this.displayedColumns = this.displayedColumns.concat(['downstream']);
       this.displayedColumnsWidth += 250;
     }
-    this.displayedColumns = [...this.displayedColumns, ...this.formGroupColumn.value.column];
-    this.displayedColumnsWidth = this.displayedColumnsWidth + this.formGroupColumn.value.column.length * 120 + 80;
+    this.displayedColumns = [...this.displayedColumns, ...this.selectedColumns];
+    this.displayedColumnsWidth = this.displayedColumnsWidth + this.selectedColumns.length * 120 + 80;
 
     this.onResize();
   }
@@ -1346,21 +1406,21 @@ export class SummaryComponent implements OnInit, AfterViewInit, DoCheck {
       filter: {
         clientMode: [String(this.mode())],
         vendorMode: [String(this.mode())],
-        client: (this.formGroupQuery.value.client as Client[]).map(client => client.id!.toString()),
-        clientMedia: (this.formGroupQuery.value.clientMedia as ClientMedia[]).map(clientMedia => clientMedia.id!.toString()),
+        client: this.selectedClients.map(client => client.id!.toString()),
+        clientMedia: this.selectedClientMedias.map(clientMedia => clientMedia.id!.toString()),
       },
       searchKey: ['name', 'tagId'],
-      searchValue: this.formGroupQuery.value.searchUpstream,
+      searchValue: this.searchUpstreamValue,
     };
     const formQueryDownstream: Query<VendorPort> = {
       filter: {
         clientMode: [String(this.mode())],
         vendorMode: [String(this.mode())],
-        vendor: (this.formGroupQuery.value.vendor as Vendor[]).map(vendor => vendor.id!.toString()),
-        vendorMedia: (this.formGroupQuery.value.vendorMedia as VendorMedia[]).map(clientMedia => clientMedia.id!.toString()),
+        vendor: this.selectedVendors.map(vendor => vendor.id!.toString()),
+        vendorMedia: this.selectedVendorMedias.map(clientMedia => clientMedia.id!.toString()),
       },
       searchKey: ['name', 'tagId'],
-      searchValue: this.formGroupQuery.value.searchDownstream,
+      searchValue: this.searchDownstreamValue,
     };
 
     forkJoin([

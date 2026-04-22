@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, DoCheck, effect, ElementRef, HostListener, KeyValueDiffer, KeyValueDiffers, OnInit, signal, ViewChild, WritableSignal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { UntypedFormGroup, UntypedFormBuilder, ReactiveFormsModule, UntypedFormControl } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleChange, MatButtonToggleModule } from '@angular/material/button-toggle';
@@ -19,6 +19,19 @@ import { asyncScheduler, catchError, debounceTime, forkJoin, scheduled, Subject,
 import { Bill, BillAPI, BillStatus, BillView, Client, ClientAPI, ClientMedia, ClientMediaAPI, ClientPort, ClientPortAPI, PartnerType, PerformancePlaceholder, Query } from '../../../../core';
 import { TenantService } from '../../../../services';
 import { AdEntityComponent, FilteredSelectClientComponent, FilteredSelectClientMediaComponent } from '../../../../shared';
+
+interface UpstreamObserverQueryControls {
+  client: FormControl<Client[]>;
+  clientMedia: FormControl<ClientMedia[]>;
+  format: FormControl<string[]>;
+  mode: FormControl<string[]>;
+  search: FormControl<string>;
+}
+
+interface UpstreamObserverRangeControls {
+  start: FormControl<Date | null>;
+  end: FormControl<Date | null>;
+}
 
 @Component({
   selector: 'carambola-upstream-observer',
@@ -47,7 +60,7 @@ import { AdEntityComponent, FilteredSelectClientComponent, FilteredSelectClientM
   styleUrls: ['./upstream-observer.component.scss'],
 })
 export class UpstreamObserverComponent implements OnInit, AfterViewInit, DoCheck {
-  private formBuilder = inject(UntypedFormBuilder);
+  private formBuilder = inject(FormBuilder);
   private tenantService = inject(TenantService);
   private clientAPI = inject(ClientAPI);
   private clientMediaAPI = inject(ClientMediaAPI);
@@ -73,14 +86,14 @@ export class UpstreamObserverComponent implements OnInit, AfterViewInit, DoCheck
   clientPortMap: Map<number | null, ClientPort> = new Map<number | null, ClientPort>();
 
   mode: WritableSignal<PartnerType> = signal(PartnerType.PARTNER_TYPE_UNKNOWN);
-  formGroupQuery: UntypedFormGroup;
+  formGroupQuery: FormGroup<UpstreamObserverQueryControls>;
   filterMode: Map<string, string>;
   formQuery: Query<PerformancePlaceholder> = {
     filter: {},
     searchKey: ['name', 'tagId'],
     searchValue: '',
   };
-  range: UntypedFormGroup;
+  range: FormGroup<UpstreamObserverRangeControls>;
   differ: KeyValueDiffer<string, unknown>;
 
   billAggregateUpstream = 'all';
@@ -125,11 +138,11 @@ export class UpstreamObserverComponent implements OnInit, AfterViewInit, DoCheck
 
   constructor() {
     this.formGroupQuery = this.formBuilder.group({
-      'client': [[], null],
-      'clientMedia': [[], null],
-      'format': [[], null],
-      'mode': [[], null],
-      'search': ['', null],
+      client: this.formBuilder.nonNullable.control<Client[]>([]),
+      clientMedia: this.formBuilder.nonNullable.control<ClientMedia[]>([]),
+      format: this.formBuilder.nonNullable.control<string[]>([]),
+      mode: this.formBuilder.nonNullable.control<string[]>([]),
+      search: this.formBuilder.nonNullable.control(''),
     });
 
     this.filterMode = new Map([
@@ -138,11 +151,11 @@ export class UpstreamObserverComponent implements OnInit, AfterViewInit, DoCheck
       ['3', '直通模式'],
     ]);
 
-    this.range = new UntypedFormGroup({
-      start: new UntypedFormControl(),
-      end: new UntypedFormControl(),
+    this.range = this.formBuilder.group({
+      start: this.formBuilder.control<Date | null>(null),
+      end: this.formBuilder.control<Date | null>(null),
     });
-    this.differ = this.differs.find(this.range.value).create();
+    this.differ = this.differs.find(this.range.getRawValue()).create();
 
     effect(() => {
       const mode = this.mode();
@@ -239,16 +252,16 @@ export class UpstreamObserverComponent implements OnInit, AfterViewInit, DoCheck
         let timeStart = new Date(time);
         let timeEnd = new Date(time);
 
-        if (this.range.value.start && this.range.value.end) {
-          timeStart = new Date(Date.parse(this.range.value.start));
-          timeEnd = new Date(Date.parse(this.range.value.end) + 86399999);
+        if (this.range.controls.start.value && this.range.controls.end.value) {
+          timeStart = new Date(Date.parse(this.range.controls.start.value.toString()));
+          timeEnd = new Date(Date.parse(this.range.controls.end.value.toString()) + 86399999);
           if (timeEnd.getTime() > time.getTime()) {
             timeEnd = new Date(time);
           }
         }
 
         if (this.billInterval === 'day') {
-          if (this.range.value.start && this.range.value.end) {
+          if (this.range.controls.start.value && this.range.controls.end.value) {
             this.billStart = new Date(timeStart);
             this.billEnd = new Date(timeEnd);
           } else {
@@ -262,7 +275,7 @@ export class UpstreamObserverComponent implements OnInit, AfterViewInit, DoCheck
           }
         }
         if (this.billInterval === 'month') {
-          if (this.range.value.start && this.range.value.end) {
+          if (this.range.controls.start.value && this.range.controls.end.value) {
             this.billStart = new Date(timeStart);
             this.billEnd = new Date(timeEnd);
           } else {
@@ -276,7 +289,7 @@ export class UpstreamObserverComponent implements OnInit, AfterViewInit, DoCheck
           }
         }
         if (this.billInterval === 'year') {
-          if (this.range.value.start && this.range.value.end) {
+          if (this.range.controls.start.value && this.range.controls.end.value) {
             this.billStart = new Date(timeStart);
             this.billEnd = new Date(timeEnd);
           } else {
@@ -320,16 +333,16 @@ export class UpstreamObserverComponent implements OnInit, AfterViewInit, DoCheck
       }
 
       if (this.mode() === PartnerType.PARTNER_TYPE_DIRECT) {
-        if (this.formGroupQuery.value.mode.indexOf(PartnerType.PARTNER_TYPE_DIRECT) < 0) {
-          this.formGroupQuery.controls['mode'].setValue([]);
+        if (this.formGroupQuery.controls.mode.value.indexOf(String(PartnerType.PARTNER_TYPE_DIRECT)) < 0) {
+          this.formGroupQuery.controls.mode.setValue([]);
         }
         this.filterMode = new Map([
           ['3', '直通模式'],
         ]);
       }
       if (this.mode() === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
-        if (this.formGroupQuery.value.mode.indexOf(PartnerType.PARTNER_TYPE_DIRECT) >= 0) {
-          this.formGroupQuery.controls['mode'].setValue([]);
+        if (this.formGroupQuery.controls.mode.value.indexOf(String(PartnerType.PARTNER_TYPE_DIRECT)) >= 0) {
+          this.formGroupQuery.controls.mode.setValue([]);
         }
         this.filterMode = new Map([
           ['1', '分成模式'],
@@ -340,12 +353,28 @@ export class UpstreamObserverComponent implements OnInit, AfterViewInit, DoCheck
   }
 
   ngDoCheck(): void {
-    const changes = this.differ.diff(this.range.value);
+    const changes = this.differ.diff(this.range.getRawValue());
     if (changes) {
-      if (this.range.value.start && this.range.value.end) {
+      if (this.range.controls.start.value && this.range.controls.end.value) {
         this.query();
       }
     }
+  }
+
+  get selectedClients(): Client[] {
+    return this.formGroupQuery.controls.client.value;
+  }
+
+  get selectedClientMedias(): ClientMedia[] {
+    return this.formGroupQuery.controls.clientMedia.value;
+  }
+
+  get selectedModes(): string[] {
+    return this.formGroupQuery.controls.mode.value;
+  }
+
+  get searchValue(): string {
+    return this.formGroupQuery.controls.search.value;
   }
 
   query() {
@@ -353,12 +382,12 @@ export class UpstreamObserverComponent implements OnInit, AfterViewInit, DoCheck
       filter: {
         clientMode: [String(this.mode())],
         vendorMode: [String(this.mode())],
-        client: (this.formGroupQuery.value.client as Client[]).map(client => client.id!.toString()),
-        clientMedia: (this.formGroupQuery.value.clientMedia as ClientMedia[]).map(clientMedia => clientMedia.id!.toString()),
-        mode: this.formGroupQuery.value.mode,
+        client: this.formGroupQuery.controls.client.value.map(client => client.id!.toString()),
+        clientMedia: this.formGroupQuery.controls.clientMedia.value.map(clientMedia => clientMedia.id!.toString()),
+        mode: this.formGroupQuery.controls.mode.value,
       },
       searchKey: ['name', 'tagId'],
-      searchValue: this.formGroupQuery.value.search,
+      searchValue: this.formGroupQuery.controls.search.value,
     };
 
     this.dataRequest$.next(this.formQuery);
@@ -369,16 +398,16 @@ export class UpstreamObserverComponent implements OnInit, AfterViewInit, DoCheck
     let timeStart = new Date(time);
     let timeEnd = new Date(time);
 
-    if (this.range.value.start && this.range.value.end) {
-      timeStart = new Date(Date.parse(this.range.value.start));
-      timeEnd = new Date(Date.parse(this.range.value.end) + 86399999);
+    if (this.range.controls.start.value && this.range.controls.end.value) {
+      timeStart = new Date(Date.parse(this.range.controls.start.value.toString()));
+      timeEnd = new Date(Date.parse(this.range.controls.end.value.toString()) + 86399999);
       if (timeEnd.getTime() > time.getTime()) {
         timeEnd = new Date(time);
       }
     }
 
     if (this.billInterval === 'day') {
-      if (this.range.value.start && this.range.value.end) {
+      if (this.range.controls.start.value && this.range.controls.end.value) {
         this.billStart = new Date(timeStart);
         this.billEnd = new Date(timeEnd);
       } else {
@@ -392,7 +421,7 @@ export class UpstreamObserverComponent implements OnInit, AfterViewInit, DoCheck
       }
     }
     if (this.billInterval === 'month') {
-      if (this.range.value.start && this.range.value.end) {
+      if (this.range.controls.start.value && this.range.controls.end.value) {
         this.billStart = new Date(timeStart);
         this.billEnd = new Date(timeEnd);
       } else {
@@ -406,7 +435,7 @@ export class UpstreamObserverComponent implements OnInit, AfterViewInit, DoCheck
       }
     }
     if (this.billInterval === 'year') {
-      if (this.range.value.start && this.range.value.end) {
+      if (this.range.controls.start.value && this.range.controls.end.value) {
         this.billStart = new Date(timeStart);
         this.billEnd = new Date(timeEnd);
       } else {
@@ -440,7 +469,7 @@ export class UpstreamObserverComponent implements OnInit, AfterViewInit, DoCheck
     });
   }
 
-  clear(event: Event, field: string, value: string | unknown[]) {
+  clear(event: Event, field: keyof UpstreamObserverQueryControls, value: string | Client[] | ClientMedia[] | string[]) {
     event.stopPropagation();
     this.formGroupQuery.patchValue({[field]: value});
     this.query();

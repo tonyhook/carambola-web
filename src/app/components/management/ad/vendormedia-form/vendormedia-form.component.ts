@@ -1,5 +1,5 @@
 import { Component, effect, input, OnInit, output, signal, WritableSignal, inject } from '@angular/core';
-import { UntypedFormGroup, UntypedFormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatCardModule } from '@angular/material/card';
@@ -13,6 +13,16 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { PartnerType, Vendor, VendorAPI, VendorMedia, VendorMediaAPI } from '../../../../core';
 import { TenantService } from '../../../../services';
 import { FilteredSelectVendorComponent } from '../../../../shared';
+
+interface VendorMediaFormControls {
+  vendor: FormControl<Vendor | null>;
+  name: FormControl<string>;
+  platform: FormControl<string>;
+  apppackage: FormControl<string | null>;
+  appversion: FormControl<string | null>;
+  applink: FormControl<string | null>;
+  remark: FormControl<string | null>;
+}
 
 @Component({
   selector: 'carambola-vendormedia-form',
@@ -33,13 +43,13 @@ import { FilteredSelectVendorComponent } from '../../../../shared';
   styleUrls: ['./vendormedia-form.component.scss'],
 })
 export class VendorMediaFormComponent implements OnInit {
-  private formBuilder = inject(UntypedFormBuilder);
+  private formBuilder = inject(FormBuilder);
   private snackBar = inject(MatSnackBar);
   private tenantService = inject(TenantService);
   private vendorAPI = inject(VendorAPI);
   private vendorMediaAPI = inject(VendorMediaAPI);
 
-  formGroup: UntypedFormGroup;
+  formGroup: FormGroup<VendorMediaFormControls>;
   vendors: WritableSignal<Vendor[]> = signal([]);
   managedVendors: WritableSignal<Vendor[]> = signal([]);
 
@@ -54,13 +64,13 @@ export class VendorMediaFormComponent implements OnInit {
 
   constructor() {
     this.formGroup = this.formBuilder.group({
-      'vendor': [null, Validators.required],
-      'name': ['', Validators.required],
-      'platform': ['Android', Validators.required],
-      'apppackage': ['', null],
-      'appversion': ['', null],
-      'applink': ['', null],
-      'remark': ['', null],
+      vendor: this.formBuilder.control<Vendor | null>(null, Validators.required),
+      name: this.formBuilder.nonNullable.control('', Validators.required),
+      platform: this.formBuilder.nonNullable.control('Android', Validators.required),
+      apppackage: this.formBuilder.control<string | null>(''),
+      appversion: this.formBuilder.control<string | null>(''),
+      applink: this.formBuilder.control<string | null>(''),
+      remark: this.formBuilder.control<string | null>(''),
     });
 
     effect(() => {
@@ -75,12 +85,12 @@ export class VendorMediaFormComponent implements OnInit {
             if (vendor) {
               this.initialized = true;
 
-              this.formGroup.setControl('vendor', this.formBuilder.control({value: vendor, disabled: this.readonly}, Validators.required), {emitEvent: false});
+              this.formGroup.setControl('vendor', this.createVendorControl(vendor), {emitEvent: false});
             }
           } else {
             this.initialized = true;
 
-            this.formGroup.setControl('vendor', this.formBuilder.control(null, Validators.required), {emitEvent: false});
+            this.formGroup.setControl('vendor', this.createVendorControl(null, false), {emitEvent: false});
           }
         } else {
           const vendor = vendors.find(vendor => vendor.id === vendorMedia.vendor.id);
@@ -89,17 +99,29 @@ export class VendorMediaFormComponent implements OnInit {
 
             this.initialized = true;
 
-            this.formGroup.setControl('vendor', this.formBuilder.control({value: vendor, disabled: this.readonly}, Validators.required), {emitEvent: false});
-            this.formGroup.setControl('name', this.formBuilder.control({value: vendorMedia.name, disabled: this.readonly}, Validators.required), {emitEvent: false});
-            this.formGroup.setControl('platform', this.formBuilder.control({value: vendorMedia.platform, disabled: this.readonly}, Validators.required), {emitEvent: false});
-            this.formGroup.setControl('apppackage', this.formBuilder.control({value: vendorMedia.apppackage, disabled: this.readonly}, null), {emitEvent: false});
-            this.formGroup.setControl('appversion', this.formBuilder.control({value: vendorMedia.appversion, disabled: this.readonly}, null), {emitEvent: false});
-            this.formGroup.setControl('applink', this.formBuilder.control({value: vendorMedia.applink, disabled: this.readonly}, null), {emitEvent: false});
-            this.formGroup.setControl('remark', this.formBuilder.control({value: vendorMedia.remark, disabled: this.readonly}, null), {emitEvent: false});
+            this.formGroup.setControl('vendor', this.createVendorControl(vendor), {emitEvent: false});
+            this.formGroup.setControl('name', this.createRequiredTextControl(vendorMedia.name), {emitEvent: false});
+            this.formGroup.setControl('platform', this.createRequiredTextControl(vendorMedia.platform), {emitEvent: false});
+            this.formGroup.setControl('apppackage', this.createOptionalTextControl(vendorMedia.apppackage), {emitEvent: false});
+            this.formGroup.setControl('appversion', this.createOptionalTextControl(vendorMedia.appversion), {emitEvent: false});
+            this.formGroup.setControl('applink', this.createOptionalTextControl(vendorMedia.applink), {emitEvent: false});
+            this.formGroup.setControl('remark', this.createOptionalTextControl(vendorMedia.remark), {emitEvent: false});
           }
         }
       }
     });
+  }
+
+  private createVendorControl(value: Vendor | null, disabled = this.readonly): FormControl<Vendor | null> {
+    return this.formBuilder.control({value, disabled}, Validators.required);
+  }
+
+  private createRequiredTextControl(value: string, disabled = this.readonly): FormControl<string> {
+    return this.formBuilder.nonNullable.control({value, disabled}, Validators.required);
+  }
+
+  private createOptionalTextControl(value: string | null, disabled = this.readonly): FormControl<string | null> {
+    return this.formBuilder.control({value, disabled});
   }
 
   ngOnInit() {
@@ -121,16 +143,22 @@ export class VendorMediaFormComponent implements OnInit {
       return;
     }
 
+    const vendor = this.formGroup.controls.vendor.value;
+    if (!vendor) {
+      this.formGroup.markAllAsTouched();
+      return;
+    }
+
     const vendorMedia: VendorMedia = {
       id: null,
       deleted: false,
-      vendor: this.formGroup.value.vendor,
-      name: this.formGroup.value.name,
-      platform: this.formGroup.value.platform,
-      apppackage: this.formGroup.value.apppackage,
-      appversion: this.formGroup.value.appversion,
-      applink: this.formGroup.value.applink,
-      remark: this.formGroup.value.remark,
+      vendor,
+      name: this.formGroup.controls.name.value,
+      platform: this.formGroup.controls.platform.value,
+      apppackage: this.formGroup.controls.apppackage.value ?? '',
+      appversion: this.formGroup.controls.appversion.value ?? '',
+      applink: this.formGroup.controls.applink.value ?? '',
+      remark: this.formGroup.controls.remark.value,
       createTime: null,
       updateTime: null,
     };
@@ -151,17 +179,18 @@ export class VendorMediaFormComponent implements OnInit {
     }
 
     const vendorMedia = this.vendorMedia();
-    if (!vendorMedia) {
+    const vendor = this.formGroup.controls.vendor.value;
+    if (!vendorMedia || !vendor) {
       return;
     }
 
-    vendorMedia.vendor = this.formGroup.value.vendor;
-    vendorMedia.name = this.formGroup.value.name;
-    vendorMedia.platform = this.formGroup.value.platform;
-    vendorMedia.apppackage = this.formGroup.value.apppackage;
-    vendorMedia.appversion = this.formGroup.value.appversion;
-    vendorMedia.applink = this.formGroup.value.applink;
-    vendorMedia.remark = this.formGroup.value.remark;
+    vendorMedia.vendor = vendor;
+    vendorMedia.name = this.formGroup.controls.name.value;
+    vendorMedia.platform = this.formGroup.controls.platform.value;
+    vendorMedia.apppackage = this.formGroup.controls.apppackage.value ?? '';
+    vendorMedia.appversion = this.formGroup.controls.appversion.value ?? '';
+    vendorMedia.applink = this.formGroup.controls.applink.value ?? '';
+    vendorMedia.remark = this.formGroup.controls.remark.value;
 
     this.vendorMediaAPI.updateVendorMedia(vendorMedia.id!, vendorMedia).subscribe(() => {
       this.snackBar.open('下游媒体已修改', 'OK', {

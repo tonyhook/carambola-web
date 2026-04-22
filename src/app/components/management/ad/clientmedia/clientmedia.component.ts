@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, effect, OnInit, signal, ViewChild, WritableSignal, inject } from '@angular/core';
-import { UntypedFormGroup, UntypedFormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
@@ -16,6 +16,12 @@ import { Client, ClientAPI, ClientMedia, ClientMediaAPI, PartnerType, Query } fr
 import { AdEntityComponent, FilteredSelectClientComponent } from '../../../../shared';
 import { TenantService } from '../../../../services';
 import { ClientMediaDialogComponent, ClientMediaDialogData } from '../clientmedia-dialog/clientmedia-dialog.component';
+
+interface ClientMediaQueryControls {
+  client: FormControl<Client[]>;
+  platform: FormControl<string[]>;
+  search: FormControl<string>;
+}
 
 @Component({
   selector: 'carambola-clientmedia-manager',
@@ -38,7 +44,7 @@ import { ClientMediaDialogComponent, ClientMediaDialogData } from '../clientmedi
   styleUrls: ['./clientmedia.component.scss'],
 })
 export class ClientMediaManagerComponent implements OnInit, AfterViewInit {
-  private formBuilder = inject(UntypedFormBuilder);
+  private formBuilder = inject(FormBuilder);
   private dialog = inject(MatDialog);
   private tenantService = inject(TenantService);
   private clientAPI = inject(ClientAPI);
@@ -50,7 +56,7 @@ export class ClientMediaManagerComponent implements OnInit, AfterViewInit {
   hoverRow: ClientMedia | null = null;
 
   mode: WritableSignal<PartnerType> = signal(PartnerType.PARTNER_TYPE_UNKNOWN);
-  formGroupQuery: UntypedFormGroup;
+  formGroupQuery: FormGroup<ClientMediaQueryControls>;
   filterClient: Client[] = [];
   filterPlatform: Map<string, string>;
   formQuery: Query<ClientMedia> = {
@@ -67,9 +73,9 @@ export class ClientMediaManagerComponent implements OnInit, AfterViewInit {
 
   constructor() {
     this.formGroupQuery = this.formBuilder.group({
-      'client': [[], null],
-      'platform': [[], null],
-      'search': ['', null],
+      client: this.formBuilder.nonNullable.control<Client[]>([]),
+      platform: this.formBuilder.nonNullable.control<string[]>([]),
+      search: this.formBuilder.nonNullable.control(''),
     });
 
     this.filterPlatform = new Map([
@@ -104,6 +110,18 @@ export class ClientMediaManagerComponent implements OnInit, AfterViewInit {
     });
   }
 
+  get selectedClients(): Client[] {
+    return this.formGroupQuery.controls.client.value;
+  }
+
+  get selectedPlatforms(): string[] {
+    return this.formGroupQuery.controls.platform.value;
+  }
+
+  get searchValue(): string {
+    return this.formGroupQuery.controls.search.value;
+  }
+
   ngOnInit() {
     this.dataRequest$.pipe(
       debounceTime(500),
@@ -133,9 +151,9 @@ export class ClientMediaManagerComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit() {
     this.route.queryParams.subscribe(params => {
-      this.formGroupQuery.controls['client'].setValue([]);
-      this.formGroupQuery.controls['platform'].setValue([]);
-      this.formGroupQuery.controls['search'].setValue('');
+      this.formGroupQuery.controls.client.setValue([]);
+      this.formGroupQuery.controls.platform.setValue([]);
+      this.formGroupQuery.controls.search.setValue('');
       this.dataSource.data = [];
 
       if (params['directMode']) {
@@ -169,17 +187,21 @@ export class ClientMediaManagerComponent implements OnInit, AfterViewInit {
     this.formQuery = {
       filter: {
         clientMode: [String(this.mode())],
-        client: (this.formGroupQuery.value.client as Client[]).map(client => client.id!.toString()),
-        platform: this.formGroupQuery.value.platform,
+        client: this.selectedClients.map(client => client.id!.toString()),
+        platform: this.selectedPlatforms,
       },
       searchKey: ['name', 'apppackage'],
-      searchValue: this.formGroupQuery.value.search,
+      searchValue: this.searchValue,
     };
 
     this.dataRequest$.next(this.formQuery);
   }
 
-  clear(event: Event, field: string, value: string | unknown[]) {
+  clear(
+    event: Event,
+    field: keyof ClientMediaQueryControls,
+    value: string | Client[] | string[]
+  ) {
     event.stopPropagation();
     this.formGroupQuery.patchValue({[field]: value});
     this.query();

@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, DoCheck, effect, ElementRef, HostListener, KeyValueDiffer, KeyValueDiffers, OnInit, signal, ViewChild, WritableSignal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { animate, state, style, transition, trigger } from '@angular/animations';
-import { UntypedFormGroup, UntypedFormBuilder, ReactiveFormsModule, UntypedFormControl } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleChange, MatButtonToggleModule } from '@angular/material/button-toggle';
@@ -25,6 +25,28 @@ import { AdEntityComponent, FilteredSelectClientComponent, FilteredSelectClientM
 import { BundleDialogComponent } from '../bundle-dialog/bundle-dialog.component';
 import { ClientPortDialogComponent, ClientPortDialogData } from '../clientport-dialog/clientport-dialog.component';
 import { VendorPortDialogComponent, VendorPortDialogData } from '../vendorport-dialog/vendorport-dialog.component';
+
+interface PerformanceColumnControls {
+  column: FormControl<string[]>;
+}
+
+interface PerformanceQueryControls {
+  client: FormControl<Client[]>;
+  vendor: FormControl<Vendor[]>;
+  clientMedia: FormControl<ClientMedia[]>;
+  vendorMedia: FormControl<VendorMedia[]>;
+  platform: FormControl<string[]>;
+  format: FormControl<string[]>;
+  budget: FormControl<string[]>;
+  mode: FormControl<string[]>;
+  search: FormControl<string>;
+}
+
+interface PerformanceRangeControls {
+  start: FormControl<Date | null>;
+  end: FormControl<Date | null>;
+  time: FormControl<Date | null>;
+}
 
 @Component({
   selector: 'carambola-performance',
@@ -63,7 +85,7 @@ import { VendorPortDialogComponent, VendorPortDialogData } from '../vendorport-d
   ],
 })
 export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
-  private formBuilder = inject(UntypedFormBuilder);
+  private formBuilder = inject(FormBuilder);
   private tenantService = inject(TenantService);
   private clientAPI = inject(ClientAPI);
   private clientMediaAPI = inject(ClientMediaAPI);
@@ -87,7 +109,7 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
   hoverRow: PerformanceView | null = null;
   expandedRow: PerformanceView | null = null;
   loading = false;
-  formGroupColumn: UntypedFormGroup;
+  formGroupColumn: FormGroup<PerformanceColumnControls>;
 
   clients: Client[] = [];
   vendors: Vendor[] = [];
@@ -106,7 +128,7 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
   mode: WritableSignal<PartnerType> = signal(PartnerType.PARTNER_TYPE_UNKNOWN);
   rapid: WritableSignal<boolean> = signal(false);
   direction: WritableSignal<string> = signal('none');
-  formGroupQuery: UntypedFormGroup;
+  formGroupQuery: FormGroup<PerformanceQueryControls>;
   filterPlatform: Map<string, string>;
   filterFormat: Map<string, string>;
   filterBudget: Map<string, string>;
@@ -126,7 +148,7 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
     searchKey: ['name', 'tagId'],
     searchValue: '',
   };
-  range: UntypedFormGroup;
+  range: FormGroup<PerformanceRangeControls>;
   differ: KeyValueDiffer<string, unknown>;
   changedByProgram = false;
 
@@ -179,18 +201,18 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
 
   constructor() {
     this.formGroupColumn = this.formBuilder.group({
-      'column': [[], null],
+      column: this.formBuilder.nonNullable.control<string[]>([]),
     });
     this.formGroupQuery = this.formBuilder.group({
-      'client': [[], null],
-      'vendor': [[], null],
-      'clientMedia': [[], null],
-      'vendorMedia': [[], null],
-      'platform': [[], null],
-      'format': [[], null],
-      'budget': [[], null],
-      'mode': [[], null],
-      'search': ['', null],
+      client: this.formBuilder.nonNullable.control<Client[]>([]),
+      vendor: this.formBuilder.nonNullable.control<Vendor[]>([]),
+      clientMedia: this.formBuilder.nonNullable.control<ClientMedia[]>([]),
+      vendorMedia: this.formBuilder.nonNullable.control<VendorMedia[]>([]),
+      platform: this.formBuilder.nonNullable.control<string[]>([]),
+      format: this.formBuilder.nonNullable.control<string[]>([]),
+      budget: this.formBuilder.nonNullable.control<string[]>([]),
+      mode: this.formBuilder.nonNullable.control<string[]>([]),
+      search: this.formBuilder.nonNullable.control(''),
     });
 
     this.filterPlatform = new Map([
@@ -229,12 +251,12 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
       ['3', '直通模式'],
     ]);
 
-    this.range = new UntypedFormGroup({
-      start: new UntypedFormControl(),
-      end: new UntypedFormControl(),
-      time: new UntypedFormControl(),
+    this.range = this.formBuilder.group({
+      start: this.formBuilder.control<Date | null>(null),
+      end: this.formBuilder.control<Date | null>(null),
+      time: this.formBuilder.control<Date | null>(null),
     });
-    this.differ = this.differs.find(this.range.value).create();
+    this.differ = this.differs.find(this.range.getRawValue()).create();
 
     effect(() => {
       const mode = this.mode();
@@ -361,13 +383,55 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
           this.candidateColumns.set('cpmu', '上游CPM');
         }
         this.candidateColumns.set('cpmd', '下游CPM');
-        this.formGroupColumn.patchValue({['column']: [...this.candidateColumns.keys()]});
+        this.formGroupColumn.patchValue({
+          column: [...this.candidateColumns.keys()],
+        });
 
         this.prepareDisplayColumns();
 
         this.query();
       });
     });
+  }
+
+  get selectedColumns(): string[] {
+    return this.formGroupColumn.controls.column.value;
+  }
+
+  get selectedClients(): Client[] {
+    return this.formGroupQuery.controls.client.value;
+  }
+
+  get selectedVendors(): Vendor[] {
+    return this.formGroupQuery.controls.vendor.value;
+  }
+
+  get selectedClientMedias(): ClientMedia[] {
+    return this.formGroupQuery.controls.clientMedia.value;
+  }
+
+  get selectedVendorMedias(): VendorMedia[] {
+    return this.formGroupQuery.controls.vendorMedia.value;
+  }
+
+  get selectedPlatforms(): string[] {
+    return this.formGroupQuery.controls.platform.value;
+  }
+
+  get selectedFormats(): string[] {
+    return this.formGroupQuery.controls.format.value;
+  }
+
+  get selectedBudgets(): string[] {
+    return this.formGroupQuery.controls.budget.value;
+  }
+
+  get selectedModes(): string[] {
+    return this.formGroupQuery.controls.mode.value;
+  }
+
+  get searchValue(): string {
+    return this.formGroupQuery.controls.search.value;
   }
 
   toISOStringWithTimezone(date: Date) {
@@ -466,16 +530,16 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
       }
 
       if (this.mode() === PartnerType.PARTNER_TYPE_DIRECT) {
-        if (this.formGroupQuery.value.mode.indexOf(PortType.PORT_TYPE_DIRECT) < 0) {
-          this.formGroupQuery.controls['mode'].setValue([]);
+        if (this.selectedModes.indexOf(String(PortType.PORT_TYPE_DIRECT)) < 0) {
+          this.formGroupQuery.controls.mode.setValue([]);
         }
         this.filterMode = new Map([
           ['3', '直通模式'],
         ]);
       }
       if (this.mode() === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
-        if (this.formGroupQuery.value.mode.indexOf(PortType.PORT_TYPE_DIRECT) >= 0) {
-          this.formGroupQuery.controls['mode'].setValue([]);
+        if (this.selectedModes.indexOf(String(PortType.PORT_TYPE_DIRECT)) >= 0) {
+          this.formGroupQuery.controls.mode.setValue([]);
         }
         this.filterMode = new Map([
           ['1', '分成模式'],
@@ -486,7 +550,7 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
   }
 
   ngDoCheck(): void {
-    const changes = this.differ.diff(this.range.value);
+    const changes = this.differ.diff(this.range.getRawValue());
     if (changes) {
       if (this.changedByProgram) {
         return;
@@ -494,8 +558,8 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
       this.changedByProgram = true;
 
       if (this.performanceInterval === 'day' || this.performanceInterval === 'month' || this.performanceInterval === 'year') {
-        if (this.range.value.start && this.range.value.end) {
-          this.range.controls['time'].setValue(null);
+        if (this.range.controls.start.value && this.range.controls.end.value) {
+          this.range.controls.time.setValue(null);
           this.query();
         } else {
           this.changedByProgram = false;
@@ -515,27 +579,27 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
           }
         });
 
-        if (this.range.value.time) {
+        if (this.range.controls.time.value) {
           if (dateChanged) {
-            if (this.range.value.start && this.range.value.end) {
-              this.range.controls['time'].setValue(null);
+            if (this.range.controls.start.value && this.range.controls.end.value) {
+              this.range.controls.time.setValue(null);
               this.query();
             } else {
               this.changedByProgram = false;
             }
           } else {
-            this.range.controls['start'].setValue(new Date());
-            this.range.controls['end'].setValue(new Date());
+            this.range.controls.start.setValue(new Date());
+            this.range.controls.end.setValue(new Date());
             this.query();
           }
         } else {
           if (timeChanged) {
-            this.range.controls['start'].setValue(new Date());
-            this.range.controls['end'].setValue(new Date());
+            this.range.controls.start.setValue(new Date());
+            this.range.controls.end.setValue(new Date());
             this.query();
           } else {
-            if (this.range.value.start && this.range.value.end) {
-              this.range.controls['time'].setValue(null);
+            if (this.range.controls.start.value && this.range.controls.end.value) {
+              this.range.controls.time.setValue(null);
               this.query();
             } else {
               this.changedByProgram = false;
@@ -588,17 +652,17 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
       filter: {
         clientMode: [String(this.mode())],
         vendorMode: [String(this.mode())],
-        client: (this.formGroupQuery.value.client as Client[]).map(client => client.id!.toString()),
-        vendor: (this.formGroupQuery.value.vendor as Vendor[]).map(vendor => vendor.id!.toString()),
-        clientMedia: (this.formGroupQuery.value.clientMedia as ClientMedia[]).map(clientMedia => clientMedia.id!.toString()),
-        vendorMedia: (this.formGroupQuery.value.vendorMedia as ClientMedia[]).map(vendorMedia => vendorMedia.id!.toString()),
-        platform: this.formGroupQuery.value.platform,
-        format: this.formGroupQuery.value.format,
-        budget: this.formGroupQuery.value.budget,
-        mode: this.formGroupQuery.value.mode,
+        client: this.selectedClients.map(client => client.id!.toString()),
+        vendor: this.selectedVendors.map(vendor => vendor.id!.toString()),
+        clientMedia: this.selectedClientMedias.map(clientMedia => clientMedia.id!.toString()),
+        vendorMedia: this.selectedVendorMedias.map(vendorMedia => vendorMedia.id!.toString()),
+        platform: this.selectedPlatforms,
+        format: this.selectedFormats,
+        budget: this.selectedBudgets,
+        mode: this.selectedModes,
       },
       searchKey: ['name', 'tagId'],
-      searchValue: this.formGroupQuery.value.search,
+      searchValue: this.searchValue,
     };
 
     this.dataRequest$.next(this.formQuery);
@@ -680,7 +744,11 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
     });
   }
 
-  clear(event: Event, field: string, value: string | unknown[]) {
+  clear(
+    event: Event,
+    field: keyof PerformanceQueryControls,
+    value: string | Client[] | Vendor[] | ClientMedia[] | VendorMedia[] | string[]
+  ) {
     event.stopPropagation();
     this.formGroupQuery.patchValue({[field]: value});
     this.query();
@@ -695,17 +763,17 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
       if (this.performanceInterval === 'minute' || this.performanceInterval === 'quarter' || this.performanceInterval === 'hour') {
         if (event.value === 'day' || event.value === 'month' || event.value === 'year') {
           this.changedByProgram = true;
-          this.range.controls['start'].setValue(null);
-          this.range.controls['end'].setValue(null);
-          this.range.controls['time'].setValue(null);
+          this.range.controls.start.setValue(null);
+          this.range.controls.end.setValue(null);
+          this.range.controls.time.setValue(null);
         }
       }
       if (this.performanceInterval === 'day' || this.performanceInterval === 'month' || this.performanceInterval === 'year') {
         if (event.value === 'minute' || event.value === 'quarter' || event.value === 'hour') {
           this.changedByProgram = true;
-          this.range.controls['start'].setValue(new Date());
-          this.range.controls['end'].setValue(new Date());
-          this.range.controls['time'].setValue(null);
+          this.range.controls.start.setValue(new Date());
+          this.range.controls.end.setValue(new Date());
+          this.range.controls.time.setValue(null);
         }
       }
 
@@ -755,27 +823,30 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
       // time column is 120px when partner column exists
       this.displayedColumnsWidth = this.displayedColumnsWidth - 250 + 120 + 250;
     }
-    this.displayedColumns = [...this.displayedColumns, ...this.formGroupColumn.value.column, 'actions'];
-    this.displayedColumnsWidth = this.displayedColumnsWidth + this.formGroupColumn.value.column.length * 120 + 80;
+    this.displayedColumns = [...this.displayedColumns, ...this.selectedColumns, 'actions'];
+    this.displayedColumnsWidth = this.displayedColumnsWidth + this.selectedColumns.length * 120 + 80;
 
     this.onResize();
   }
 
   prepareRange() {
     const now = new Date();
+    const start = this.range.controls.start.value;
+    const end = this.range.controls.end.value;
+    const time = this.range.controls.time.value;
 
     if (this.performanceInterval === 'minute') {
-      if (this.range.value.time) {
-        this.performanceStart = new Date(Math.trunc(new Date(Date.parse(this.range.value.time)).getTime() / 180000) * 180000);
-        this.performanceEnd = new Date(Math.trunc(new Date(Date.parse(this.range.value.time)).getTime() / 180000) * 180000 + 179999);
+      if (time) {
+        this.performanceStart = new Date(Math.trunc(new Date(Date.parse(String(time))).getTime() / 180000) * 180000);
+        this.performanceEnd = new Date(Math.trunc(new Date(Date.parse(String(time))).getTime() / 180000) * 180000 + 179999);
       } else {
-        if (this.range.value.start && this.range.value.end) {
-          this.performanceStart = new Date(Date.parse(this.range.value.start));
+        if (start && end) {
+          this.performanceStart = new Date(Date.parse(String(start)));
           this.performanceStart.setHours(0);
           this.performanceStart.setMinutes(0);
           this.performanceStart.setSeconds(0);
           this.performanceStart.setMilliseconds(0);
-          this.performanceEnd = new Date(Date.parse(this.range.value.end));
+          this.performanceEnd = new Date(Date.parse(String(end)));
           this.performanceEnd.setHours(23);
           this.performanceEnd.setMinutes(59);
           this.performanceEnd.setSeconds(59);
@@ -790,17 +861,17 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
       }
     }
     if (this.performanceInterval === 'quarter') {
-      if (this.range.value.time) {
-        this.performanceStart = new Date(Math.trunc(new Date(Date.parse(this.range.value.time)).getTime() / 900000) * 900000);
-        this.performanceEnd = new Date(Math.trunc(new Date(Date.parse(this.range.value.time)).getTime() / 900000) * 900000 + 899999);
+      if (time) {
+        this.performanceStart = new Date(Math.trunc(new Date(Date.parse(String(time))).getTime() / 900000) * 900000);
+        this.performanceEnd = new Date(Math.trunc(new Date(Date.parse(String(time))).getTime() / 900000) * 900000 + 899999);
       } else {
-        if (this.range.value.start && this.range.value.end) {
-          this.performanceStart = new Date(Date.parse(this.range.value.start));
+        if (start && end) {
+          this.performanceStart = new Date(Date.parse(String(start)));
           this.performanceStart.setHours(0);
           this.performanceStart.setMinutes(0);
           this.performanceStart.setSeconds(0);
           this.performanceStart.setMilliseconds(0);
-          this.performanceEnd = new Date(Date.parse(this.range.value.end));
+          this.performanceEnd = new Date(Date.parse(String(end)));
           this.performanceEnd.setHours(23);
           this.performanceEnd.setMinutes(59);
           this.performanceEnd.setSeconds(59);
@@ -815,17 +886,17 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
       }
     }
     if (this.performanceInterval === 'hour') {
-      if (this.range.value.time) {
-        this.performanceStart = new Date(Math.trunc(new Date(Date.parse(this.range.value.time)).getTime() / 3600000) * 3600000);
-        this.performanceEnd = new Date(Math.trunc(new Date(Date.parse(this.range.value.time)).getTime() / 3600000) * 3600000 + 3599999);
+      if (time) {
+        this.performanceStart = new Date(Math.trunc(new Date(Date.parse(String(time))).getTime() / 3600000) * 3600000);
+        this.performanceEnd = new Date(Math.trunc(new Date(Date.parse(String(time))).getTime() / 3600000) * 3600000 + 3599999);
       } else {
-        if (this.range.value.start && this.range.value.end) {
-          this.performanceStart = new Date(Date.parse(this.range.value.start));
+        if (start && end) {
+          this.performanceStart = new Date(Date.parse(String(start)));
           this.performanceStart.setHours(0);
           this.performanceStart.setMinutes(0);
           this.performanceStart.setSeconds(0);
           this.performanceStart.setMilliseconds(0);
-          this.performanceEnd = new Date(Date.parse(this.range.value.end));
+          this.performanceEnd = new Date(Date.parse(String(end)));
           this.performanceEnd.setHours(23);
           this.performanceEnd.setMinutes(59);
           this.performanceEnd.setSeconds(59);
@@ -841,9 +912,9 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
       }
     }
     if (this.performanceInterval === 'day') {
-      if (this.range.value.start && this.range.value.end) {
-        this.performanceStart = new Date(Date.parse(this.range.value.start));
-        this.performanceEnd = new Date(Date.parse(this.range.value.end));
+      if (start && end) {
+        this.performanceStart = new Date(Date.parse(String(start)));
+        this.performanceEnd = new Date(Date.parse(String(end)));
       } else {
         this.performanceEnd = new Date(now);
         now.setMilliseconds(0);
@@ -855,9 +926,9 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
       }
     }
     if (this.performanceInterval === 'month') {
-      if (this.range.value.start && this.range.value.end) {
-        this.performanceStart = new Date(Date.parse(this.range.value.start));
-        this.performanceEnd = new Date(Date.parse(this.range.value.end));
+      if (start && end) {
+        this.performanceStart = new Date(Date.parse(String(start)));
+        this.performanceEnd = new Date(Date.parse(String(end)));
       } else {
         this.performanceEnd = new Date(now);
         now.setMilliseconds(0);
@@ -869,9 +940,9 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
       }
     }
     if (this.performanceInterval === 'year') {
-      if (this.range.value.start && this.range.value.end) {
-        this.performanceStart = new Date(Date.parse(this.range.value.start));
-        this.performanceEnd = new Date(Date.parse(this.range.value.end));
+      if (start && end) {
+        this.performanceStart = new Date(Date.parse(String(start)));
+        this.performanceEnd = new Date(Date.parse(String(end)));
       } else {
         this.performanceEnd = new Date(now);
         now.setMilliseconds(0);
