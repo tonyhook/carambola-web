@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, DoCheck, effect, ElementRef, HostListener, KeyValueDiffer, KeyValueDiffers, OnInit, signal, ViewChild, WritableSignal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { animate, state, style, transition, trigger } from '@angular/animations';
-import { UntypedFormGroup, UntypedFormBuilder, ReactiveFormsModule, UntypedFormControl } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleChange, MatButtonToggleModule } from '@angular/material/button-toggle';
@@ -27,6 +27,23 @@ import { AdEntityComponent, ConfirmDialogComponent, FilteredSelectClientComponen
 import { ClientPortDialogComponent, ClientPortDialogData } from '../clientport-dialog/clientport-dialog.component';
 import { VendorPortDialogComponent, VendorPortDialogData } from '../vendorport-dialog/vendorport-dialog.component';
 import { BillDialogComponent, BillDialogData } from '../bill-dialog/bill-dialog.component';
+
+interface BillColumnControls {
+  column: FormControl<string[]>;
+}
+
+interface BillQueryControls {
+  client: FormControl<Client[]>;
+  clientMedia: FormControl<ClientMedia[]>;
+  format: FormControl<string[]>;
+  mode: FormControl<string[]>;
+  search: FormControl<string>;
+}
+
+interface BillRangeControls {
+  start: FormControl<Date | null>;
+  end: FormControl<Date | null>;
+}
 
 @Component({
   selector: 'carambola-bill',
@@ -65,7 +82,7 @@ import { BillDialogComponent, BillDialogData } from '../bill-dialog/bill-dialog.
   ],
 })
 export class BillComponent implements OnInit, AfterViewInit, DoCheck {
-  private formBuilder = inject(UntypedFormBuilder);
+  private formBuilder = inject(FormBuilder);
   private tenantService = inject(TenantService);
   private clientAPI = inject(ClientAPI);
   private clientMediaAPI = inject(ClientMediaAPI);
@@ -93,7 +110,7 @@ export class BillComponent implements OnInit, AfterViewInit, DoCheck {
   hoverRow: BillView | null = null;
   expandedRow: BillView | null = null;
   loading = false;
-  formGroupColumn: UntypedFormGroup;
+  formGroupColumn: FormGroup<BillColumnControls>;
 
   clients: Client[] = [];
   vendors: Vendor[] = [];
@@ -110,7 +127,7 @@ export class BillComponent implements OnInit, AfterViewInit, DoCheck {
   vendorPortMap: Map<number | null, VendorPort> = new Map<number | null, VendorPort>();
 
   mode: WritableSignal<PartnerType> = signal(PartnerType.PARTNER_TYPE_UNKNOWN);
-  formGroupQuery: UntypedFormGroup;
+  formGroupQuery: FormGroup<BillQueryControls>;
   filterMode: Map<string, string>;
   formQuery: Query<PerformancePlaceholder> = {
     filter: {},
@@ -122,7 +139,7 @@ export class BillComponent implements OnInit, AfterViewInit, DoCheck {
     searchKey: ['name', 'tagId'],
     searchValue: '',
   };
-  range: UntypedFormGroup;
+  range: FormGroup<BillRangeControls>;
   differ: KeyValueDiffer<string, unknown>;
 
   billAggregateUpstream = 'all';
@@ -179,14 +196,14 @@ export class BillComponent implements OnInit, AfterViewInit, DoCheck {
 
   constructor() {
     this.formGroupColumn = this.formBuilder.group({
-      'column': [[], null],
+      column: this.formBuilder.nonNullable.control<string[]>([]),
     });
     this.formGroupQuery = this.formBuilder.group({
-      'client': [[], null],
-      'clientMedia': [[], null],
-      'format': [[], null],
-      'mode': [[], null],
-      'search': ['', null],
+      client: this.formBuilder.nonNullable.control<Client[]>([]),
+      clientMedia: this.formBuilder.nonNullable.control<ClientMedia[]>([]),
+      format: this.formBuilder.nonNullable.control<string[]>([]),
+      mode: this.formBuilder.nonNullable.control<string[]>([]),
+      search: this.formBuilder.nonNullable.control(''),
     });
 
     this.filterMode = new Map([
@@ -195,11 +212,11 @@ export class BillComponent implements OnInit, AfterViewInit, DoCheck {
       ['3', '直通模式'],
     ]);
 
-    this.range = new UntypedFormGroup({
-      start: new UntypedFormControl(),
-      end: new UntypedFormControl(),
+    this.range = this.formBuilder.group({
+      start: this.formBuilder.control<Date | null>(null),
+      end: this.formBuilder.control<Date | null>(null),
     });
-    this.differ = this.differs.find(this.range.value).create();
+    this.differ = this.differs.find(this.range.getRawValue()).create();
 
     effect(() => {
       const mode = this.mode();
@@ -302,13 +319,35 @@ export class BillComponent implements OnInit, AfterViewInit, DoCheck {
         this.candidateColumns.set('gfr', '填充率');
         this.candidateColumns.set('er', '展现率');
         this.candidateColumns.set('rv', '请求价值');
-        this.formGroupColumn.patchValue({['column']: [...this.candidateColumns.keys()]});
+        this.formGroupColumn.patchValue({
+          column: [...this.candidateColumns.keys()],
+        });
 
         this.prepareDisplayColumns();
 
         this.query();
       });
     });
+  }
+
+  get selectedColumns(): string[] {
+    return this.formGroupColumn.controls.column.value;
+  }
+
+  get selectedClients(): Client[] {
+    return this.formGroupQuery.controls.client.value;
+  }
+
+  get selectedClientMedias(): ClientMedia[] {
+    return this.formGroupQuery.controls.clientMedia.value;
+  }
+
+  get selectedModes(): string[] {
+    return this.formGroupQuery.controls.mode.value;
+  }
+
+  get searchValue(): string {
+    return this.formGroupQuery.controls.search.value;
   }
 
   toISOStringWithTimezone(date: Date) {
@@ -335,17 +374,19 @@ export class BillComponent implements OnInit, AfterViewInit, DoCheck {
         const time = new Date();
         let timeStart = new Date(time);
         let timeEnd = new Date(time);
+        const start = this.range.controls.start.value;
+        const end = this.range.controls.end.value;
 
-        if (this.range.value.start && this.range.value.end) {
-          timeStart = new Date(Date.parse(this.range.value.start));
-          timeEnd = new Date(Date.parse(this.range.value.end) + 86399999);
+        if (start && end) {
+          timeStart = new Date(Date.parse(String(start)));
+          timeEnd = new Date(Date.parse(String(end)) + 86399999);
           if (timeEnd.getTime() > time.getTime()) {
             timeEnd = new Date(time);
           }
         }
 
         if (this.billInterval === 'day') {
-          if (this.range.value.start && this.range.value.end) {
+          if (start && end) {
             this.billStart = new Date(timeStart);
             this.billEnd = new Date(timeEnd);
           } else {
@@ -359,7 +400,7 @@ export class BillComponent implements OnInit, AfterViewInit, DoCheck {
           }
         }
         if (this.billInterval === 'month') {
-          if (this.range.value.start && this.range.value.end) {
+          if (start && end) {
             this.billStart = new Date(timeStart);
             this.billEnd = new Date(timeEnd);
           } else {
@@ -373,7 +414,7 @@ export class BillComponent implements OnInit, AfterViewInit, DoCheck {
           }
         }
         if (this.billInterval === 'year') {
-          if (this.range.value.start && this.range.value.end) {
+          if (start && end) {
             this.billStart = new Date(timeStart);
             this.billEnd = new Date(timeEnd);
           } else {
@@ -426,17 +467,19 @@ export class BillComponent implements OnInit, AfterViewInit, DoCheck {
         const time = new Date();
         let timeStart = new Date(time);
         let timeEnd = new Date(time);
+        const start = this.range.controls.start.value;
+        const end = this.range.controls.end.value;
 
-        if (this.range.value.start && this.range.value.end) {
-          timeStart = new Date(Date.parse(this.range.value.start));
-          timeEnd = new Date(Date.parse(this.range.value.end) + 86399999);
+        if (start && end) {
+          timeStart = new Date(Date.parse(String(start)));
+          timeEnd = new Date(Date.parse(String(end)) + 86399999);
           if (timeEnd.getTime() > time.getTime()) {
             timeEnd = new Date(time);
           }
         }
 
         if (this.billInterval === 'day') {
-          if (this.range.value.start && this.range.value.end) {
+          if (start && end) {
             this.billStart = new Date(timeStart);
             this.billEnd = new Date(timeEnd);
           } else {
@@ -450,7 +493,7 @@ export class BillComponent implements OnInit, AfterViewInit, DoCheck {
           }
         }
         if (this.billInterval === 'month') {
-          if (this.range.value.start && this.range.value.end) {
+          if (start && end) {
             this.billStart = new Date(timeStart);
             this.billEnd = new Date(timeEnd);
           } else {
@@ -464,7 +507,7 @@ export class BillComponent implements OnInit, AfterViewInit, DoCheck {
           }
         }
         if (this.billInterval === 'year') {
-          if (this.range.value.start && this.range.value.end) {
+          if (start && end) {
             this.billStart = new Date(timeStart);
             this.billEnd = new Date(timeEnd);
           } else {
@@ -512,16 +555,16 @@ export class BillComponent implements OnInit, AfterViewInit, DoCheck {
       }
 
       if (this.mode() === PartnerType.PARTNER_TYPE_DIRECT) {
-        if (this.formGroupQuery.value.mode.indexOf(PortType.PORT_TYPE_DIRECT) < 0) {
-          this.formGroupQuery.controls['mode'].setValue([]);
+        if (this.selectedModes.indexOf(String(PortType.PORT_TYPE_DIRECT)) < 0) {
+          this.formGroupQuery.controls.mode.setValue([]);
         }
         this.filterMode = new Map([
           ['3', '直通模式'],
         ]);
       }
       if (this.mode() === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
-        if (this.formGroupQuery.value.mode.indexOf(PortType.PORT_TYPE_DIRECT) >= 0) {
-          this.formGroupQuery.controls['mode'].setValue([]);
+        if (this.selectedModes.indexOf(String(PortType.PORT_TYPE_DIRECT)) >= 0) {
+          this.formGroupQuery.controls.mode.setValue([]);
         }
         this.filterMode = new Map([
           ['1', '分成模式'],
@@ -532,9 +575,9 @@ export class BillComponent implements OnInit, AfterViewInit, DoCheck {
   }
 
   ngDoCheck(): void {
-    const changes = this.differ.diff(this.range.value);
+    const changes = this.differ.diff(this.range.getRawValue());
     if (changes) {
-      if (this.range.value.start && this.range.value.end) {
+      if (this.range.controls.start.value && this.range.controls.end.value) {
         this.query();
       }
     }
@@ -582,12 +625,12 @@ export class BillComponent implements OnInit, AfterViewInit, DoCheck {
       filter: {
         clientMode: [String(this.mode())],
         vendorMode: [String(this.mode())],
-        client: (this.formGroupQuery.value.client as Client[]).map(client => client.id!.toString()),
-        clientMedia: (this.formGroupQuery.value.clientMedia as ClientMedia[]).map(clientMedia => clientMedia.id!.toString()),
-        mode: this.formGroupQuery.value.mode,
+        client: this.selectedClients.map(client => client.id!.toString()),
+        clientMedia: this.selectedClientMedias.map(clientMedia => clientMedia.id!.toString()),
+        mode: this.selectedModes,
       },
       searchKey: ['name', 'tagId'],
-      searchValue: this.formGroupQuery.value.search,
+      searchValue: this.searchValue,
     };
 
     this.dataRequest$.next(this.formQuery);
@@ -624,17 +667,19 @@ export class BillComponent implements OnInit, AfterViewInit, DoCheck {
     const time = new Date();
     let timeStart = new Date(time);
     let timeEnd = new Date(time);
+    const start = this.range.controls.start.value;
+    const end = this.range.controls.end.value;
 
-    if (this.range.value.start && this.range.value.end) {
-      timeStart = new Date(Date.parse(this.range.value.start));
-      timeEnd = new Date(Date.parse(this.range.value.end) + 86399999);
+    if (start && end) {
+      timeStart = new Date(Date.parse(String(start)));
+      timeEnd = new Date(Date.parse(String(end)) + 86399999);
       if (timeEnd.getTime() > time.getTime()) {
         timeEnd = new Date(time);
       }
     }
 
     if (this.billInterval === 'day') {
-      if (this.range.value.start && this.range.value.end) {
+      if (start && end) {
         this.billStart = new Date(timeStart);
         this.billEnd = new Date(timeEnd);
       } else {
@@ -648,7 +693,7 @@ export class BillComponent implements OnInit, AfterViewInit, DoCheck {
       }
     }
     if (this.billInterval === 'month') {
-      if (this.range.value.start && this.range.value.end) {
+      if (start && end) {
         this.billStart = new Date(timeStart);
         this.billEnd = new Date(timeEnd);
       } else {
@@ -662,7 +707,7 @@ export class BillComponent implements OnInit, AfterViewInit, DoCheck {
       }
     }
     if (this.billInterval === 'year') {
-      if (this.range.value.start && this.range.value.end) {
+      if (start && end) {
         this.billStart = new Date(timeStart);
         this.billEnd = new Date(timeEnd);
       } else {
@@ -696,7 +741,11 @@ export class BillComponent implements OnInit, AfterViewInit, DoCheck {
     });
   }
 
-  clear(event: Event, field: string, value: string | unknown[]) {
+  clear(
+    event: Event,
+    field: keyof BillQueryControls,
+    value: string | Client[] | ClientMedia[] | string[]
+  ) {
     event.stopPropagation();
     this.formGroupQuery.patchValue({[field]: value});
     this.query();
@@ -740,8 +789,8 @@ export class BillComponent implements OnInit, AfterViewInit, DoCheck {
       // time column is 120px when partner column exists
       this.displayedColumnsWidth = this.displayedColumnsWidth - 250 + 120 + 250;
     }
-    this.displayedColumns = [...this.displayedColumns, ...this.formGroupColumn.value.column, 'actions'];
-    this.displayedColumnsWidth = this.displayedColumnsWidth + this.formGroupColumn.value.column.length * 120 + 80;
+    this.displayedColumns = [...this.displayedColumns, ...this.selectedColumns, 'actions'];
+    this.displayedColumnsWidth = this.displayedColumnsWidth + this.selectedColumns.length * 120 + 80;
 
     this.onResize();
   }

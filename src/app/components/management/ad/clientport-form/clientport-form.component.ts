@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, effect, ElementRef, inject, input, output, signal, ViewChild, WritableSignal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { UntypedFormGroup, UntypedFormBuilder, Validators, ReactiveFormsModule, FormsModule, FormControl } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleChange, MatButtonToggleGroup, MatButtonToggleModule } from '@angular/material/button-toggle';
@@ -37,6 +37,21 @@ import { TenantService } from '../../../../services';
 import { AntiFraudComponent, AntiFraudDialogComponent, buildPortNameTemplate, ChartPostlinkComponent, ConfirmDialogComponent, ConnectionComponent, FilteredSelectClientComponent, FilteredSelectClientMediaComponent, TrafficControlComponent, TrafficControlDialogComponent } from '../../../../shared';
 import { ChartTrafficComponent } from "../../../../shared/components/chart-traffic/chart-traffic.component";
 import { ChartFinanceComponent } from '../../../../shared/components/chart-finance/chart-finance.component';
+
+type ClientPortQueryType = 'simple' | 'advanced' | 'predefined1' | 'predefined2' | 'predefined3' | 'predefined4';
+
+interface ClientPortFormControls {
+  client: FormControl<Client | null>;
+  clientMedia: FormControl<ClientMedia | null>;
+  name: FormControl<string>;
+  format: FormControl<string>;
+  budget: FormControl<string>;
+  mode: FormControl<number>;
+  appname: FormControl<string | null>;
+  apppackage: FormControl<string | null>;
+  filter: FormControl<boolean>;
+  remark: FormControl<string | null>;
+}
 
 @Component({
   selector: 'carambola-clientport-form',
@@ -80,7 +95,7 @@ import { ChartFinanceComponent } from '../../../../shared/components/chart-finan
   styleUrls: ['./clientport-form.component.scss'],
 })
 export class ClientPortFormComponent implements AfterViewInit {
-  private formBuilder = inject(UntypedFormBuilder);
+  private formBuilder = inject(FormBuilder);
   private snackBar = inject(MatSnackBar);
   private tenantService = inject(TenantService);
   private clientAPI = inject(ClientAPI);
@@ -93,13 +108,13 @@ export class ClientPortFormComponent implements AfterViewInit {
   PartnerType = PartnerType;
   PortType = PortType;
 
-  ctrlFilter = new FormControl(null);
+  ctrlFilter = new FormControl<[string, Field] | string | null>(null);
   filteredFields: Observable<[string, Field][]> = new Observable<[string, Field][]>();
   selectedFilters: [string, Field][] = [];
   @ViewChild('inputFilter') inputFilter: ElementRef<HTMLInputElement> | undefined;
   @ViewChild('queryTypeToggleGroup') queryTypeToggleGroup: MatButtonToggleGroup | undefined;
 
-  formGroup: UntypedFormGroup;
+  formGroup: FormGroup<ClientPortFormControls>;
   clients: WritableSignal<Client[]> = signal([]);
   managedClients: WritableSignal<Client[]> = signal([]);
   clientMedias: WritableSignal<ClientMedia[]> = signal([]);
@@ -134,7 +149,7 @@ export class ClientPortFormComponent implements AfterViewInit {
     condition: 'and',
     rules: [],
   };
-  queryType = 'simple';
+  queryType: ClientPortQueryType = 'simple';
 
   config: QueryBuilderConfig = {
     fields: {
@@ -272,16 +287,16 @@ export class ClientPortFormComponent implements AfterViewInit {
 
   constructor() {
     this.formGroup = this.formBuilder.group({
-      'client': [null, Validators.required],
-      'clientMedia': [null, Validators.required],
-      'name': ['', Validators.required],
-      'format': ['banner', Validators.required],
-      'budget': ['unknown', Validators.required],
-      'mode': [PortType.PORT_TYPE_SHARE, Validators.required],
-      'appname': ['', null],
-      'apppackage': ['', null],
-      'filter': [false, null],
-      'remark': ['', null],
+      client: this.formBuilder.control<Client | null>(null, Validators.required),
+      clientMedia: this.formBuilder.control<ClientMedia | null>(null, Validators.required),
+      name: this.formBuilder.nonNullable.control('', Validators.required),
+      format: this.formBuilder.nonNullable.control('banner', Validators.required),
+      budget: this.formBuilder.nonNullable.control('unknown', Validators.required),
+      mode: this.formBuilder.nonNullable.control(PortType.PORT_TYPE_SHARE, Validators.required),
+      appname: this.formBuilder.control<string | null>(''),
+      apppackage: this.formBuilder.control<string | null>(''),
+      filter: this.formBuilder.nonNullable.control(false),
+      remark: this.formBuilder.control<string | null>(''),
     });
 
     effect(() => {
@@ -306,8 +321,8 @@ export class ClientPortFormComponent implements AfterViewInit {
                 this.trafficControls = [];
                 this.antiFrauds = [];
 
-                this.formGroup.setControl('client', this.formBuilder.control({value: client, disabled: this.readonly}, Validators.required), {emitEvent: false});
-                this.formGroup.setControl('clientMedia', this.formBuilder.control({value: clientMedia, disabled: this.readonly}, Validators.required), {emitEvent: false});
+                this.formGroup.setControl('client', this.createClientControl(client), {emitEvent: false});
+                this.formGroup.setControl('clientMedia', this.createClientMediaControl(clientMedia), {emitEvent: false});
 
                 this.query = {
                   condition: 'and',
@@ -317,15 +332,15 @@ export class ClientPortFormComponent implements AfterViewInit {
 
                 if (this.mode() === PartnerType.PARTNER_TYPE_DIRECT) {
                   this.formProtocolKey = ['id'];
-                  this.formGroup.addControl('id', this.formBuilder.control({value: '', disabled: this.readonly}, Validators.required), {emitEvent: false});
-                  this.formGroup.setControl('mode', this.formBuilder.control({value: PortType.PORT_TYPE_DIRECT, disabled: true}, Validators.required), {emitEvent: false});
+                  this.setProtocolControl('id', '');
+                  this.formGroup.setControl('mode', this.createModeControl(PortType.PORT_TYPE_DIRECT, true), {emitEvent: false});
                 }
                 if (this.mode() === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
                   this.formProtocolKey = client.protocolKey;
                   for (const key of client.protocolKey) {
-                    this.formGroup.addControl(key, this.formBuilder.control({value: '', disabled: this.readonly}, Validators.required), {emitEvent: false});
+                    this.setProtocolControl(key, '');
                   }
-                  this.formGroup.setControl('mode', this.formBuilder.control({value: PortType.PORT_TYPE_SHARE, disabled: false}, Validators.required), {emitEvent: false});
+                  this.formGroup.setControl('mode', this.createModeControl(PortType.PORT_TYPE_SHARE, false), {emitEvent: false});
                 }
 
                 this.initializeAutoName(null);
@@ -338,8 +353,8 @@ export class ClientPortFormComponent implements AfterViewInit {
             this.trafficControls = [];
             this.antiFrauds = [];
 
-            this.formGroup.setControl('client', this.formBuilder.control(null, Validators.required), {emitEvent: false});
-            this.formGroup.setControl('clientMedia', this.formBuilder.control({value: null, disabled: true}, Validators.required), {emitEvent: false});
+            this.formGroup.setControl('client', this.createClientControl(null, false), {emitEvent: false});
+            this.formGroup.setControl('clientMedia', this.createClientMediaControl(null, true), {emitEvent: false});
 
             this.query = {
               condition: 'and',
@@ -349,11 +364,11 @@ export class ClientPortFormComponent implements AfterViewInit {
 
             if (this.mode() === PartnerType.PARTNER_TYPE_DIRECT) {
               this.formProtocolKey = ['id'];
-              this.formGroup.addControl('id', this.formBuilder.control({value: '', disabled: this.readonly}, Validators.required), {emitEvent: false});
-              this.formGroup.setControl('mode', this.formBuilder.control({value: PortType.PORT_TYPE_DIRECT, disabled: true}, Validators.required), {emitEvent: false});
+              this.setProtocolControl('id', '');
+              this.formGroup.setControl('mode', this.createModeControl(PortType.PORT_TYPE_DIRECT, true), {emitEvent: false});
             }
             if (this.mode() === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
-              this.formGroup.setControl('mode', this.formBuilder.control({value: PortType.PORT_TYPE_SHARE, disabled: false}, Validators.required), {emitEvent: false});
+              this.formGroup.setControl('mode', this.createModeControl(PortType.PORT_TYPE_SHARE, false), {emitEvent: false});
             }
 
             this.initializeAutoName(null);
@@ -389,20 +404,20 @@ export class ClientPortFormComponent implements AfterViewInit {
               this.antiFrauds = antifrauds;
               this.selectedIndex = tab === 'property' ? 0 : tab === 'connection' ? 1 : tab === 'deeplink' ? 2 : tab === 'tracker' ? 3 : tab === 'traffic' ? 4 : 5;
 
-              this.formGroup.setControl('client', this.formBuilder.control({value: client, disabled: this.readonly}, Validators.required), {emitEvent: false});
-              this.formGroup.setControl('clientMedia', this.formBuilder.control({value: clientMedia, disabled: this.readonly}, Validators.required), {emitEvent: false});
-              this.formGroup.setControl('name', this.formBuilder.control({value: clientPort.name, disabled: this.readonly}, Validators.required), {emitEvent: false});
-              this.formGroup.setControl('format', this.formBuilder.control({value: clientPort.format, disabled: this.readonly}, Validators.required), {emitEvent: false});
-              this.formGroup.setControl('budget', this.formBuilder.control({value: clientPort.budget, disabled: this.readonly}, Validators.required), {emitEvent: false});
-              this.formGroup.setControl('mode', this.formBuilder.control({value: clientPort.mode, disabled: this.readonly}, Validators.required), {emitEvent: false});
-              this.formGroup.setControl('appname', this.formBuilder.control({value: clientPort.appname, disabled: this.readonly}), {emitEvent: false});
-              this.formGroup.setControl('apppackage', this.formBuilder.control({value: clientPort.apppackage, disabled: this.readonly}), {emitEvent: false});
-              this.formGroup.setControl('filter', this.formBuilder.control({value: clientPort.filter !== null && clientPort.filter.length > 0, disabled: this.readonly}, null), {emitEvent: false});
-              this.formGroup.setControl('remark', this.formBuilder.control({value: clientPort.remark, disabled: this.readonly}, null), {emitEvent: false});
+              this.formGroup.setControl('client', this.createClientControl(client), {emitEvent: false});
+              this.formGroup.setControl('clientMedia', this.createClientMediaControl(clientMedia), {emitEvent: false});
+              this.formGroup.setControl('name', this.createRequiredTextControl(clientPort.name), {emitEvent: false});
+              this.formGroup.setControl('format', this.createRequiredTextControl(clientPort.format), {emitEvent: false});
+              this.formGroup.setControl('budget', this.createRequiredTextControl(clientPort.budget), {emitEvent: false});
+              this.formGroup.setControl('mode', this.createModeControl(clientPort.mode), {emitEvent: false});
+              this.formGroup.setControl('appname', this.createOptionalTextControl(clientPort.appname), {emitEvent: false});
+              this.formGroup.setControl('apppackage', this.createOptionalTextControl(clientPort.apppackage), {emitEvent: false});
+              this.formGroup.setControl('filter', this.createFilterControl(clientPort.filter !== null && clientPort.filter.length > 0), {emitEvent: false});
+              this.formGroup.setControl('remark', this.createOptionalTextControl(clientPort.remark), {emitEvent: false});
 
               if (clientPort.filter !== null && clientPort.filter.length > 0 && clientPort.filterType !== null && clientPort.filterType.length > 0 ) {
                 this.query = JSON.parse(clientPort.filter);
-                this.queryType = clientPort.filterType;
+                this.queryType = clientPort.filterType as ClientPortQueryType;
 
                 if (this.queryType === 'simple' || this.queryType.startsWith('predefined')) {
                   this.selectedFilters = this.query.rules.map(rule => {
@@ -420,15 +435,15 @@ export class ClientPortFormComponent implements AfterViewInit {
 
               if (this.mode() === PartnerType.PARTNER_TYPE_DIRECT) {
                 this.formProtocolKey = ['id'];
-                this.formGroup.addControl('id', this.formBuilder.control({value: clientPort.tagId, disabled: this.readonly}, Validators.required), {emitEvent: false});
-                this.formGroup.setControl('mode', this.formBuilder.control({value: PortType.PORT_TYPE_DIRECT, disabled: true}, Validators.required), {emitEvent: false});
+                this.setProtocolControl('id', clientPort.tagId);
+                this.formGroup.setControl('mode', this.createModeControl(PortType.PORT_TYPE_DIRECT, true), {emitEvent: false});
               }
               if (this.mode() === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
                 this.formProtocolKey = client.protocolKey;
                 for (const [index, key] of this.formProtocolKey.entries()) {
-                  this.formGroup.addControl(key, this.formBuilder.control({value: clientPort.tagId.split('|')[index], disabled: this.readonly}, Validators.required), {emitEvent: false});
+                  this.setProtocolControl(key, clientPort.tagId.split('|')[index] ?? '');
                 }
-                this.formGroup.setControl('mode', this.formBuilder.control({value: clientPort.mode, disabled: this.readonly}, Validators.required), {emitEvent: false});
+                this.formGroup.setControl('mode', this.createModeControl(clientPort.mode), {emitEvent: false});
               }
 
               this.initializeAutoName(clientPort.name);
@@ -469,47 +484,31 @@ export class ClientPortFormComponent implements AfterViewInit {
 
   ngAfterViewInit() {
     this.formGroup.valueChanges.subscribe(data => {
-      if (data.client !== null && data.client.id !== this.formClientId()) {
-        this.formClientId.set(data.client.id);
-        this.formGroup.setControl('clientMedia', this.formBuilder.control(null, Validators.required), {emitEvent: false});
+      const client = data.client;
+
+      if (client && client.id !== null && client.id !== this.formClientId()) {
+        this.formClientId.set(client.id);
+        this.formGroup.setControl('clientMedia', this.createClientMediaControl(null, false), {emitEvent: false});
 
         for (const key of this.formProtocolKey) {
-          this.formGroup.removeControl(key, {
-            emitEvent: false,
-          });
+          this.removeProtocolControl(key);
         }
 
         if (this.mode() === PartnerType.PARTNER_TYPE_DIRECT) {
           this.formProtocolKey = ['id'];
-          this.formGroup.addControl('id', this.formBuilder.control({value: '', disabled: this.readonly}, Validators.required), {emitEvent: false});
-          this.formGroup.setControl('mode', this.formBuilder.control({value: PortType.PORT_TYPE_DIRECT, disabled: true}, Validators.required), {emitEvent: false});
+          this.setProtocolControl('id', '');
+          this.formGroup.setControl('mode', this.createModeControl(PortType.PORT_TYPE_DIRECT, true), {emitEvent: false});
         }
         if (this.mode() === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
-          this.formProtocolKey = data.client.protocolKey;
-          for (const key of data.client.protocolKey) {
-            this.formGroup.addControl(key, this.formBuilder.control({value: '', disabled: this.readonly}, Validators.required), {emitEvent: false});
+          this.formProtocolKey = client.protocolKey;
+          for (const key of client.protocolKey) {
+            this.setProtocolControl(key, '');
           }
-          this.formGroup.setControl('mode', this.formBuilder.control({value: PortType.PORT_TYPE_SHARE, disabled: false}, Validators.required), {emitEvent: false});
-        }
-
-        if (this.formGroup.controls['mode'].getRawValue() !== PortType.PORT_TYPE_DIRECT) {
-          for (const key of data.client.protocolKey) {
-            this.formGroup.addControl(key, this.formBuilder.control({value: '', disabled: this.readonly}, Validators.required), {
-              emitEvent: false,
-            });
-          }
-
-          this.formProtocolKey = data.client.protocolKey;
-        } else {
-          this.formGroup.addControl('id', this.formBuilder.control({value: '', disabled: this.readonly}, Validators.required), {
-            emitEvent: false,
-          });
-
-          this.formProtocolKey = ['id'];
+          this.formGroup.setControl('mode', this.createModeControl(PortType.PORT_TYPE_SHARE, false), {emitEvent: false});
         }
 
         if (this.tenantService.isTenantManager() || this.tenantService.isManager()) {
-          this.managedClientMedias.set(this.clientMedias().filter(clientMedia => clientMedia.client.id === data.client.id));
+          this.managedClientMedias.set(this.clientMedias().filter(clientMedia => clientMedia.client.id === client.id));
         }
 
         this.syncAutoName();
@@ -518,7 +517,7 @@ export class ClientPortFormComponent implements AfterViewInit {
       this.syncAutoName();
     });
 
-    this.formGroup.controls['name'].valueChanges.subscribe(name => {
+    this.formGroup.controls.name.valueChanges.subscribe(name => {
       if (this.syncingAutoName || !this.autoNameManaged) {
         return;
       }
@@ -530,10 +529,58 @@ export class ClientPortFormComponent implements AfterViewInit {
 
     this.filteredFields = this.ctrlFilter.valueChanges.pipe(
       startWith(null),
-      map((field: [string, Field] | null) => {
-        return field ? this._filter(field[0]) : this.simpleFields.slice()
+      map((field: [string, Field] | string | null) => {
+        if (!field) {
+          return this.simpleFields.slice();
+        }
+
+        if (typeof field === 'string') {
+          return this._filter(field);
+        }
+
+        return this._filter(field[0]);
       }),
     );
+  }
+
+  private createClientControl(value: Client | null, disabled = this.readonly): FormControl<Client | null> {
+    return this.formBuilder.control({value, disabled}, Validators.required);
+  }
+
+  private createClientMediaControl(value: ClientMedia | null, disabled = this.readonly): FormControl<ClientMedia | null> {
+    return this.formBuilder.control({value, disabled}, Validators.required);
+  }
+
+  private createRequiredTextControl(value: string, disabled = this.readonly): FormControl<string> {
+    return this.formBuilder.nonNullable.control({value, disabled}, Validators.required);
+  }
+
+  private createOptionalTextControl(value: string | null, disabled = this.readonly): FormControl<string | null> {
+    return this.formBuilder.control({value, disabled});
+  }
+
+  private createFilterControl(value: boolean, disabled = this.readonly): FormControl<boolean> {
+    return this.formBuilder.nonNullable.control({value, disabled});
+  }
+
+  private createModeControl(value: number, disabled = this.readonly): FormControl<number> {
+    return this.formBuilder.nonNullable.control({value, disabled}, Validators.required);
+  }
+
+  private setProtocolControl(key: string, value: string) {
+    (this.formGroup as unknown as FormGroup<Record<string, AbstractControl>>).setControl(key, this.formBuilder.nonNullable.control({value, disabled: this.readonly}, Validators.required), {
+      emitEvent: false,
+    });
+  }
+
+  private removeProtocolControl(key: string) {
+    (this.formGroup as unknown as FormGroup<Record<string, AbstractControl>>).removeControl(key, {
+      emitEvent: false,
+    });
+  }
+
+  private getProtocolControlValue(key: string): string {
+    return this.formGroup.get(key)?.getRawValue() ?? '';
   }
 
   private _filter(value: string): [string, Field][] {
@@ -543,21 +590,21 @@ export class ClientPortFormComponent implements AfterViewInit {
   }
 
   private buildAutoName(): string {
-    const clientMedia = this.formGroup.controls['clientMedia']?.value as ClientMedia | null;
+    const clientMedia = this.formGroup.controls.clientMedia.value;
 
     return buildPortNameTemplate({
       mediaName: clientMedia?.name,
       platform: clientMedia?.platform,
-      format: this.formGroup.controls['format']?.value,
-      budget: this.formGroup.controls['budget']?.value,
-      mode: this.formGroup.controls['mode']?.getRawValue(),
+      format: this.formGroup.controls.format.value,
+      budget: this.formGroup.controls.budget.value,
+      mode: this.formGroup.controls.mode.getRawValue(),
     });
   }
 
   private setNameWithoutTracking(name: string) {
     this.syncingAutoName = true;
-    this.formGroup.controls['name'].setValue(name, {emitEvent: false});
-    this.formGroup.controls['name'].markAsPristine();
+    this.formGroup.controls.name.setValue(name, {emitEvent: false});
+    this.formGroup.controls.name.markAsPristine();
     this.syncingAutoName = false;
   }
 
@@ -577,7 +624,7 @@ export class ClientPortFormComponent implements AfterViewInit {
     }
   }
 
-  remove(field: [string, Field], control: FormControl | null, fields: [string, Field][]): void {
+  remove(field: [string, Field], control: FormControl<[string, Field] | string | null> | null, fields: [string, Field][]): void {
     const index = fields.map(field => field[0]).indexOf(field[0]);
 
     if (index >= 0) {
@@ -590,8 +637,8 @@ export class ClientPortFormComponent implements AfterViewInit {
     }
   }
 
-  select(event: MatAutocompleteSelectedEvent, input: HTMLInputElement, control: FormControl, fields: [string, Field][]): void {
-    const value = event.option.value;
+  select(event: MatAutocompleteSelectedEvent, input: HTMLInputElement, control: FormControl<[string, Field] | string | null>, fields: [string, Field][]): void {
+    const value = event.option.value as [string, Field];
 
     if (fields.map(field => field[0]).indexOf(value[0]) < 0) {
       fields.push(value);
@@ -611,27 +658,34 @@ export class ClientPortFormComponent implements AfterViewInit {
 
     let protocolKey = '';
     for (const key of this.formProtocolKey) {
-      protocolKey += this.formGroup.value[key] + '|';
+      protocolKey += this.getProtocolControlValue(key) + '|';
     }
     if (protocolKey.length) {
       protocolKey = protocolKey.substring(0, protocolKey.length - 1);
     }
 
+    const client = this.formGroup.controls.client.value;
+    const clientMedia = this.formGroup.controls.clientMedia.value;
+    if (!client || !clientMedia) {
+      this.formGroup.markAllAsTouched();
+      return;
+    }
+
     const clientPort: ClientPort = {
       id: null,
       deleted: false,
-      client: this.formGroup.value.client,
-      clientMedia: this.formGroup.value.clientMedia,
-      name: this.formGroup.value.name,
-      format: this.formGroup.value.format,
-      budget: this.formGroup.value.budget,
+      client,
+      clientMedia,
+      name: this.formGroup.controls.name.value,
+      format: this.formGroup.controls.format.value,
+      budget: this.formGroup.controls.budget.value,
       tagId: protocolKey,
-      mode: this.formGroup.getRawValue().mode,
-      appname: this.formGroup.value.appname,
-      apppackage: this.formGroup.value.apppackage,
-      filter: this.formGroup.value.filter ? JSON.stringify(this.query) : null,
-      filterType: this.formGroup.value.filter ? this.queryType : null,
-      remark: this.formGroup.value.remark,
+      mode: this.formGroup.controls.mode.getRawValue(),
+      appname: this.formGroup.controls.appname.value,
+      apppackage: this.formGroup.controls.apppackage.value,
+      filter: this.formGroup.controls.filter.value ? JSON.stringify(this.query) : null,
+      filterType: this.formGroup.controls.filter.value ? this.queryType : null,
+      remark: this.formGroup.controls.remark.value,
       createTime: null,
       updateTime: null,
       connection: [],
@@ -677,30 +731,32 @@ export class ClientPortFormComponent implements AfterViewInit {
     }
 
     const clientPort = this.clientPort();
-    if (!clientPort) {
+    const client = this.formGroup.controls.client.value;
+    const clientMedia = this.formGroup.controls.clientMedia.value;
+    if (!clientPort || !client || !clientMedia) {
       return;
     }
 
     let protocolKey = '';
     for (const key of this.formProtocolKey) {
-      protocolKey += this.formGroup.value[key] + '|';
+      protocolKey += this.getProtocolControlValue(key) + '|';
     }
     if (protocolKey.length) {
       protocolKey = protocolKey.substring(0, protocolKey.length - 1);
     }
 
-    clientPort.client = this.formGroup.value.client;
-    clientPort.clientMedia = this.formGroup.value.clientMedia;
-    clientPort.name = this.formGroup.value.name;
-    clientPort.format = this.formGroup.value.format;
-    clientPort.budget = this.formGroup.value.budget;
+    clientPort.client = client;
+    clientPort.clientMedia = clientMedia;
+    clientPort.name = this.formGroup.controls.name.value;
+    clientPort.format = this.formGroup.controls.format.value;
+    clientPort.budget = this.formGroup.controls.budget.value;
     clientPort.tagId = protocolKey;
-    clientPort.mode = this.formGroup.getRawValue().mode;
-    clientPort.appname = this.formGroup.value.appname;
-    clientPort.apppackage = this.formGroup.value.apppackage;
-    clientPort.filter = this.formGroup.value.filter ? JSON.stringify(this.query) : null;
-    clientPort.filterType = this.formGroup.value.filter ? this.queryType : null;
-    clientPort.remark = this.formGroup.value.remark;
+    clientPort.mode = this.formGroup.controls.mode.getRawValue();
+    clientPort.appname = this.formGroup.controls.appname.value;
+    clientPort.apppackage = this.formGroup.controls.apppackage.value;
+    clientPort.filter = this.formGroup.controls.filter.value ? JSON.stringify(this.query) : null;
+    clientPort.filterType = this.formGroup.controls.filter.value ? this.queryType : null;
+    clientPort.remark = this.formGroup.controls.remark.value;
 
     this.clientPortAPI.updateClientPort(clientPort.id!, clientPort).subscribe(() => {
       const requests = [];

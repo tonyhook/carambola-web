@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, DoCheck, effect, ElementRef, HostListener, KeyValueDiffer, KeyValueDiffers, OnInit, signal, ViewChild, WritableSignal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { UntypedFormGroup, UntypedFormBuilder, ReactiveFormsModule, UntypedFormControl } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleChange, MatButtonToggleModule } from '@angular/material/button-toggle';
@@ -23,6 +23,19 @@ import { TenantService } from '../../../../services';
 import { AdEntityComponent, FilteredSelectVendorComponent, FilteredSelectVendorMediaComponent } from '../../../../shared';
 import { ClientPortDialogComponent, ClientPortDialogData } from '../clientport-dialog/clientport-dialog.component';
 import { VendorPortDialogComponent, VendorPortDialogData } from '../vendorport-dialog/vendorport-dialog.component';
+
+interface DownstreamManagerQueryControls {
+  vendor: FormControl<Vendor[]>;
+  vendorMedia: FormControl<VendorMedia[]>;
+  format: FormControl<string[]>;
+  mode: FormControl<string[]>;
+  search: FormControl<string>;
+}
+
+interface DownstreamManagerRangeControls {
+  start: FormControl<Date | null>;
+  end: FormControl<Date | null>;
+}
 
 @Component({
   selector: 'carambola-downstream-manager',
@@ -52,7 +65,7 @@ import { VendorPortDialogComponent, VendorPortDialogData } from '../vendorport-d
   styleUrls: ['./downstream-manager.component.scss'],
 })
 export class DownstreamManagerComponent implements OnInit, AfterViewInit, DoCheck {
-  private formBuilder = inject(UntypedFormBuilder);
+  private formBuilder = inject(FormBuilder);
   private tenantService = inject(TenantService);
   private vendorAPI = inject(VendorAPI);
   private vendorMediaAPI = inject(VendorMediaAPI);
@@ -79,14 +92,14 @@ export class DownstreamManagerComponent implements OnInit, AfterViewInit, DoChec
   vendorPortMap: Map<number | null, VendorPort> = new Map<number | null, VendorPort>();
 
   mode: WritableSignal<PartnerType> = signal(PartnerType.PARTNER_TYPE_UNKNOWN);
-  formGroupQuery: UntypedFormGroup;
+  formGroupQuery: FormGroup<DownstreamManagerQueryControls>;
   filterMode: Map<string, string>;
   formQuery: Query<PerformancePlaceholder> = {
     filter: {},
     searchKey: ['name', 'tagId'],
     searchValue: '',
   };
-  range: UntypedFormGroup;
+  range: FormGroup<DownstreamManagerRangeControls>;
   differ: KeyValueDiffer<string, unknown>;
 
   signAggregateDownstream = 'all';
@@ -130,11 +143,11 @@ export class DownstreamManagerComponent implements OnInit, AfterViewInit, DoChec
 
   constructor() {
     this.formGroupQuery = this.formBuilder.group({
-      'vendor': [[], null],
-      'vendorMedia': [[], null],
-      'format': [[], null],
-      'mode': [[], null],
-      'search': ['', null],
+      vendor: this.formBuilder.nonNullable.control<Vendor[]>([]),
+      vendorMedia: this.formBuilder.nonNullable.control<VendorMedia[]>([]),
+      format: this.formBuilder.nonNullable.control<string[]>([]),
+      mode: this.formBuilder.nonNullable.control<string[]>([]),
+      search: this.formBuilder.nonNullable.control(''),
     });
 
     this.filterMode = new Map([
@@ -143,11 +156,11 @@ export class DownstreamManagerComponent implements OnInit, AfterViewInit, DoChec
       ['3', '直通模式'],
     ]);
 
-    this.range = new UntypedFormGroup({
-      start: new UntypedFormControl(),
-      end: new UntypedFormControl(),
+    this.range = this.formBuilder.group({
+      start: this.formBuilder.control<Date | null>(null),
+      end: this.formBuilder.control<Date | null>(null),
     });
-    this.differ = this.differs.find(this.range.value).create();
+    this.differ = this.differs.find(this.range.getRawValue()).create();
 
     effect(() => {
       const mode = this.mode();
@@ -244,16 +257,16 @@ export class DownstreamManagerComponent implements OnInit, AfterViewInit, DoChec
         let timeStart = new Date(time);
         let timeEnd = new Date(time);
 
-        if (this.range.value.start && this.range.value.end) {
-          timeStart = new Date(Date.parse(this.range.value.start));
-          timeEnd = new Date(Date.parse(this.range.value.end) + 86399999);
+        if (this.range.controls.start.value && this.range.controls.end.value) {
+          timeStart = new Date(Date.parse(this.range.controls.start.value.toString()));
+          timeEnd = new Date(Date.parse(this.range.controls.end.value.toString()) + 86399999);
           if (timeEnd.getTime() > time.getTime()) {
             timeEnd = new Date(time);
           }
         }
 
         if (this.signInterval === 'day') {
-          if (this.range.value.start && this.range.value.end) {
+          if (this.range.controls.start.value && this.range.controls.end.value) {
             this.signStart = new Date(timeStart);
             this.signEnd = new Date(timeEnd);
           } else {
@@ -267,7 +280,7 @@ export class DownstreamManagerComponent implements OnInit, AfterViewInit, DoChec
           }
         }
         if (this.signInterval === 'month') {
-          if (this.range.value.start && this.range.value.end) {
+          if (this.range.controls.start.value && this.range.controls.end.value) {
             this.signStart = new Date(timeStart);
             this.signEnd = new Date(timeEnd);
           } else {
@@ -281,7 +294,7 @@ export class DownstreamManagerComponent implements OnInit, AfterViewInit, DoChec
           }
         }
         if (this.signInterval === 'year') {
-          if (this.range.value.start && this.range.value.end) {
+          if (this.range.controls.start.value && this.range.controls.end.value) {
             this.signStart = new Date(timeStart);
             this.signEnd = new Date(timeEnd);
           } else {
@@ -325,16 +338,16 @@ export class DownstreamManagerComponent implements OnInit, AfterViewInit, DoChec
       }
 
       if (this.mode() === PartnerType.PARTNER_TYPE_DIRECT) {
-        if (this.formGroupQuery.value.mode.indexOf(PartnerType.PARTNER_TYPE_DIRECT) < 0) {
-          this.formGroupQuery.controls['mode'].setValue([]);
+        if (this.formGroupQuery.controls.mode.value.indexOf(String(PartnerType.PARTNER_TYPE_DIRECT)) < 0) {
+          this.formGroupQuery.controls.mode.setValue([]);
         }
         this.filterMode = new Map([
           ['3', '直通模式'],
         ]);
       }
       if (this.mode() === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
-        if (this.formGroupQuery.value.mode.indexOf(PartnerType.PARTNER_TYPE_DIRECT) >= 0) {
-          this.formGroupQuery.controls['mode'].setValue([]);
+        if (this.formGroupQuery.controls.mode.value.indexOf(String(PartnerType.PARTNER_TYPE_DIRECT)) >= 0) {
+          this.formGroupQuery.controls.mode.setValue([]);
         }
         this.filterMode = new Map([
           ['1', '分成模式'],
@@ -345,12 +358,28 @@ export class DownstreamManagerComponent implements OnInit, AfterViewInit, DoChec
   }
 
   ngDoCheck(): void {
-    const changes = this.differ.diff(this.range.value);
+    const changes = this.differ.diff(this.range.getRawValue());
     if (changes) {
-      if (this.range.value.start && this.range.value.end) {
+      if (this.range.controls.start.value && this.range.controls.end.value) {
         this.query();
       }
     }
+  }
+
+  get selectedVendors(): Vendor[] {
+    return this.formGroupQuery.controls.vendor.value;
+  }
+
+  get selectedVendorMedias(): VendorMedia[] {
+    return this.formGroupQuery.controls.vendorMedia.value;
+  }
+
+  get selectedModes(): string[] {
+    return this.formGroupQuery.controls.mode.value;
+  }
+
+  get searchValue(): string {
+    return this.formGroupQuery.controls.search.value;
   }
 
   query() {
@@ -358,12 +387,12 @@ export class DownstreamManagerComponent implements OnInit, AfterViewInit, DoChec
       filter: {
         clientMode: [String(this.mode())],
         vendorMode: [String(this.mode())],
-        vendor: (this.formGroupQuery.value.vendor as Vendor[]).map(vendor => vendor.id!.toString()),
-        vendorMedia: (this.formGroupQuery.value.vendorMedia as VendorMedia[]).map(vendoMedia => vendoMedia.id!.toString()),
-        mode: this.formGroupQuery.value.mode,
+        vendor: this.formGroupQuery.controls.vendor.value.map(vendor => vendor.id!.toString()),
+        vendorMedia: this.formGroupQuery.controls.vendorMedia.value.map(vendorMedia => vendorMedia.id!.toString()),
+        mode: this.formGroupQuery.controls.mode.value,
       },
       searchKey: ['name', 'tagId'],
-      searchValue: this.formGroupQuery.value.search,
+      searchValue: this.formGroupQuery.controls.search.value,
     };
 
     this.dataRequest$.next(this.formQuery);
@@ -374,16 +403,16 @@ export class DownstreamManagerComponent implements OnInit, AfterViewInit, DoChec
     let timeStart = new Date(time);
     let timeEnd = new Date(time);
 
-    if (this.range.value.start && this.range.value.end) {
-      timeStart = new Date(Date.parse(this.range.value.start));
-      timeEnd = new Date(Date.parse(this.range.value.end) + 86399999);
+    if (this.range.controls.start.value && this.range.controls.end.value) {
+      timeStart = new Date(Date.parse(this.range.controls.start.value.toString()));
+      timeEnd = new Date(Date.parse(this.range.controls.end.value.toString()) + 86399999);
       if (timeEnd.getTime() > time.getTime()) {
         timeEnd = new Date(time);
       }
     }
 
     if (this.signInterval === 'day') {
-      if (this.range.value.start && this.range.value.end) {
+      if (this.range.controls.start.value && this.range.controls.end.value) {
         this.signStart = new Date(timeStart);
         this.signEnd = new Date(timeEnd);
       } else {
@@ -397,7 +426,7 @@ export class DownstreamManagerComponent implements OnInit, AfterViewInit, DoChec
       }
     }
     if (this.signInterval === 'month') {
-      if (this.range.value.start && this.range.value.end) {
+      if (this.range.controls.start.value && this.range.controls.end.value) {
         this.signStart = new Date(timeStart);
         this.signEnd = new Date(timeEnd);
       } else {
@@ -411,7 +440,7 @@ export class DownstreamManagerComponent implements OnInit, AfterViewInit, DoChec
       }
     }
     if (this.signInterval === 'year') {
-      if (this.range.value.start && this.range.value.end) {
+      if (this.range.controls.start.value && this.range.controls.end.value) {
         this.signStart = new Date(timeStart);
         this.signEnd = new Date(timeEnd);
       } else {
@@ -445,7 +474,7 @@ export class DownstreamManagerComponent implements OnInit, AfterViewInit, DoChec
     });
   }
 
-  clear(event: Event, field: string, value: string | unknown[]) {
+  clear(event: Event, field: keyof DownstreamManagerQueryControls, value: string | Vendor[] | VendorMedia[] | string[]) {
     event.stopPropagation();
     this.formGroupQuery.patchValue({[field]: value});
     this.query();

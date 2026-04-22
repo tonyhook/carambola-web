@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, effect, OnInit, signal, ViewChild, WritableSignal, inject } from '@angular/core';
-import { UntypedFormGroup, UntypedFormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
@@ -16,6 +16,12 @@ import { Vendor, VendorAPI, VendorMedia, VendorMediaAPI, PartnerType, Query } fr
 import { AdEntityComponent, FilteredSelectVendorComponent } from '../../../../shared';
 import { TenantService } from '../../../../services';
 import { VendorMediaDialogComponent, VendorMediaDialogData } from '../vendormedia-dialog/vendormedia-dialog.component';
+
+interface VendorMediaQueryControls {
+  vendor: FormControl<Vendor[]>;
+  platform: FormControl<string[]>;
+  search: FormControl<string>;
+}
 
 @Component({
   selector: 'carambola-vendormedia-manager',
@@ -38,7 +44,7 @@ import { VendorMediaDialogComponent, VendorMediaDialogData } from '../vendormedi
   styleUrls: ['./vendormedia.component.scss'],
 })
 export class VendorMediaManagerComponent implements OnInit, AfterViewInit {
-  private formBuilder = inject(UntypedFormBuilder);
+  private formBuilder = inject(FormBuilder);
   private dialog = inject(MatDialog);
   private tenantService = inject(TenantService);
   private vendorAPI = inject(VendorAPI);
@@ -50,7 +56,7 @@ export class VendorMediaManagerComponent implements OnInit, AfterViewInit {
   hoverRow: VendorMedia | null = null;
 
   mode: WritableSignal<PartnerType> = signal(PartnerType.PARTNER_TYPE_UNKNOWN);
-  formGroupQuery: UntypedFormGroup;
+  formGroupQuery: FormGroup<VendorMediaQueryControls>;
   filterVendor: Vendor[] = [];
   filterPlatform: Map<string, string>;
   formQuery: Query<VendorMedia> = {
@@ -67,9 +73,9 @@ export class VendorMediaManagerComponent implements OnInit, AfterViewInit {
 
   constructor() {
     this.formGroupQuery = this.formBuilder.group({
-      'vendor': [[], null],
-      'platform': [[], null],
-      'search': ['', null],
+      vendor: this.formBuilder.nonNullable.control<Vendor[]>([]),
+      platform: this.formBuilder.nonNullable.control<string[]>([]),
+      search: this.formBuilder.nonNullable.control(''),
     });
 
     this.filterPlatform = new Map([
@@ -104,6 +110,18 @@ export class VendorMediaManagerComponent implements OnInit, AfterViewInit {
     });
   }
 
+  get selectedVendors(): Vendor[] {
+    return this.formGroupQuery.controls.vendor.value;
+  }
+
+  get selectedPlatforms(): string[] {
+    return this.formGroupQuery.controls.platform.value;
+  }
+
+  get searchValue(): string {
+    return this.formGroupQuery.controls.search.value;
+  }
+
   ngOnInit() {
     this.dataRequest$.pipe(
       debounceTime(500),
@@ -133,9 +151,9 @@ export class VendorMediaManagerComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit() {
     this.route.queryParams.subscribe(params => {
-      this.formGroupQuery.controls['vendor'].setValue([]);
-      this.formGroupQuery.controls['platform'].setValue([]);
-      this.formGroupQuery.controls['search'].setValue('');
+      this.formGroupQuery.controls.vendor.setValue([]);
+      this.formGroupQuery.controls.platform.setValue([]);
+      this.formGroupQuery.controls.search.setValue('');
       this.dataSource.data = [];
 
       if (params['directMode']) {
@@ -169,17 +187,21 @@ export class VendorMediaManagerComponent implements OnInit, AfterViewInit {
     this.formQuery = {
       filter: {
         vendorMode: [String(this.mode())],
-        vendor: (this.formGroupQuery.value.vendor as Vendor[]).map(vendor => vendor.id!.toString()),
-        platform: this.formGroupQuery.value.platform,
+        vendor: this.selectedVendors.map(vendor => vendor.id!.toString()),
+        platform: this.selectedPlatforms,
       },
       searchKey: ['name', 'apppackage'],
-      searchValue: this.formGroupQuery.value.search,
+      searchValue: this.searchValue,
     };
 
     this.dataRequest$.next(this.formQuery);
   }
 
-  clear(event: Event, field: string, value: string | unknown[]) {
+  clear(
+    event: Event,
+    field: keyof VendorMediaQueryControls,
+    value: string | Vendor[] | string[]
+  ) {
     event.stopPropagation();
     this.formGroupQuery.patchValue({[field]: value});
     this.query();

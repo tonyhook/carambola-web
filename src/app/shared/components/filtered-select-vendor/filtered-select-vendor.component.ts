@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { booleanAttribute, Component, effect, ElementRef, input, model, OnDestroy, signal, untracked, viewChild, ViewChild, Input, inject } from '@angular/core';
-import { ControlValueAccessor, NgControl, ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { ControlValueAccessor, FormBuilder, FormControl, FormGroup, NgControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldControl } from '@angular/material/form-field';
@@ -11,6 +11,12 @@ import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
 
 import { Vendor } from '../../../core';
 import { AdEntityComponent } from '../ad-entity/ad-entity.component';
+
+type FilteredSelectVendorValue = Vendor | Vendor[] | null;
+type FilteredSelectVendorFormGroup = FormGroup<{
+  selection: FormControl<FilteredSelectVendorValue>;
+  filter: FormControl<string | null>;
+}>;
 
 @Component({
   selector: 'carambola-filtered-select-vendor',
@@ -33,7 +39,7 @@ import { AdEntityComponent } from '../ad-entity/ad-entity.component';
   ],
 })
 export class FilteredSelectVendorComponent implements OnDestroy, ControlValueAccessor, MatFormFieldControl<Vendor | Vendor[]> {
-  private formBuilder = inject(UntypedFormBuilder);
+  private formBuilder = inject(FormBuilder);
   ngControl = inject(NgControl);
   private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
 
@@ -53,12 +59,14 @@ export class FilteredSelectVendorComponent implements OnDestroy, ControlValueAcc
   placeholder = '';
   focused = false;
   get empty() {
+    const selection = this.formGroup.controls.selection.value;
+
     if (this.multiple()) {
-      if (this.formGroup.value.selection === null || this.formGroup.value.selection.length === 0) {
+      if (selection === null || (Array.isArray(selection) && selection.length === 0)) {
         return true;
       }
     } else {
-      if (this.formGroup.value.selection === null) {
+      if (selection === null) {
         return true;
       }
     }
@@ -130,40 +138,43 @@ export class FilteredSelectVendorComponent implements OnDestroy, ControlValueAcc
 
   @ViewChild('selection', { static: true }) selection?: MatSelect;
 
-  formGroup: UntypedFormGroup;
+  formGroup: FilteredSelectVendorFormGroup;
 
   changedByInternal = false;
 
   constructor() {
     this.ngControl.valueAccessor = this;
     this.formGroup = this.formBuilder.group({
-      'selection': [this.multiple() ? [] : null, this.required ? Validators.required : null],
-      'filter': [null, null],
+      selection: this.formBuilder.control<FilteredSelectVendorValue>(this.multiple() ? [] : null, this.required ? Validators.required : []),
+      filter: this.formBuilder.control<string | null>(null),
     });
     this.formGroup.valueChanges
       .pipe(takeUntilDestroyed())
-      .subscribe((data) => {
+      .subscribe(() => {
+        const formSelection = this.formGroup.controls.selection.value;
         const selection = this._value();
 
-        if (Array.isArray(data.selection) && Array.isArray(selection)) {
-          const a = new Set([...(data.selection as Vendor[]).map((item) => item.id)]);
+        if (Array.isArray(formSelection) && Array.isArray(selection)) {
+          const a = new Set([...formSelection.map((item) => item.id)]);
           const b = new Set([...(selection as Vendor[]).map((item) => item.id)]);
           if (a.size !== b.size || ![...a].every((val) => b.has(val))) {
             this.changedByInternal = true;
-            this.updateValue(data.selection);
+            this.updateValue(formSelection);
           }
         }
-        if (!Array.isArray(data.selection) && !Array.isArray(selection)) {
-          if ((data.selection !== null && selection === null)
-            || (data.selection === null && selection !== null)
-            || (data.selection !== null && selection !== null && data.selection.id !== selection.id)) {
+        if (!Array.isArray(formSelection) && !Array.isArray(selection)) {
+          if ((formSelection !== null && selection === null)
+            || (formSelection === null && selection !== null)
+            || (formSelection !== null && selection !== null && formSelection.id !== selection.id)) {
             this.changedByInternal = true;
-            this.updateValue(data.selection);
+            this.updateValue(formSelection);
           }
         }
 
-        if (this.formGroup.value.filter !== this.oldFilter) {
-          this.oldFilter = this.formGroup.value.filter;
+        const filter = this.formGroup.controls.filter.value;
+
+        if (filter !== this.oldFilter) {
+          this.oldFilter = filter ?? '';
           this.filterCandidate();
         }
       }
@@ -186,18 +197,18 @@ export class FilteredSelectVendorComponent implements OnDestroy, ControlValueAcc
       const multiple = this.multiple();
 
       if (multiple) {
-        this.formGroup.controls['selection'].setValue([], {emitEvent: false});
+        this.formGroup.controls.selection.setValue([], {emitEvent: false});
       } else {
-        this.formGroup.controls['selection'].setValue(null, {emitEvent: false});
+        this.formGroup.controls.selection.setValue(null, {emitEvent: false});
       }
     });
     effect(() => {
       if (this.required) {
-        this.formGroup.controls['selection'].setValidators(Validators.required);
+        this.formGroup.controls.selection.setValidators(Validators.required);
       } else {
-        this.formGroup.controls['selection'].setValidators(null);
+        this.formGroup.controls.selection.setValidators(null);
       }
-      this.formGroup.controls['selection'].updateValueAndValidity({emitEvent: false});
+      this.formGroup.controls.selection.updateValueAndValidity({emitEvent: false});
     });
     effect(() => {
       const options = this.options();
@@ -268,7 +279,7 @@ export class FilteredSelectVendorComponent implements OnDestroy, ControlValueAcc
 
     this._value.set(value);
 
-    this.formGroup.controls['selection'].setValue(value, {emitEvent: false});
+    this.formGroup.controls.selection.setValue(value, {emitEvent: false});
 
     if (this.changedByInternal) {
       this._onChange(value);
@@ -278,7 +289,7 @@ export class FilteredSelectVendorComponent implements OnDestroy, ControlValueAcc
   }
 
   filterCandidate() {
-    const search = this.formGroup.value.filter;
+    const search = this.formGroup.controls.filter.value;
     if (!search) {
       this.filteredCandidateCache = this.options().slice();
       this.filteredCandidate$.next(this.filteredCandidateCache);

@@ -5,7 +5,7 @@
         <mat-form-field subscriptSizing="dynamic">
           <mat-label>广告主</mat-label>
           <carambola-filtered-select-client formControlName="client" [multiple]="true" [options]="clients" />
-          @if (formGroupQuery.value.client && formGroupQuery.value.client.length > 0) {
+          @if (selectedClients.length > 0) {
             <button type="button" matSuffix mat-icon-button (click)="clear($event, 'client', [])">
               <mat-icon>clear</mat-icon>
             </button>
@@ -14,7 +14,7 @@
         <mat-form-field subscriptSizing="dynamic">
           <mat-label>上游媒体</mat-label>
           <carambola-filtered-select-clientmedia formControlName="clientMedia" [multiple]="true" [options]="clientMedias" />
-          @if (formGroupQuery.value.clientMedia && formGroupQuery.value.clientMedia.length > 0) {
+          @if (selectedClientMedias.length > 0) {
             <button type="button" matSuffix mat-icon-button (click)="clear($event, 'clientMedia', [])">
               <mat-icon>clear</mat-icon>
             </button>
@@ -27,7 +27,7 @@
               <mat-option [value]="key">{{ filterPlatform.get(key) }}</mat-option>
             }
           </mat-select>
-          @if (formGroupQuery.value.platform.length > 0) {
+          @if (selectedPlatforms.length > 0) {
             <button type="button" matSuffix mat-icon-button (click)="clear($event, 'platform', [])">
               <mat-icon>clear</mat-icon>
             </button>
@@ -40,7 +40,7 @@
               <mat-option [value]="key">{{ filterFormat.get(key) }}</mat-option>
             }
           </mat-select>
-          @if (formGroupQuery.value.format.length > 0) {
+          @if (selectedFormats.length > 0) {
             <button type="button" matSuffix mat-icon-button (click)="clear($event, 'format', [])">
               <mat-icon>clear</mat-icon>
             </button>
@@ -53,7 +53,7 @@
               <mat-option [value]="key">{{ filterBudget.get(key) }}</mat-option>
             }
           </mat-select>
-          @if (formGroupQuery.value.budget.length > 0) {
+          @if (selectedBudgets.length > 0) {
             <button type="button" matSuffix mat-icon-button (click)="clear($event, 'budget', [])">
               <mat-icon>clear</mat-icon>
             </button>
@@ -66,7 +66,7 @@
               <mat-option [value]="key">{{ filterMode.get(key) }}</mat-option>
             }
           </mat-select>
-          @if (formGroupQuery.value.mode.length > 0) {
+          @if (selectedModes.length > 0) {
             <button type="button" matSuffix mat-icon-button (click)="clear($event, 'mode', [])">
               <mat-icon>clear</mat-icon>
             </button>
@@ -75,7 +75,7 @@
         <mat-form-field subscriptSizing="dynamic">
           <mat-label>上游广告位名称，ID</mat-label>
           <input placeholder="搜索" matInput formControlName="search" />
-          @if (formGroupQuery.value.search.length > 0) {
+          @if (searchValue.length > 0) {
             <button type="button" matSuffix mat-icon-button (click)="clear($event, 'search', '')">
               <mat-icon>clear</mat-icon>
             </button>
@@ -103,10 +103,10 @@
           <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
           <mat-date-range-picker #picker></mat-date-range-picker>
 
-          @if (range.controls['start'].hasError('matStartDateInvalid')) {
+          @if (range.controls.start.hasError('matStartDateInvalid')) {
             <mat-error>起始日期无效</mat-error>
           }
-          @if (range.controls['end'].hasError('matEndDateInvalid')) {
+          @if (range.controls.end.hasError('matEndDateInvalid')) {
             <mat-error>结束日期无效</mat-error>
           }
         </mat-form-field>
@@ -127,7 +127,7 @@
         <mat-form-field subscriptSizing="dynamic">
           <mat-label>流量主</mat-label>
           <carambola-filtered-select-vendor formControlName="vendor" [multiple]="true" [options]="vendors" />
-          @if (formGroupQuery.value.vendor && formGroupQuery.value.vendor.length > 0) {
+          @if (selectedVendors.length > 0) {
             <button type="button" matSuffix mat-icon-button (click)="clear($event, 'vendor', [])">
               <mat-icon>clear</mat-icon>
             </button>
@@ -136,7 +136,7 @@
         <mat-form-field subscriptSizing="dynamic">
           <mat-label>下游媒体</mat-label>
           <carambola-filtered-select-vendormedia formControlName="vendorMedia" [multiple]="true" [options]="vendorMedias" />
-          @if (formGroupQuery.value.vendorMedia && formGroupQuery.value.vendorMedia.length > 0) {
+          @if (selectedVendorMedias.length > 0) {
             <button type="button" matSuffix mat-icon-button (click)="clear($event, 'vendorMedia', [])">
               <mat-icon>clear</mat-icon>
             </button>
@@ -149,7 +149,7 @@
               <mat-option [value]="key">{{ filterPlatform.get(key) }}</mat-option>
             }
           </mat-select>
-          @if (formGroupQuery.value.platform.length > 0) {
+          @if (selectedPlatforms.length > 0) {
             <button type="button" matSuffix mat-icon-button (click)="clear($event, 'platform', [])">
               <mat-icon>clear</mat-icon>
             </button>
@@ -162,7 +162,7 @@
               <mat-option [value]="key">{{ filterFormat.get(key) }}</mat-option>
             }
           </mat-select>
-          @if (formGroupQuery.value.format.length > 0) {
+          @if (selectedFormats.length > 0) {
             <button type="button" matSuffix mat-icon-button (click)="clear($event, 'format', [])">
               <mat-icon>clear</mat-icon>
             </button>
@@ -175,7 +175,7 @@
               <mat-option [value]="key">{{ filterBudget.get(key) }}</mat-option>
             }
           </mat-select>
-          @if (formGroupQuery.value.budget.length > 0) {
+          @if (selectedBudgets.length > 0) {
             <button type="button" matSuffix mat-icon-button (click)="clear($event, 'budget', [])">
               <mat-icon>clear</mat-icon>
             </button>
@@ -188,7 +188,7 @@
               <mat-option [value]="key">{{ filterMode.get(key) }}</mat-option>
             }
           </mat-select>
-          @if (formGroupQuery.value.mode.length > 0) {
+          @if (selectedModes.length > 0) {
             <button type="button" matSuffix mat-icon-button (click)="clear($event, 'mode', [])">
               <mat-icon>clear</mat-icon>
             </button>
@@ -197,7 +197,7 @@
         <mat-form-field subscriptSizing="dynamic">
           <mat-label>下游广告位名称，ID</mat-label>
           <input placeholder="搜索" matInput formControlName="search" />
-          @if (formGroupQuery.value.search.length > 0) {
+          @if (searchValue.length > 0) {
             <button type="button" matSuffix mat-icon-button (click)="clear($event, 'search', '')">
               <mat-icon>clear</mat-icon>
             </button>
@@ -225,10 +225,10 @@
           <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
           <mat-date-range-picker #picker></mat-date-range-picker>
 
-          @if (range.controls['start'].hasError('matStartDateInvalid')) {
+          @if (range.controls.start.hasError('matStartDateInvalid')) {
             <mat-error>起始日期无效</mat-error>
           }
-          @if (range.controls['end'].hasError('matEndDateInvalid')) {
+          @if (range.controls.end.hasError('matEndDateInvalid')) {
             <mat-error>结束日期无效</mat-error>
           }
         </mat-form-field>

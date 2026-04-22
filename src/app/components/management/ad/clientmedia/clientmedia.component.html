@@ -4,7 +4,7 @@
       <mat-form-field subscriptSizing="dynamic">
         <mat-label>广告主</mat-label>
         <carambola-filtered-select-client formControlName="client" [multiple]="true" [options]="filterClient" />
-        @if (formGroupQuery.value.client && formGroupQuery.value.client.length > 0) {
+        @if (selectedClients.length > 0) {
           <button type="button" matSuffix mat-icon-button (click)="clear($event, 'client', [])">
             <mat-icon>clear</mat-icon>
           </button>
@@ -17,7 +17,7 @@
             <mat-option [value]="key">{{ filterPlatform.get(key) }}</mat-option>
           }
         </mat-select>
-        @if (formGroupQuery.value.platform.length > 0) {
+        @if (selectedPlatforms.length > 0) {
           <button type="button" matSuffix mat-icon-button (click)="clear($event, 'platform', [])">
             <mat-icon>clear</mat-icon>
           </button>
@@ -26,7 +26,7 @@
       <mat-form-field subscriptSizing="dynamic">
         <mat-label>上游媒体名称，包名</mat-label>
         <input placeholder="搜索" matInput formControlName="search" />
-        @if (formGroupQuery.value.search.length > 0) {
+        @if (searchValue.length > 0) {
           <button type="button" matSuffix mat-icon-button (click)="clear($event, 'search', '')">
             <mat-icon>clear</mat-icon>
           </button>

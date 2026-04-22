@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
@@ -9,6 +9,14 @@ import { MatInputModule } from '@angular/material/input';
 
 import { Bill, BillStatus, Client, ClientPort } from '../../../../core';
 import { AdEntityComponent } from '../../../../shared/components/ad-entity/ad-entity.component';
+
+interface BillDialogControls {
+  request: FormControl<number | string | null>;
+  response: FormControl<number | string | null>;
+  impression: FormControl<number | string | null>;
+  click: FormControl<number | string | null>;
+  cost: FormControl<number | string | null>;
+}
 
 export interface BillDialogData {
   client: Client;
@@ -32,7 +40,7 @@ export interface BillDialogData {
   styleUrls: ['./bill-dialog.component.scss'],
 })
 export class BillDialogComponent {
-  private formBuilder = inject(UntypedFormBuilder);
+  private formBuilder = inject(FormBuilder);
   dialogRef = inject<MatDialogRef<BillDialogComponent>>(MatDialogRef);
   data = inject<BillDialogData>(MAT_DIALOG_DATA);
 
@@ -41,7 +49,7 @@ export class BillDialogComponent {
   date: Date;
   bill: Bill | null;
 
-  formGroup: UntypedFormGroup;
+  formGroup: FormGroup<BillDialogControls>;
 
   constructor() {
     const data = this.data;
@@ -52,11 +60,11 @@ export class BillDialogComponent {
     this.bill = data.bill;
 
     this.formGroup = this.formBuilder.group({
-      'request': [this.bill ? this.bill.request : '', [Validators.pattern('^[0-9]*$'), Validators.min(0)]],
-      'response': [this.bill ? this.bill.response : '', [Validators.pattern('^[0-9]*$'), Validators.min(0)]],
-      'impression': [this.bill ? this.bill.impression : '', [Validators.required, Validators.pattern('^[0-9]*$'), Validators.min(0)]],
-      'click': [this.bill ? this.bill.click : '', [Validators.required, Validators.pattern('^[0-9]*$'), Validators.min(0)]],
-      'cost': [this.bill ? (this.bill.cost ?? 0) / 100000 : '', [Validators.required, Validators.pattern('^[0-9]*[\\.]?[0-9]*$'), Validators.min(0)]],
+      request: this.formBuilder.control<number | string | null>(this.bill ? this.bill.request : '', [Validators.pattern('^[0-9]*$'), Validators.min(0)]),
+      response: this.formBuilder.control<number | string | null>(this.bill ? this.bill.response : '', [Validators.pattern('^[0-9]*$'), Validators.min(0)]),
+      impression: this.formBuilder.control<number | string | null>(this.bill ? this.bill.impression : '', [Validators.required, Validators.pattern('^[0-9]*$'), Validators.min(0)]),
+      click: this.formBuilder.control<number | string | null>(this.bill ? this.bill.click : '', [Validators.required, Validators.pattern('^[0-9]*$'), Validators.min(0)]),
+      cost: this.formBuilder.control<number | string | null>(this.bill ? (this.bill.cost ?? 0) / 100000 : '', [Validators.required, Validators.pattern('^[0-9]*[\\.]?[0-9]*$'), Validators.min(0)]),
     });
   }
 
@@ -87,15 +95,21 @@ export class BillDialogComponent {
       return;
     }
 
+    const request = this.formGroup.controls.request.value;
+    const response = this.formGroup.controls.response.value;
+    const impression = this.formGroup.controls.impression.value;
+    const click = this.formGroup.controls.click.value;
+    const cost = this.formGroup.controls.cost.value;
+
     const bill: Bill = {
       date: this.toISOStringWithTimezone(this.date),
       tagId: this.clientPort.tagId.split('|')[0],
       clientPort: this.clientPort.id!,
-      request: this.formGroup.value.request,
-      response: this.formGroup.value.response,
-      impression: this.formGroup.value.impression,
-      click: this.formGroup.value.click,
-      cost: Math.round(this.formGroup.value.cost * 100000),
+      request: request === '' ? null : Number(request),
+      response: response === '' ? null : Number(response),
+      impression: impression === '' ? null : Number(impression),
+      click: click === '' ? null : Number(click),
+      cost: Math.round(Number(cost) * 100000),
       status: BillStatus.BILL_STATUS_MANUAL,
     }
 

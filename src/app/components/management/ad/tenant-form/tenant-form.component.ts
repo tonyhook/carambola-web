@@ -1,6 +1,6 @@
 import { Component, effect, ElementRef, input, OnInit, output, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { UntypedFormGroup, UntypedFormBuilder, Validators, ReactiveFormsModule, FormControl } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -16,6 +16,16 @@ import { map, Observable, startWith } from 'rxjs';
 
 import { ROLE_TENANT_DOWNSTREAM_MANAGER_DIRECT, ROLE_TENANT_DOWNSTREAM_MANAGER_PROGRAMMATIC, ROLE_TENANT_MANAGER, ROLE_TENANT_OBSERVER, ROLE_TENANT_OPERATOR, ROLE_TENANT_UPSTREAM_OBSERVER_DIRECT, ROLE_TENANT_UPSTREAM_OBSERVER_PROGRAMMATIC, Tenant, TenantAPI, TenantUser, User, UserAPI } from '../../../../core';
 import { TenantService } from '../../../../services';
+
+interface TenantFormControls {
+  name: FormControl<string>;
+  manager: FormControl<TenantUser[]>;
+  operator: FormControl<TenantUser[]>;
+  observer: FormControl<TenantUser[]>;
+  upstream: FormControl<TenantUser[]>;
+  downstream: FormControl<TenantUser[]>;
+  enabled: FormControl<boolean>;
+}
 
 @Component({
   selector: 'carambola-tenant-form',
@@ -36,18 +46,18 @@ import { TenantService } from '../../../../services';
   styleUrls: ['./tenant-form.component.scss'],
 })
 export class TenantFormComponent implements OnInit {
-  private formBuilder = inject(UntypedFormBuilder);
+  private formBuilder = inject(FormBuilder);
   private snackBar = inject(MatSnackBar);
   tenantService = inject(TenantService);
   private tenantAPI = inject(TenantAPI);
   private userAPI = inject(UserAPI);
 
-  formGroup: UntypedFormGroup;
+  formGroup: FormGroup<TenantFormControls>;
   separatorKeysCodes: number[] = [ENTER, COMMA];
   allUsers: User[] = [];
-  ctrlManager = new FormControl(null);
-  ctrlOperator = new FormControl(null);
-  ctrlObserver = new FormControl(null);
+  ctrlManager = new FormControl<string | null>(null);
+  ctrlOperator = new FormControl<string | null>(null);
+  ctrlObserver = new FormControl<string | null>(null);
   filteredManager: Observable<User[]> = new Observable<User[]>();
   filteredOperator: Observable<User[]> = new Observable<User[]>();
   filteredObserver: Observable<User[]> = new Observable<User[]>();
@@ -62,13 +72,13 @@ export class TenantFormComponent implements OnInit {
 
   constructor() {
     this.formGroup = this.formBuilder.group({
-      'name': ['', Validators.required],
-      'manager': [[], Validators.required],
-      'operator': [[], null],
-      'observer': [[], null],
-      'upstream': [[], null],
-      'downstream': [[], null],
-      'enabled': [true, Validators.required],
+      name: this.formBuilder.nonNullable.control('', Validators.required),
+      manager: this.formBuilder.nonNullable.control<TenantUser[]>([], Validators.required),
+      operator: this.formBuilder.nonNullable.control<TenantUser[]>([]),
+      observer: this.formBuilder.nonNullable.control<TenantUser[]>([]),
+      upstream: this.formBuilder.nonNullable.control<TenantUser[]>([]),
+      downstream: this.formBuilder.nonNullable.control<TenantUser[]>([]),
+      enabled: this.formBuilder.nonNullable.control(true, Validators.required),
     });
 
     effect(() => {
@@ -121,14 +131,48 @@ export class TenantFormComponent implements OnInit {
         }
       }
 
-      this.formGroup.setControl('name', this.formBuilder.control({value: tenant.name, disabled: this.readonly}, Validators.required), {emitEvent: false});
-      this.formGroup.setControl('manager', this.formBuilder.control({value: managers, disabled: this.readonly}, Validators.required), {emitEvent: false});
-      this.formGroup.setControl('operator', this.formBuilder.control({value: operators, disabled: this.readonly}, null), {emitEvent: false});
-      this.formGroup.setControl('observer', this.formBuilder.control({value: observers, disabled: this.readonly}, null), {emitEvent: false});
-      this.formGroup.setControl('upstream', this.formBuilder.control({value: upstream, disabled: this.readonly}, null), {emitEvent: false});
-      this.formGroup.setControl('downstream', this.formBuilder.control({value: downstream, disabled: this.readonly}, null), {emitEvent: false});
-      this.formGroup.setControl('enabled', this.formBuilder.control({value: tenant.enabled, disabled: this.readonly}, Validators.required), {emitEvent: false});
+      this.formGroup.setControl('name', this.createRequiredTextControl(tenant.name), {emitEvent: false});
+      this.formGroup.setControl('manager', this.createTenantUsersControl(managers, this.readonly, true), {emitEvent: false});
+      this.formGroup.setControl('operator', this.createTenantUsersControl(operators), {emitEvent: false});
+      this.formGroup.setControl('observer', this.createTenantUsersControl(observers), {emitEvent: false});
+      this.formGroup.setControl('upstream', this.createTenantUsersControl(upstream), {emitEvent: false});
+      this.formGroup.setControl('downstream', this.createTenantUsersControl(downstream), {emitEvent: false});
+      this.formGroup.setControl('enabled', this.createEnabledControl(tenant.enabled), {emitEvent: false});
     });
+  }
+
+  get managerUsers(): TenantUser[] {
+    return this.formGroup.controls.manager.value;
+  }
+
+  get operatorUsers(): TenantUser[] {
+    return this.formGroup.controls.operator.value;
+  }
+
+  get observerUsers(): TenantUser[] {
+    return this.formGroup.controls.observer.value;
+  }
+
+  get upstreamUsers(): TenantUser[] {
+    return this.formGroup.controls.upstream.value;
+  }
+
+  get downstreamUsers(): TenantUser[] {
+    return this.formGroup.controls.downstream.value;
+  }
+
+  private createRequiredTextControl(value: string, disabled = this.readonly): FormControl<string> {
+    return this.formBuilder.nonNullable.control({value, disabled}, Validators.required);
+  }
+
+  private createTenantUsersControl(value: TenantUser[], disabled = this.readonly, required = false): FormControl<TenantUser[]> {
+    return required
+      ? this.formBuilder.nonNullable.control({value, disabled}, Validators.required)
+      : this.formBuilder.nonNullable.control({value, disabled});
+  }
+
+  private createEnabledControl(value: boolean, disabled = this.readonly): FormControl<boolean> {
+    return this.formBuilder.nonNullable.control({value, disabled}, Validators.required);
   }
 
   ngOnInit() {
@@ -155,10 +199,10 @@ export class TenantFormComponent implements OnInit {
     return this.allUsers.filter(user => user.username.toLowerCase().includes(filterValue));
   }
 
-  add(event: MatChipInputEvent, control: FormControl | null, users: TenantUser[]): void {
-    const value = event.value;
+  add(event: MatChipInputEvent, control: FormControl<string | null> | null, users: TenantUser[]): void {
+    const value = event.value?.trim();
 
-    if (users.map(user => user.username).indexOf(value) < 0) {
+    if (value && users.map(user => user.username).indexOf(value) < 0) {
       users.push({id: null, username: value, role: 0, resource: null});
     }
 
@@ -171,7 +215,7 @@ export class TenantFormComponent implements OnInit {
     }
   }
 
-  remove(user: TenantUser, control: FormControl | null, users: TenantUser[]): void {
+  remove(user: TenantUser, control: FormControl<string | null> | null, users: TenantUser[]): void {
     const index = users.map(user => user.username).indexOf(user.username);
 
     if (index >= 0) {
@@ -183,8 +227,8 @@ export class TenantFormComponent implements OnInit {
     }
   }
 
-  select(event: MatAutocompleteSelectedEvent, input: HTMLInputElement, control: FormControl, users: TenantUser[]): void {
-    const value = event.option.value;
+  select(event: MatAutocompleteSelectedEvent, input: HTMLInputElement, control: FormControl<string | null>, users: TenantUser[]): void {
+    const value = event.option.value as string;
 
     if (users.map(user => user.username).indexOf(value) < 0) {
       users.push({id: null, username: value, role: 0, resource: null});
@@ -195,9 +239,9 @@ export class TenantFormComponent implements OnInit {
     event.option.deselect();
   }
 
-  getClientName(id: number) {
+  getClientName(id: number | null) {
     const tenant = this.tenant();
-    if (!tenant) {
+    if (!tenant || id === null) {
       return '';
     }
 
@@ -210,9 +254,9 @@ export class TenantFormComponent implements OnInit {
     }
   }
 
-  getVendorName(id: number) {
+  getVendorName(id: number | null) {
     const tenant = this.tenant();
-    if (!tenant) {
+    if (!tenant || id === null) {
       return '';
     }
 
@@ -233,8 +277,8 @@ export class TenantFormComponent implements OnInit {
 
     const tenant: Tenant = {
       id: null,
-      name: this.formGroup.value.name,
-      enabled: this.formGroup.value.enabled,
+      name: this.formGroup.controls.name.value,
+      enabled: this.formGroup.controls.enabled.value,
       createTime: null,
       updateTime: null,
       user: [],
@@ -242,15 +286,15 @@ export class TenantFormComponent implements OnInit {
       vendor: []
     };
 
-    for (const user of this.formGroup.value.manager) {
+    for (const user of this.formGroup.controls.manager.value) {
       user.role = ROLE_TENANT_MANAGER;
       tenant.user.push(user);
     }
-    for (const user of this.formGroup.value.operator) {
+    for (const user of this.formGroup.controls.operator.value) {
       user.role = ROLE_TENANT_OPERATOR;
       tenant.user.push(user);
     }
-    for (const user of this.formGroup.value.observer) {
+    for (const user of this.formGroup.controls.observer.value) {
       user.role = ROLE_TENANT_OBSERVER;
       tenant.user.push(user);
     }
@@ -275,33 +319,33 @@ export class TenantFormComponent implements OnInit {
       return;
     }
 
-    tenant.name = this.formGroup.value.name;
-    tenant.enabled = this.formGroup.value.enabled;
+    tenant.name = this.formGroup.controls.name.value;
+    tenant.enabled = this.formGroup.controls.enabled.value;
     tenant.user = [];
 
-    for (const user of this.formGroup.value.manager) {
+    for (const user of this.formGroup.controls.manager.value) {
       user.role = ROLE_TENANT_MANAGER;
       tenant.user.push(user);
     }
-    for (const user of this.formGroup.value.operator) {
+    for (const user of this.formGroup.controls.operator.value) {
       user.role = ROLE_TENANT_OPERATOR;
       tenant.user.push(user);
     }
-    for (const user of this.formGroup.value.observer) {
+    for (const user of this.formGroup.controls.observer.value) {
       user.role = ROLE_TENANT_OBSERVER;
       tenant.user.push(user);
     }
-    for (const user of this.formGroup.value.upstream) {
+    for (const user of this.formGroup.controls.upstream.value) {
       // only removal is allowed
       tenant.user.push(user);
     }
-    for (const user of this.formGroup.value.downstream) {
+    for (const user of this.formGroup.controls.downstream.value) {
       // only removal is allowed
       tenant.user.push(user);
     }
 
     if (tenant) {
-      tenant.name = this.formGroup.value.name;
+      tenant.name = this.formGroup.controls.name.value;
 
       this.tenantAPI.updateTenant(tenant.id!, tenant).subscribe(() => {
         this.snackBar.open('租户已修改', 'OK', {

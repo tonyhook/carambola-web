@@ -1,5 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
@@ -8,6 +8,12 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 
 import { AntiFraud, AntiFraudPeriod, AntiFraudRule, AntiFraudRuleAPI } from '../../../core';
+
+interface AntiFraudDialogControls {
+  rule: FormControl<string | null>;
+  period: FormControl<number | null>;
+  limitation: FormControl<number | null>;
+}
 
 @Component({
   selector: 'carambola-anti-fraud-dialog',
@@ -24,7 +30,7 @@ import { AntiFraud, AntiFraudPeriod, AntiFraudRule, AntiFraudRuleAPI } from '../
   styleUrls: ['./anti-fraud-dialog.component.scss'],
 })
 export class AntiFraudDialogComponent implements OnInit {
-  private formBuilder = inject(UntypedFormBuilder);
+  private formBuilder = inject(FormBuilder);
   private antiFraudRuleAPI = inject(AntiFraudRuleAPI);
   dialogRef = inject<MatDialogRef<AntiFraudDialogComponent>>(MatDialogRef);
   data = inject<AntiFraud>(MAT_DIALOG_DATA);
@@ -34,15 +40,15 @@ export class AntiFraudDialogComponent implements OnInit {
   antiFraud: AntiFraud;
   antiFraudRules: AntiFraudRule[] = [];
 
-  formGroup: UntypedFormGroup;
+  formGroup: FormGroup<AntiFraudDialogControls>;
 
   constructor() {
     const data = this.data;
 
     this.formGroup = this.formBuilder.group({
-      'rule': [null, Validators.required],
-      'period': [null, Validators.required],
-      'limitation': [null, [Validators.pattern('^[0-9]*[\\.]?[0-9]*$'), Validators.min(0)]],
+      rule: this.formBuilder.control<string | null>(null, Validators.required),
+      period: this.formBuilder.control<number | null>(null, Validators.required),
+      limitation: this.formBuilder.control<number | null>(null, [Validators.pattern('^[0-9]*[\\.]?[0-9]*$'), Validators.min(0)]),
     });
 
     this.antiFraud = data;
@@ -68,9 +74,9 @@ export class AntiFraudDialogComponent implements OnInit {
       return;
     }
 
-    this.antiFraud.rule = this.formGroup.value.rule;
-    this.antiFraud.period = this.formGroup.value.period;
-    this.antiFraud.limitation = this.formGroup.value.limitation;
+    this.antiFraud.rule = this.formGroup.controls.rule.value!;
+    this.antiFraud.period = this.formGroup.controls.period.value!;
+    this.antiFraud.limitation = this.formGroup.controls.limitation.value!;
 
     this.dialogRef.close(this.antiFraud);
   }

@@ -1,11 +1,16 @@
 import { CommonModule } from '@angular/common';
 import { booleanAttribute, Component, DestroyRef, effect, Input, input, OnDestroy, signal, ViewChild, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ControlValueAccessor, NG_VALIDATORS, NG_VALUE_ACCESSOR, ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, ValidationErrors, Validator, Validators } from '@angular/forms';
+import { ControlValueAccessor, FormBuilder, FormControl, FormGroup, NG_VALIDATORS, NG_VALUE_ACCESSOR, ReactiveFormsModule, ValidationErrors, Validator, Validators } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelect, MatSelectModule } from '@angular/material/select';
 import { ReplaySubject, Subject, take } from 'rxjs';
 import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
+
+type FilteredSelectFormGroup = FormGroup<{
+  value: FormControl<string | null>;
+  filter: FormControl<string | null>;
+}>;
 
 @Component({
   selector: 'carambola-filtered-select',
@@ -32,7 +37,7 @@ import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
   ],
 })
 export class FilteredSelectComponent implements OnDestroy, ControlValueAccessor, Validator {
-  private formBuilder = inject(UntypedFormBuilder);
+  private formBuilder = inject(FormBuilder);
   private destroyRef = inject(DestroyRef);
 
   _onChange: (arg0: string | null) => void = () => {return};
@@ -43,7 +48,7 @@ export class FilteredSelectComponent implements OnDestroy, ControlValueAccessor,
   filteredCandidate$: ReplaySubject<string[]> = new ReplaySubject<string[]>(1);
   filteredCandidateCache: string[] = [];
 
-  oldValue = null;
+  oldValue: string | null = null;
   oldFilter = '';
 
   options = input<string[]>([]);
@@ -59,24 +64,27 @@ export class FilteredSelectComponent implements OnDestroy, ControlValueAccessor,
 
   @ViewChild('select', { static: true }) select?: MatSelect;
 
-  formGroup: UntypedFormGroup;
+  formGroup: FilteredSelectFormGroup;
 
   constructor() {
     this.formGroup = this.formBuilder.group({
-      'value': [null, this.required ? Validators.required : null],
-      'filter': [null, null],
+      value: this.formBuilder.control<string | null>(null),
+      filter: this.formBuilder.control<string | null>(null),
     });
     this.formGroup.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
-        if (this.formGroup.value.value !== this.oldValue) {
-          this.oldValue = this.formGroup.value.value;
+        const value = this.formGroup.controls.value.value;
+        const filter = this.formGroup.controls.filter.value;
+
+        if (value !== this.oldValue) {
+          this.oldValue = value;
           setTimeout(() => {
-            this._onChange(this.formGroup.value.value);
+            this._onChange(value);
           }, 0);
         }
-        if (this.formGroup.value.filter !== this.oldFilter) {
-          this.oldFilter = this.formGroup.value.filter;
+        if (filter !== this.oldFilter) {
+          this.oldFilter = filter ?? '';
           this.filterCandidate();
         }
       }
@@ -116,7 +124,7 @@ export class FilteredSelectComponent implements OnDestroy, ControlValueAccessor,
   }
 
   writeValue(obj: string): void {
-    this.formGroup.controls['value'].setValue(obj, {
+    this.formGroup.controls.value.setValue(obj, {
       emitEvent: false,
     });
   }
@@ -135,15 +143,15 @@ export class FilteredSelectComponent implements OnDestroy, ControlValueAccessor,
 
   setDisabledState(disabled: boolean) {
     if (disabled) {
-      this.formGroup.controls['value'].disable();
+      this.formGroup.controls.value.disable();
     } else {
-      this.formGroup.controls['value'].enable();
+      this.formGroup.controls.value.enable();
     }
   }
 
   validate(): ValidationErrors | null {
     if (this.required) {
-      if (this.formGroup.value.value === null) {
+      if (this.formGroup.controls.value.value === null) {
         this.formGroup.markAllAsTouched();
 
         return {
@@ -162,7 +170,7 @@ export class FilteredSelectComponent implements OnDestroy, ControlValueAccessor,
   }
 
   filterCandidate() {
-    const search = this.formGroup.value.filter;
+    const search = this.formGroup.controls.filter.value;
     if (!search) {
       this.filteredCandidateCache = this.options().slice();
       this.filteredCandidate$.next(this.filteredCandidateCache);

@@ -1,9 +1,22 @@
 import { Component, inject } from '@angular/core';
-import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatInputModule } from '@angular/material/input';
 import { MatTabsModule } from '@angular/material/tabs';
+
+type EncryptFormGroup = FormGroup<{
+  ekey: FormControl<string>;
+  ikey: FormControl<string>;
+  iv: FormControl<string>;
+  price: FormControl<string>;
+}>;
+
+type DecryptFormGroup = FormGroup<{
+  ekey: FormControl<string>;
+  ikey: FormControl<string>;
+  message: FormControl<string>;
+}>;
 
 @Component({
   selector: 'carambola-encrypt',
@@ -18,9 +31,9 @@ import { MatTabsModule } from '@angular/material/tabs';
   styleUrls: ['./encrypt.component.scss'],
 })
 export class EncryptComponent {
-  private formBuilder = inject(UntypedFormBuilder);
+  private formBuilder = inject(FormBuilder);
 
-  formGroupEncrypt: UntypedFormGroup;
+  formGroupEncrypt: EncryptFormGroup;
   encrypt_ekey: Uint8Array = Uint8Array.from('');
   encrypt_ikey: Uint8Array = Uint8Array.from('');
   encrypt_iv: Uint8Array = Uint8Array.from('');
@@ -31,7 +44,7 @@ export class EncryptComponent {
   encrypt_message: Uint8Array = Uint8Array.from('');
   encrypt_final_message = '';
 
-  formGroupDecrypt: UntypedFormGroup;
+  formGroupDecrypt: DecryptFormGroup;
   decrypt_ekey: Uint8Array = Uint8Array.from('');
   decrypt_ikey: Uint8Array = Uint8Array.from('');
   decrypt_iv: Uint8Array = Uint8Array.from('');
@@ -248,16 +261,16 @@ export class EncryptComponent {
 
   constructor() {
     this.formGroupEncrypt = this.formBuilder.group({
-      'ekey': ['skU7Ax_NL5pPAFyKdkfZjZz2-VhIN8bjj1rVFOaJ_5o=', Validators.required],
-      'ikey': ['arO23ykdNqUQ5LEoQ0FVmPkBd7xB5CO89PDZlSjpFxo=', Validators.required],
-      'iv': [7404904667802501121n, Validators.pattern('^[0-9]*$')],
-      'price': [100, [Validators.required, Validators.pattern('^[0-9]*$')]],
+      ekey: this.formBuilder.nonNullable.control('skU7Ax_NL5pPAFyKdkfZjZz2-VhIN8bjj1rVFOaJ_5o=', Validators.required),
+      ikey: this.formBuilder.nonNullable.control('arO23ykdNqUQ5LEoQ0FVmPkBd7xB5CO89PDZlSjpFxo=', Validators.required),
+      iv: this.formBuilder.nonNullable.control('7404904667802501121', Validators.pattern('^[0-9]*$')),
+      price: this.formBuilder.nonNullable.control('100', [Validators.required, Validators.pattern('^[0-9]*$')]),
     });
 
     this.formGroupDecrypt = this.formBuilder.group({
-      'ekey': ['skU7Ax_NL5pPAFyKdkfZjZz2-VhIN8bjj1rVFOaJ_5o=', Validators.required],
-      'ikey': ['arO23ykdNqUQ5LEoQ0FVmPkBd7xB5CO89PDZlSjpFxo=', Validators.required],
-      'message': ['AAAAAAAAAABmw4GQAAAAAW2XFHAD9G7IW8gQeA', Validators.required],
+      ekey: this.formBuilder.nonNullable.control('skU7Ax_NL5pPAFyKdkfZjZz2-VhIN8bjj1rVFOaJ_5o=', Validators.required),
+      ikey: this.formBuilder.nonNullable.control('arO23ykdNqUQ5LEoQ0FVmPkBd7xB5CO89PDZlSjpFxo=', Validators.required),
+      message: this.formBuilder.nonNullable.control('AAAAAAAAAABmw4GQAAAAAW2XFHAD9G7IW8gQeA', Validators.required),
     });
   }
 
@@ -277,21 +290,21 @@ export class EncryptComponent {
     this.encrypt_message = Uint8Array.from('');
     this.encrypt_final_message = '';
 
-    let ekey: string = this.formGroupEncrypt.value.ekey.replaceAll('-', '+').replaceAll('_', '/');
+    let ekey = this.formGroupEncrypt.controls.ekey.value.replaceAll('-', '+').replaceAll('_', '/');
     while (ekey.length % 4 > 0) {
       ekey += '=';
     }
     this.encrypt_ekey = Uint8Array.from(atob(ekey), c => c.charCodeAt(0));
 
-    let ikey: string = this.formGroupEncrypt.value.ikey.replaceAll('-', '+').replaceAll('_', '/');
+    let ikey = this.formGroupEncrypt.controls.ikey.value.replaceAll('-', '+').replaceAll('_', '/');
     while (ikey.length % 4 > 0) {
       ikey += '=';
     }
     this.encrypt_ikey = Uint8Array.from(atob(ikey), c => c.charCodeAt(0));
 
-    this.encrypt_iv = this.int2buf(BigInt(this.formGroupEncrypt.value.iv), 16, 8);
+    this.encrypt_iv = this.int2buf(BigInt(this.formGroupEncrypt.controls.iv.value), 16, 8);
 
-    this.encrypt_price = this.int2buf(BigInt(this.formGroupEncrypt.value.price), 8, 0);
+    this.encrypt_price = this.int2buf(BigInt(this.formGroupEncrypt.controls.price.value), 8, 0);
 
     this.encrypt_pad = (await this.hmacSha1(this.encrypt_ekey, this.encrypt_iv)).subarray(0, 8);
 
@@ -323,19 +336,19 @@ export class EncryptComponent {
     this.decrypt_message = Uint8Array.from('');
     this.decrypt_final_price = NaN;
 
-    let ekey = this.formGroupDecrypt.value.ekey.replaceAll('-', '+').replaceAll('_', '/');
+    let ekey = this.formGroupDecrypt.controls.ekey.value.replaceAll('-', '+').replaceAll('_', '/');
     while (ekey.length % 4 > 0) {
       ekey += '=';
     }
     this.decrypt_ekey = Uint8Array.from(atob(ekey), c => c.charCodeAt(0));
 
-    let ikey = this.formGroupDecrypt.value.ikey.replaceAll('-', '+').replaceAll('_', '/');
+    let ikey = this.formGroupDecrypt.controls.ikey.value.replaceAll('-', '+').replaceAll('_', '/');
     while (ikey.length % 4 > 0) {
       ikey += '=';
     }
     this.decrypt_ikey = Uint8Array.from(atob(ikey), c => c.charCodeAt(0));
 
-    let message = this.formGroupDecrypt.value.message.replaceAll('-', '+').replaceAll('_', '/');
+    let message = this.formGroupDecrypt.controls.message.value.replaceAll('-', '+').replaceAll('_', '/');
     while (message.length % 4 > 0) {
       message += '=';
     }
