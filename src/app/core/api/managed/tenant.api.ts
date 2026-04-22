@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
@@ -9,10 +9,7 @@ import { Query, Tenant, TenantDefault } from '../..';
   providedIn: 'root',
 })
 export class TenantAPI {
-
-  constructor(
-    private http: HttpClient
-  ) { }
+  private http = inject(HttpClient);
 
   getCurrentTenant(): Observable<TenantDefault> {
     return this.http.get<TenantDefault>(environment.apipath + '/api/managed/tenant/current', { withCredentials: true });

@@ -1,4 +1,4 @@
-import { Component, effect, input, OnInit, output, signal, WritableSignal } from '@angular/core';
+import { Component, effect, input, OnInit, output, signal, WritableSignal, inject } from '@angular/core';
 import { UntypedFormGroup, UntypedFormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
@@ -33,6 +33,12 @@ import { FilteredSelectVendorComponent } from '../../../../shared';
   styleUrls: ['./vendormedia-form.component.scss'],
 })
 export class VendorMediaFormComponent implements OnInit {
+  private formBuilder = inject(UntypedFormBuilder);
+  private snackBar = inject(MatSnackBar);
+  private tenantService = inject(TenantService);
+  private vendorAPI = inject(VendorAPI);
+  private vendorMediaAPI = inject(VendorMediaAPI);
+
   formGroup: UntypedFormGroup;
   vendors: WritableSignal<Vendor[]> = signal([]);
   managedVendors: WritableSignal<Vendor[]> = signal([]);
@@ -46,13 +52,7 @@ export class VendorMediaFormComponent implements OnInit {
   vendorMedia = input<VendorMedia | null>(null);
   changed = output<boolean>();
 
-  constructor(
-    private formBuilder: UntypedFormBuilder,
-    private snackBar: MatSnackBar,
-    private tenantService: TenantService,
-    private vendorAPI: VendorAPI,
-    private vendorMediaAPI: VendorMediaAPI,
-  ) {
+  constructor() {
     this.formGroup = this.formBuilder.group({
       'vendor': [null, Validators.required],
       'name': ['', Validators.required],

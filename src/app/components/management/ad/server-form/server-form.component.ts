@@ -1,4 +1,4 @@
-import { Component, effect, input, output } from '@angular/core';
+import { Component, effect, input, output, inject } from '@angular/core';
 import { UntypedFormGroup, UntypedFormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -24,16 +24,16 @@ import { Server, ServerAPI } from '../../../../core';
   styleUrls: ['./server-form.component.scss'],
 })
 export class ServerFormComponent {
+  private formBuilder = inject(UntypedFormBuilder);
+  private snackBar = inject(MatSnackBar);
+  private serverAPI = inject(ServerAPI);
+
   formGroup: UntypedFormGroup;
 
   server = input<Server | null>(null);
   changed = output<boolean>();
 
-  constructor(
-    private formBuilder: UntypedFormBuilder,
-    private snackBar: MatSnackBar,
-    private serverAPI: ServerAPI,
-  ) {
+  constructor() {
     this.formGroup = this.formBuilder.group({
       'domain': ['', null],
       'address': ['', Validators.required],

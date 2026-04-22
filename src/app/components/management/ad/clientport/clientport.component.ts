@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, effect, OnInit, signal, ViewChild, WritableSignal } from '@angular/core';
+import { AfterViewInit, Component, effect, OnInit, signal, ViewChild, WritableSignal, inject } from '@angular/core';
 import { UntypedFormGroup, UntypedFormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -39,6 +39,15 @@ import { ClientPortDialogComponent, ClientPortDialogData } from '../clientport-d
   styleUrls: ['./clientport.component.scss'],
 })
 export class ClientPortManagerComponent implements OnInit, AfterViewInit {
+  private formBuilder = inject(UntypedFormBuilder);
+  private dialog = inject(MatDialog);
+  private tenantService = inject(TenantService);
+  private clientAPI = inject(ClientAPI);
+  private clientMediaAPI = inject(ClientMediaAPI);
+  private clientPortAPI = inject(ClientPortAPI);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+
   PortType = PortType;
 
   displayedColumns: string[] = ['client', 'clientMedia', 'name', 'format', 'connection', 'actions'];
@@ -63,16 +72,7 @@ export class ClientPortManagerComponent implements OnInit, AfterViewInit {
   dataRequest$ = new Subject<Query<ClientPort>>();
   dataSource = new MatTableDataSource<ClientPort>([]);
 
-  constructor(
-    private formBuilder: UntypedFormBuilder,
-    private dialog: MatDialog,
-    private tenantService: TenantService,
-    private clientAPI: ClientAPI,
-    private clientMediaAPI: ClientMediaAPI,
-    private clientPortAPI: ClientPortAPI,
-    private route: ActivatedRoute,
-    private router: Router,
-  ) {
+  constructor() {
     this.formGroupQuery = this.formBuilder.group({
       'client': [[], null],
       'clientMedia': [[], null],

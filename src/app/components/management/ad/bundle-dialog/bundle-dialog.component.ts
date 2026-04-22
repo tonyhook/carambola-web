@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, effect, Inject, signal, ViewChild, WritableSignal } from '@angular/core';
+import { AfterViewInit, Component, effect, signal, ViewChild, WritableSignal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -40,6 +40,18 @@ export interface BundleDialogData {
   styleUrls: ['./bundle-dialog.component.scss'],
 })
 export class BundleDialogComponent implements AfterViewInit {
+  private tenantService = inject(TenantService);
+  private clientAPI = inject(ClientAPI);
+  private clientMediaAPI = inject(ClientMediaAPI);
+  private clientPortAPI = inject(ClientPortAPI);
+  private vendorAPI = inject(VendorAPI);
+  private vendorMediaAPI = inject(VendorMediaAPI);
+  private vendorPortAPI = inject(VendorPortAPI);
+  private trafficControlAPI = inject(TrafficControlAPI);
+  private performanceAPI = inject(PerformanceAPI);
+  private route = inject(ActivatedRoute);
+  dialogRef = inject<MatDialogRef<BundleDialogComponent>>(MatDialogRef);
+
   displayedColumns = ['client', 'vendor', 'bundle', 'request', 'response', 'gfr', 'gfrv', 'impression', 'click', 'er', 'ctr', 'rv', 'actions'];
   dataSource = new MatTableDataSource<PerformanceView>([]);
   @ViewChild(MatSort, {static: false}) sort: MatSort | null = null;
@@ -72,20 +84,9 @@ export class BundleDialogComponent implements AfterViewInit {
   focus = false;
   dialogData: BundleDialogData;
 
-  constructor(
-    private tenantService: TenantService,
-    private clientAPI: ClientAPI,
-    private clientMediaAPI: ClientMediaAPI,
-    private clientPortAPI: ClientPortAPI,
-    private vendorAPI: VendorAPI,
-    private vendorMediaAPI: VendorMediaAPI,
-    private vendorPortAPI: VendorPortAPI,
-    private trafficControlAPI: TrafficControlAPI,
-    private performanceAPI: PerformanceAPI,
-    private route: ActivatedRoute,
-    public dialogRef: MatDialogRef<BundleDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) data: BundleDialogData,
-  ) {
+  constructor() {
+    const data = inject<BundleDialogData>(MAT_DIALOG_DATA);
+
     this.dialogData = data;
 
     effect(() => {

@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -32,6 +32,10 @@ export interface BillDialogData {
   styleUrls: ['./bill-dialog.component.scss'],
 })
 export class BillDialogComponent {
+  private formBuilder = inject(UntypedFormBuilder);
+  dialogRef = inject<MatDialogRef<BillDialogComponent>>(MatDialogRef);
+  data = inject<BillDialogData>(MAT_DIALOG_DATA);
+
   client: Client;
   clientPort: ClientPort;
   date: Date;
@@ -39,11 +43,9 @@ export class BillDialogComponent {
 
   formGroup: UntypedFormGroup;
 
-  constructor(
-    private formBuilder: UntypedFormBuilder,
-    public dialogRef: MatDialogRef<BillDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: BillDialogData,
-  ) {
+  constructor() {
+    const data = this.data;
+
     this.client = data.client;
     this.clientPort = data.clientPort;
     this.date = data.date;

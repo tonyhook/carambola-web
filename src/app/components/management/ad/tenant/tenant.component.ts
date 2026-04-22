@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnInit, ViewChild, inject } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatBadgeModule } from '@angular/material/badge';
@@ -45,6 +45,10 @@ import { TenantDialogComponent } from '../tenant-dialog/tenant-dialog.component'
   styleUrls: ['./tenant.component.scss'],
 })
 export class TenantManagerComponent implements OnInit, AfterViewInit {
+  private formBuilder = inject(UntypedFormBuilder);
+  private dialog = inject(MatDialog);
+  private tenantAPI = inject(TenantAPI);
+
   displayedColumns: string[] = ['name', 'actions'];
   hoverRow: Tenant | null = null;
 
@@ -61,11 +65,7 @@ export class TenantManagerComponent implements OnInit, AfterViewInit {
   dataRequest$ = new Subject<Query<Tenant>>();
   dataSource = new MatTableDataSource<Tenant>([]);
 
-  constructor(
-    private formBuilder: UntypedFormBuilder,
-    private dialog: MatDialog,
-    private tenantAPI: TenantAPI,
-  ) {
+  constructor() {
     this.formGroupQuery = this.formBuilder.group({
       'search': ['', null],
     });

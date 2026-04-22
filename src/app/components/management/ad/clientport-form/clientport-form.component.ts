@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, effect, input, output, signal, WritableSignal } from '@angular/core';
+import { AfterViewInit, Component, effect, input, output, signal, WritableSignal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { UntypedFormGroup, UntypedFormBuilder, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -67,6 +67,13 @@ import { ConnectionComponent, FilteredSelectClientComponent, FilteredSelectClien
   styleUrls: ['./clientport-form.component.scss'],
 })
 export class ClientPortFormComponent implements AfterViewInit {
+  private formBuilder = inject(UntypedFormBuilder);
+  private snackBar = inject(MatSnackBar);
+  private tenantService = inject(TenantService);
+  private clientAPI = inject(ClientAPI);
+  private clientMediaAPI = inject(ClientMediaAPI);
+  private clientPortAPI = inject(ClientPortAPI);
+
   PartnerType = PartnerType;
   PortType = PortType;
 
@@ -233,14 +240,7 @@ export class ClientPortFormComponent implements AfterViewInit {
     }
   }
 
-  constructor(
-    private formBuilder: UntypedFormBuilder,
-    private snackBar: MatSnackBar,
-    private tenantService: TenantService,
-    private clientAPI: ClientAPI,
-    private clientMediaAPI: ClientMediaAPI,
-    private clientPortAPI: ClientPortAPI,
-  ) {
+  constructor() {
     this.formGroup = this.formBuilder.group({
       'client': [null, Validators.required],
       'clientMedia': [null, Validators.required],

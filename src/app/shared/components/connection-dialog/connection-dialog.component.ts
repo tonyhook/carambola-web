@@ -1,5 +1,5 @@
 import { formatDate } from '@angular/common';
-import { AfterViewInit, Component, Inject, OnInit } from '@angular/core';
+import { AfterViewInit, Component, OnInit, inject } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -44,6 +44,16 @@ export interface ConnectionDialogData {
   styleUrls: ['./connection-dialog.component.scss'],
 })
 export class ConnectionDialogComponent implements OnInit, AfterViewInit {
+  private formBuilder = inject(UntypedFormBuilder);
+  private route = inject(ActivatedRoute);
+  private clientAPI = inject(ClientAPI);
+  private clientPortAPI = inject(ClientPortAPI);
+  private vendorAPI = inject(VendorAPI);
+  private vendorPortAPI = inject(VendorPortAPI);
+  private snackBar = inject(MatSnackBar);
+  dialogRef = inject<MatDialogRef<ConnectionDialogComponent>>(MatDialogRef);
+  data = inject<ConnectionDialogData>(MAT_DIALOG_DATA);
+
   PortType = PortType;
 
   client: Client | null = null;
@@ -67,17 +77,9 @@ export class ConnectionDialogComponent implements OnInit, AfterViewInit {
 
   readonly = false;
 
-  constructor(
-    private formBuilder: UntypedFormBuilder,
-    private route: ActivatedRoute,
-    private clientAPI: ClientAPI,
-    private clientPortAPI: ClientPortAPI,
-    private vendorAPI: VendorAPI,
-    private vendorPortAPI: VendorPortAPI,
-    private snackBar: MatSnackBar,
-    public dialogRef: MatDialogRef<ConnectionDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: ConnectionDialogData,
-  ) {
+  constructor() {
+    const data = this.data;
+
     this.formGroupPort = this.formBuilder.group({
       'client': [null, Validators.required],
       'clientPort': [null, Validators.required],

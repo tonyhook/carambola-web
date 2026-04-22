@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, effect, OnInit, signal, ViewChild, WritableSignal } from '@angular/core';
+import { AfterViewInit, Component, effect, OnInit, signal, ViewChild, WritableSignal, inject } from '@angular/core';
 import { UntypedFormGroup, UntypedFormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -38,6 +38,14 @@ import { ClientMediaDialogComponent, ClientMediaDialogData } from '../clientmedi
   styleUrls: ['./clientmedia.component.scss'],
 })
 export class ClientMediaManagerComponent implements OnInit, AfterViewInit {
+  private formBuilder = inject(UntypedFormBuilder);
+  private dialog = inject(MatDialog);
+  private tenantService = inject(TenantService);
+  private clientAPI = inject(ClientAPI);
+  private clientMediaAPI = inject(ClientMediaAPI);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+
   displayedColumns: string[] = ['client', 'name', 'appversion', 'applink', 'actions'];
   hoverRow: ClientMedia | null = null;
 
@@ -57,15 +65,7 @@ export class ClientMediaManagerComponent implements OnInit, AfterViewInit {
   dataRequest$ = new Subject<Query<ClientMedia>>();
   dataSource = new MatTableDataSource<ClientMedia>([]);
 
-  constructor(
-    private formBuilder: UntypedFormBuilder,
-    private dialog: MatDialog,
-    private tenantService: TenantService,
-    private clientAPI: ClientAPI,
-    private clientMediaAPI: ClientMediaAPI,
-    private route: ActivatedRoute,
-    private router: Router,
-  ) {
+  constructor() {
     this.formGroupQuery = this.formBuilder.group({
       'client': [[], null],
       'platform': [[], null],

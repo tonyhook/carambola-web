@@ -1,4 +1,4 @@
-import { Component, effect, input, OnInit, output, signal, WritableSignal } from '@angular/core';
+import { Component, effect, input, OnInit, output, signal, WritableSignal, inject } from '@angular/core';
 import { UntypedFormGroup, UntypedFormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -29,6 +29,12 @@ import { OperationComponent } from '../../../../shared/components/operation/oper
   styleUrls: ['./role-form.component.scss'],
 })
 export class RoleFormComponent implements OnInit {
+  private formBuilder = inject(UntypedFormBuilder);
+  private snackBar = inject(MatSnackBar);
+  private permissionAPI = inject(PermissionAPI);
+  private authorityAPI = inject(AuthorityAPI);
+  private roleAPI = inject(RoleAPI);
+
   formGroup: UntypedFormGroup;
 
   authorities: WritableSignal<Authority[]> = signal([]);
@@ -43,13 +49,7 @@ export class RoleFormComponent implements OnInit {
   role = input<Role | null>(null);
   changed = output<boolean>();
 
-  constructor(
-    private formBuilder: UntypedFormBuilder,
-    private snackBar: MatSnackBar,
-    private authorityAPI: AuthorityAPI,
-    private permissionAPI: PermissionAPI,
-    private roleAPI: RoleAPI,
-  ) {
+  constructor() {
     this.formGroup = this.formBuilder.group({
       'name': ['', Validators.required],
     });

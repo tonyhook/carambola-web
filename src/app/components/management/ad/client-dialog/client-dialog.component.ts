@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
 import { Client, PartnerType } from '../../../../core';
@@ -18,13 +18,14 @@ export interface ClientDialogData {
   styleUrls: ['./client-dialog.component.scss'],
 })
 export class ClientDialogComponent {
+  private dialogRef = inject<MatDialogRef<ClientDialogComponent>>(MatDialogRef);
+
   mode: PartnerType;
   client: Client | null;
 
-  constructor(
-    private dialogRef: MatDialogRef<ClientDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) data: ClientDialogData,
-  ) {
+  constructor() {
+    const data = inject<ClientDialogData>(MAT_DIALOG_DATA);
+
     this.client = data.client;
     this.mode = data.mode;
   }

@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, DoCheck, effect, ElementRef, HostListener, KeyValueDiffer, KeyValueDiffers, OnInit, signal, ViewChild, WritableSignal } from '@angular/core';
+import { AfterViewInit, Component, DoCheck, effect, ElementRef, HostListener, KeyValueDiffer, KeyValueDiffers, OnInit, signal, ViewChild, WritableSignal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { UntypedFormGroup, UntypedFormBuilder, ReactiveFormsModule, UntypedFormControl } from '@angular/forms';
@@ -63,6 +63,19 @@ import { VendorPortDialogComponent, VendorPortDialogData } from '../vendorport-d
   ],
 })
 export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
+  private formBuilder = inject(UntypedFormBuilder);
+  private tenantService = inject(TenantService);
+  private clientAPI = inject(ClientAPI);
+  private clientMediaAPI = inject(ClientMediaAPI);
+  private clientPortAPI = inject(ClientPortAPI);
+  private vendorAPI = inject(VendorAPI);
+  private vendorMediaAPI = inject(VendorMediaAPI);
+  private vendorPortAPI = inject(VendorPortAPI);
+  private performanceAPI = inject(PerformanceAPI);
+  private dialog = inject(MatDialog);
+  private route = inject(ActivatedRoute);
+  private readonly differs = inject(KeyValueDiffers);
+
   PortType = PortType;
 
   displayedColumns: string[] = [];
@@ -160,20 +173,7 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
   dataRequestSub$ = new Subject<Query<PerformancePlaceholder>>();
   dataSourceSub = new MatTableDataSource<PerformanceView>([]);
 
-  constructor(
-    private formBuilder: UntypedFormBuilder,
-    private tenantService: TenantService,
-    private clientAPI: ClientAPI,
-    private clientMediaAPI: ClientMediaAPI,
-    private clientPortAPI: ClientPortAPI,
-    private vendorAPI: VendorAPI,
-    private vendorMediaAPI: VendorMediaAPI,
-    private vendorPortAPI: VendorPortAPI,
-    private performanceAPI: PerformanceAPI,
-    private dialog: MatDialog,
-    private route: ActivatedRoute,
-    private readonly differs: KeyValueDiffers,
-  ) {
+  constructor() {
     this.formGroupColumn = this.formBuilder.group({
       'column': [[], null],
     });

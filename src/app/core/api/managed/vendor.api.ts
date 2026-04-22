@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
@@ -9,10 +9,7 @@ import { Query, Vendor } from '../..';
   providedIn: 'root',
 })
 export class VendorAPI {
-
-  constructor(
-    private http: HttpClient
-  ) { }
+  private http = inject(HttpClient);
 
   getVendorList(query?: Query<Vendor>): Observable<Vendor[]> {
     let params = new HttpParams();

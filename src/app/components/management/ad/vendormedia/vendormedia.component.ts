@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, effect, OnInit, signal, ViewChild, WritableSignal } from '@angular/core';
+import { AfterViewInit, Component, effect, OnInit, signal, ViewChild, WritableSignal, inject } from '@angular/core';
 import { UntypedFormGroup, UntypedFormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -38,6 +38,14 @@ import { VendorMediaDialogComponent, VendorMediaDialogData } from '../vendormedi
   styleUrls: ['./vendormedia.component.scss'],
 })
 export class VendorMediaManagerComponent implements OnInit, AfterViewInit {
+  private formBuilder = inject(UntypedFormBuilder);
+  private dialog = inject(MatDialog);
+  private tenantService = inject(TenantService);
+  private vendorAPI = inject(VendorAPI);
+  private vendorMediaAPI = inject(VendorMediaAPI);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+
   displayedColumns: string[] = ['vendor', 'name', 'appversion', 'applink', 'actions'];
   hoverRow: VendorMedia | null = null;
 
@@ -57,15 +65,7 @@ export class VendorMediaManagerComponent implements OnInit, AfterViewInit {
   dataRequest$ = new Subject<Query<VendorMedia>>();
   dataSource = new MatTableDataSource<VendorMedia>([]);
 
-  constructor(
-    private formBuilder: UntypedFormBuilder,
-    private dialog: MatDialog,
-    private tenantService: TenantService,
-    private vendorAPI: VendorAPI,
-    private vendorMediaAPI: VendorMediaAPI,
-    private route: ActivatedRoute,
-    private router: Router,
-  ) {
+  constructor() {
     this.formGroupQuery = this.formBuilder.group({
       'vendor': [[], null],
       'platform': [[], null],

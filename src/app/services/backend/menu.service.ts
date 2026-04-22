@@ -1,4 +1,4 @@
-import { Injectable, signal, WritableSignal } from '@angular/core';
+import { Injectable, signal, WritableSignal, inject } from '@angular/core';
 
 import { Menu, MenuAPI, MenuTreeNode } from '../../core';
 
@@ -6,11 +6,9 @@ import { Menu, MenuAPI, MenuTreeNode } from '../../core';
   providedIn: 'root',
 })
 export class MenuService {
-  menuItems: WritableSignal<MenuTreeNode[]> = signal([]);
+  private menuAPI = inject(MenuAPI);
 
-  constructor(
-    private menuAPI: MenuAPI,
-  ) { }
+  menuItems: WritableSignal<MenuTreeNode[]> = signal([]);
 
   transform(el: Menu): MenuTreeNode {
     const menu: MenuTreeNode = {

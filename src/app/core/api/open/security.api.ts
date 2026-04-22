@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
@@ -9,10 +9,7 @@ import { Login, UserDetails } from '../..';
   providedIn: 'root',
 })
 export class OpenSecurityAPI {
-
-  constructor(
-    private http: HttpClient
-  ) { }
+  private http = inject(HttpClient);
 
   getUserDetails(): Observable<UserDetails> {
     return this.http.get<UserDetails>(environment.apipath + '/api/open/security/user-details', { withCredentials: true });

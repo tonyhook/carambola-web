@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, DoCheck, effect, ElementRef, HostListener, KeyValueDiffer, KeyValueDiffers, OnInit, signal, ViewChild, WritableSignal } from '@angular/core';
+import { AfterViewInit, Component, DoCheck, effect, ElementRef, HostListener, KeyValueDiffer, KeyValueDiffers, OnInit, signal, ViewChild, WritableSignal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { UntypedFormGroup, UntypedFormBuilder, ReactiveFormsModule, UntypedFormControl } from '@angular/forms';
@@ -65,6 +65,22 @@ import { BillDialogComponent, BillDialogData } from '../bill-dialog/bill-dialog.
   ],
 })
 export class BillComponent implements OnInit, AfterViewInit, DoCheck {
+  private formBuilder = inject(UntypedFormBuilder);
+  private tenantService = inject(TenantService);
+  private clientAPI = inject(ClientAPI);
+  private clientMediaAPI = inject(ClientMediaAPI);
+  private clientPortAPI = inject(ClientPortAPI);
+  private vendorAPI = inject(VendorAPI);
+  private vendorMediaAPI = inject(VendorMediaAPI);
+  private vendorPortAPI = inject(VendorPortAPI);
+  private performanceAPI = inject(PerformanceAPI);
+  private billAPI = inject(BillAPI);
+  private connectionAPI = inject(ConnectionAPI);
+  private snackBar = inject(MatSnackBar);
+  private dialog = inject(MatDialog);
+  private route = inject(ActivatedRoute);
+  private readonly differs = inject(KeyValueDiffers);
+
   PartnerType = PartnerType;
   BillViewStatus = BillViewStatus;
 
@@ -161,23 +177,7 @@ export class BillComponent implements OnInit, AfterViewInit, DoCheck {
   dataRequestSub$ = new Subject<Query<PerformancePlaceholder>>();
   dataSourceSub = new MatTableDataSource<BillView>([]);
 
-  constructor(
-    private formBuilder: UntypedFormBuilder,
-    private tenantService: TenantService,
-    private clientAPI: ClientAPI,
-    private clientMediaAPI: ClientMediaAPI,
-    private clientPortAPI: ClientPortAPI,
-    private vendorAPI: VendorAPI,
-    private vendorMediaAPI: VendorMediaAPI,
-    private vendorPortAPI: VendorPortAPI,
-    private performanceAPI: PerformanceAPI,
-    private billAPI: BillAPI,
-    private connectionAPI: ConnectionAPI,
-    private snackBar: MatSnackBar,
-    private dialog: MatDialog,
-    private route: ActivatedRoute,
-    private readonly differs: KeyValueDiffers,
-  ) {
+  constructor() {
     this.formGroupColumn = this.formBuilder.group({
       'column': [[], null],
     });

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
@@ -9,10 +9,7 @@ import { Server } from '../..';
   providedIn: 'root',
 })
 export class ServerAPI {
-
-  constructor(
-    private http: HttpClient
-  ) { }
+  private http = inject(HttpClient);
 
   getServerStatus(): Observable<Record<number, number>> {
     return this.http.get<Record<number, number>>(environment.apipath + '/api/managed/server/status', { withCredentials: true });

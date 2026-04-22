@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, DoCheck, effect, ElementRef, HostListener, KeyValueDiffer, KeyValueDiffers, OnInit, signal, ViewChild, WritableSignal } from '@angular/core';
+import { AfterViewInit, Component, DoCheck, effect, ElementRef, HostListener, KeyValueDiffer, KeyValueDiffers, OnInit, signal, ViewChild, WritableSignal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { UntypedFormGroup, UntypedFormBuilder, ReactiveFormsModule, UntypedFormControl } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
@@ -52,6 +52,16 @@ import { VendorPortDialogComponent, VendorPortDialogData } from '../vendorport-d
   styleUrls: ['./downstream-manager.component.scss'],
 })
 export class DownstreamManagerComponent implements OnInit, AfterViewInit, DoCheck {
+  private formBuilder = inject(UntypedFormBuilder);
+  private tenantService = inject(TenantService);
+  private vendorAPI = inject(VendorAPI);
+  private vendorMediaAPI = inject(VendorMediaAPI);
+  private vendorPortAPI = inject(VendorPortAPI);
+  private billAPI = inject(BillAPI);
+  private dialog = inject(MatDialog);
+  private route = inject(ActivatedRoute);
+  private readonly differs = inject(KeyValueDiffers);
+
   SignStatus = SignStatus;
 
   displayedColumns: string[] = [];
@@ -118,17 +128,7 @@ export class DownstreamManagerComponent implements OnInit, AfterViewInit, DoChec
   dataRequest$ = new Subject<Query<PerformancePlaceholder>>();
   dataSource = new MatTableDataSource<BillView>([]);
 
-  constructor(
-    private formBuilder: UntypedFormBuilder,
-    private tenantService: TenantService,
-    private vendorAPI: VendorAPI,
-    private vendorMediaAPI: VendorMediaAPI,
-    private vendorPortAPI: VendorPortAPI,
-    private billAPI: BillAPI,
-    private dialog: MatDialog,
-    private route: ActivatedRoute,
-    private readonly differs: KeyValueDiffers,
-  ) {
+  constructor() {
     this.formGroupQuery = this.formBuilder.group({
       'vendor': [[], null],
       'vendorMedia': [[], null],
