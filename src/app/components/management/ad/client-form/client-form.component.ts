@@ -1,4 +1,4 @@
-import { Component, effect, ElementRef, input, output, ViewChild } from '@angular/core';
+import { Component, effect, ElementRef, input, output, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { UntypedFormGroup, UntypedFormBuilder, Validators, ReactiveFormsModule, FormControl } from '@angular/forms';
 import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
@@ -37,6 +37,13 @@ import { TenantService } from '../../../../services';
   styleUrls: ['./client-form.component.scss'],
 })
 export class ClientFormComponent {
+  private formBuilder = inject(UntypedFormBuilder);
+  private snackBar = inject(MatSnackBar);
+  private tenantService = inject(TenantService);
+  private clientAPI = inject(ClientAPI);
+  private tenantAPI = inject(TenantAPI);
+  private userAPI = inject(UserAPI);
+
   PartnerType = PartnerType;
 
   formGroup: UntypedFormGroup;
@@ -52,14 +59,7 @@ export class ClientFormComponent {
   client = input<Client | null>(null);
   changed = output<boolean>();
 
-  constructor(
-    private formBuilder: UntypedFormBuilder,
-    private snackBar: MatSnackBar,
-    private tenantService: TenantService,
-    private clientAPI: ClientAPI,
-    private tenantAPI: TenantAPI,
-    private userAPI: UserAPI,
-  ) {
+  constructor() {
     this.formGroup = this.formBuilder.group({
       'upstream': [[], null],
       'name': ['', Validators.required],

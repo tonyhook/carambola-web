@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, DoCheck, effect, ElementRef, HostListener, KeyValueDiffer, KeyValueDiffers, OnInit, signal, ViewChild, WritableSignal } from '@angular/core';
+import { AfterViewInit, Component, DoCheck, effect, ElementRef, HostListener, KeyValueDiffer, KeyValueDiffers, OnInit, signal, ViewChild, WritableSignal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { UntypedFormGroup, UntypedFormBuilder, ReactiveFormsModule, UntypedFormControl } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
@@ -47,6 +47,15 @@ import { AdEntityComponent, FilteredSelectClientComponent, FilteredSelectClientM
   styleUrls: ['./upstream-observer.component.scss'],
 })
 export class UpstreamObserverComponent implements OnInit, AfterViewInit, DoCheck {
+  private formBuilder = inject(UntypedFormBuilder);
+  private tenantService = inject(TenantService);
+  private clientAPI = inject(ClientAPI);
+  private clientMediaAPI = inject(ClientMediaAPI);
+  private clientPortAPI = inject(ClientPortAPI);
+  private billAPI = inject(BillAPI);
+  private route = inject(ActivatedRoute);
+  private readonly differs = inject(KeyValueDiffers);
+
   PartnerType = PartnerType;
 
   displayedColumns: string[] = [];
@@ -114,16 +123,7 @@ export class UpstreamObserverComponent implements OnInit, AfterViewInit, DoCheck
   dataRequest$ = new Subject<Query<PerformancePlaceholder>>();
   dataSource = new MatTableDataSource<BillView>([]);
 
-  constructor(
-    private formBuilder: UntypedFormBuilder,
-    private tenantService: TenantService,
-    private clientAPI: ClientAPI,
-    private clientMediaAPI: ClientMediaAPI,
-    private clientPortAPI: ClientPortAPI,
-    private billAPI: BillAPI,
-    private route: ActivatedRoute,
-    private readonly differs: KeyValueDiffers,
-  ) {
+  constructor() {
     this.formGroupQuery = this.formBuilder.group({
       'client': [[], null],
       'clientMedia': [[], null],

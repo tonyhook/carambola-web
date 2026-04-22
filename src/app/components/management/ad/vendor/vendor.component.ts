@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, effect, OnInit, signal, ViewChild, WritableSignal } from '@angular/core';
+import { AfterViewInit, Component, effect, OnInit, signal, ViewChild, WritableSignal, inject } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -35,6 +35,13 @@ import { VendorDialogComponent, VendorDialogData } from '../vendor-dialog/vendor
   styleUrls: ['./vendor.component.scss'],
 })
 export class VendorManagerComponent implements OnInit, AfterViewInit {
+  private formBuilder = inject(UntypedFormBuilder);
+  private dialog = inject(MatDialog);
+  private vendorAPI = inject(VendorAPI);
+  private tenantService = inject(TenantService);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+
   PartnerType = PartnerType;
 
   displayedColumns: string[] = ['name', 'actions'];
@@ -54,14 +61,7 @@ export class VendorManagerComponent implements OnInit, AfterViewInit {
   dataRequest$ = new Subject<Query<Vendor>>();
   dataSource = new MatTableDataSource<Vendor>([]);
 
-  constructor(
-    private formBuilder: UntypedFormBuilder,
-    private dialog: MatDialog,
-    private vendorAPI: VendorAPI,
-    private tenantService: TenantService,
-    private route: ActivatedRoute,
-    private router: Router,
-  ) {
+  constructor() {
     this.formGroupQuery = this.formBuilder.group({
       'search': ['', null],
     });

@@ -1,4 +1,4 @@
-import { Component, effect, input, OnInit, output, signal, WritableSignal } from '@angular/core';
+import { Component, effect, input, OnInit, output, signal, WritableSignal, inject } from '@angular/core';
 import { UntypedFormGroup, UntypedFormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
@@ -33,6 +33,12 @@ import { FilteredSelectClientComponent } from '../../../../shared';
   styleUrls: ['./clientmedia-form.component.scss'],
 })
 export class ClientMediaFormComponent implements OnInit {
+  private formBuilder = inject(UntypedFormBuilder);
+  private snackBar = inject(MatSnackBar);
+  private tenantService = inject(TenantService);
+  private clientAPI = inject(ClientAPI);
+  private clientMediaAPI = inject(ClientMediaAPI);
+
   formGroup: UntypedFormGroup;
   clients: WritableSignal<Client[]> = signal([]);
   managedClients: WritableSignal<Client[]> = signal([]);
@@ -46,13 +52,7 @@ export class ClientMediaFormComponent implements OnInit {
   clientMedia = input<ClientMedia | null>(null);
   changed = output<boolean>();
 
-  constructor(
-    private formBuilder: UntypedFormBuilder,
-    private snackBar: MatSnackBar,
-    private tenantService: TenantService,
-    private clientAPI: ClientAPI,
-    private clientMediaAPI: ClientMediaAPI,
-  ) {
+  constructor() {
     this.formGroup = this.formBuilder.group({
       'client': [null, Validators.required],
       'name': ['', Validators.required],

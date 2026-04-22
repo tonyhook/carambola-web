@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
 import { User } from '../../../../core';
@@ -13,18 +13,8 @@ import { UserFormComponent } from '../user-form/user-form.component';
   styleUrls: ['./user-dialog.component.scss'],
 })
 export class UserDialogComponent {
-  user: User | null = null;
-
-  constructor(
-    private dialogRef: MatDialogRef<UserDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) data: User,
-  ) {
-    if (data) {
-      this.user = data;
-    } else {
-      this.user = null;
-    }
-  }
+  private dialogRef = inject<MatDialogRef<UserDialogComponent>>(MatDialogRef);
+  public user: User | null = inject(MAT_DIALOG_DATA, { optional: true }) as User | null;
 
   changed(changed: boolean) {
     this.dialogRef.close(changed);

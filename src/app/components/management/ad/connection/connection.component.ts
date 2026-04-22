@@ -1,4 +1,4 @@
-import { AfterViewInit, Component } from '@angular/core';
+import { AfterViewInit, Component, inject } from '@angular/core';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { forkJoin } from 'rxjs';
 
@@ -15,6 +15,9 @@ import { AdEntityComponent } from '../../../../shared';
   styleUrls: ['./connection.component.scss'],
 })
 export class ConnectionManagerComponent implements AfterViewInit {
+  private clientPortAPI = inject(ClientPortAPI);
+  private vendorPortAPI = inject(VendorPortAPI);
+
   displayedColumns: string[] = ['client', 'vendor'];
   dataSource = new MatTableDataSource<Connection>([]);
 
@@ -24,11 +27,6 @@ export class ConnectionManagerComponent implements AfterViewInit {
   vendorPorts: VendorPort[] = [];
   clientPortMap: Map<number, ClientPort> = new Map<number, ClientPort>();
   vendorPortMap: Map<number, VendorPort> = new Map<number, VendorPort>();
-
-  constructor(
-    private clientPortAPI: ClientPortAPI,
-    private vendorPortAPI: VendorPortAPI,
-  ) { }
 
   ngAfterViewInit() {
     forkJoin([

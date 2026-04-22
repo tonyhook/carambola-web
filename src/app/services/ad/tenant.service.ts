@@ -1,4 +1,4 @@
-import { effect, Injectable, signal, WritableSignal } from '@angular/core';
+import { effect, Injectable, signal, WritableSignal, inject } from '@angular/core';
 import { forkJoin } from 'rxjs';
 
 import { PartnerType, ROLE_TENANT_DOWNSTREAM_MANAGER_DIRECT, ROLE_TENANT_DOWNSTREAM_MANAGER_PROGRAMMATIC, ROLE_TENANT_MANAGER, ROLE_TENANT_OBSERVER, ROLE_TENANT_OPERATOR, Tenant, TenantAPI, Vendor } from '../../core';
@@ -8,6 +8,9 @@ import { AuthService } from '..';
   providedIn: 'root',
 })
 export class TenantService {
+  private authService = inject(AuthService);
+  private tenantAPI = inject(TenantAPI);
+
   tenant: WritableSignal<Tenant | null> = signal(null);
   tenants: WritableSignal<Tenant[]> = signal([]);
   isManager: WritableSignal<boolean> = signal(false);
@@ -15,10 +18,7 @@ export class TenantService {
   isTenantOperator: WritableSignal<boolean> = signal(false);
   isTenantObserver: WritableSignal<boolean> = signal(false);
 
-  constructor(
-    private authService: AuthService,
-    private tenantAPI: TenantAPI,
-  ) {
+  constructor() {
     effect(() => {
       const credential = this.authService.credential();
       if (credential) {

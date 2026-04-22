@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
@@ -9,10 +9,7 @@ import { Bill, Medium, PerformancePlaceholder, Query, Sign, Upload } from '../..
   providedIn: 'root',
 })
 export class BillAPI {
-
-  constructor(
-    private http: HttpClient
-  ) { }
+  private http = inject(HttpClient);
 
   getBillList(interval: string, start: string, end: string, query?: Query<PerformancePlaceholder>): Observable<Bill[]> {
     let params = new HttpParams()

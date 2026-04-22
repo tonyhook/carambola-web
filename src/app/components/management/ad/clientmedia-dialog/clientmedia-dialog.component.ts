@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
 import { ClientMedia, PartnerType } from '../../../../core';
@@ -19,14 +19,15 @@ export interface ClientMediaDialogData {
   styleUrls: ['./clientmedia-dialog.component.scss'],
 })
 export class ClientMediaDialogComponent {
+  private dialogRef = inject<MatDialogRef<ClientMediaDialogComponent>>(MatDialogRef);
+
   mode: PartnerType;
   clientMedia: ClientMedia | null;
   clientId: number;
 
-  constructor(
-    private dialogRef: MatDialogRef<ClientMediaDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) data: ClientMediaDialogData,
-  ) {
+  constructor() {
+    const data = inject<ClientMediaDialogData>(MAT_DIALOG_DATA);
+
     this.mode = data.mode;
     this.clientId = data.clientId;
     this.clientMedia = data.clientMedia;

@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, effect, OnInit, signal, ViewChild, WritableSignal } from '@angular/core';
+import { AfterViewInit, Component, effect, OnInit, signal, ViewChild, WritableSignal, inject } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -35,6 +35,13 @@ import { ClientDialogComponent, ClientDialogData } from '../client-dialog/client
   styleUrls: ['./client.component.scss'],
 })
 export class ClientManagerComponent implements OnInit, AfterViewInit {
+  private formBuilder = inject(UntypedFormBuilder);
+  private dialog = inject(MatDialog);
+  private clientAPI = inject(ClientAPI);
+  private tenantService = inject(TenantService);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+
   PartnerType = PartnerType;
 
   displayedColumns: string[] = ['name', 'actions'];
@@ -54,14 +61,7 @@ export class ClientManagerComponent implements OnInit, AfterViewInit {
   dataRequest$ = new Subject<Query<Client>>();
   dataSource = new MatTableDataSource<Client>([]);
 
-  constructor(
-    private formBuilder: UntypedFormBuilder,
-    private dialog: MatDialog,
-    private clientAPI: ClientAPI,
-    private tenantService: TenantService,
-    private route: ActivatedRoute,
-    private router: Router,
-  ) {
+  constructor() {
     this.formGroupQuery = this.formBuilder.group({
       'search': ['', null],
     });

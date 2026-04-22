@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
 import { Tenant } from '../../../../core';
@@ -13,12 +13,13 @@ import { TenantFormComponent } from '../tenant-form/tenant-form.component';
   styleUrls: ['./tenant-dialog.component.scss'],
 })
 export class TenantDialogComponent {
+  private dialogRef = inject<MatDialogRef<TenantDialogComponent>>(MatDialogRef);
+
   tenant: Tenant | null;
 
-  constructor(
-    private dialogRef: MatDialogRef<TenantDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) data: Tenant,
-  ) {
+  constructor() {
+    const data = inject<Tenant>(MAT_DIALOG_DATA);
+
     if (data) {
       this.tenant = data;
     } else {

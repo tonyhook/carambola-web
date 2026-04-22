@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
 import { PartnerType, Vendor } from '../../../../core';
@@ -18,13 +18,14 @@ export interface VendorDialogData {
   styleUrls: ['./vendor-dialog.component.scss'],
 })
 export class VendorDialogComponent {
+  private dialogRef = inject<MatDialogRef<VendorDialogComponent>>(MatDialogRef);
+
   mode: PartnerType;
   vendor: Vendor | null;
 
-  constructor(
-    private dialogRef: MatDialogRef<VendorDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) data: VendorDialogData,
-  ) {
+  constructor() {
+    const data = inject<VendorDialogData>(MAT_DIALOG_DATA);
+
     this.vendor = data.vendor;
     this.mode = data.mode;
   }

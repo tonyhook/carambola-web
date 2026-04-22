@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
@@ -12,10 +12,7 @@ export type TimedPairedVendorPortMap = Record<number, Record<number, number[]>>;
   providedIn: 'root',
 })
 export class ConnectionAPI {
-
-  constructor(
-    private http: HttpClient
-  ) { }
+  private http = inject(HttpClient);
 
   getConnectionList(request: PageRequest<Connection>): Observable<Page<Connection>> {
     let params = new HttpParams()

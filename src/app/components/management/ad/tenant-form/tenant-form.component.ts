@@ -1,4 +1,4 @@
-import { Component, effect, ElementRef, input, OnInit, output, ViewChild } from '@angular/core';
+import { Component, effect, ElementRef, input, OnInit, output, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { UntypedFormGroup, UntypedFormBuilder, Validators, ReactiveFormsModule, FormControl } from '@angular/forms';
 import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
@@ -36,6 +36,12 @@ import { TenantService } from '../../../../services';
   styleUrls: ['./tenant-form.component.scss'],
 })
 export class TenantFormComponent implements OnInit {
+  private formBuilder = inject(UntypedFormBuilder);
+  private snackBar = inject(MatSnackBar);
+  tenantService = inject(TenantService);
+  private tenantAPI = inject(TenantAPI);
+  private userAPI = inject(UserAPI);
+
   formGroup: UntypedFormGroup;
   separatorKeysCodes: number[] = [ENTER, COMMA];
   allUsers: User[] = [];
@@ -54,13 +60,7 @@ export class TenantFormComponent implements OnInit {
   tenant = input<Tenant | null>(null);
   changed = output<boolean>();
 
-  constructor(
-    private formBuilder: UntypedFormBuilder,
-    private snackBar: MatSnackBar,
-    public tenantService: TenantService,
-    private tenantAPI: TenantAPI,
-    private userAPI: UserAPI,
-  ) {
+  constructor() {
     this.formGroup = this.formBuilder.group({
       'name': ['', Validators.required],
       'manager': [[], Validators.required],
