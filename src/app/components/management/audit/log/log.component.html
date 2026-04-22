@@ -11,10 +11,10 @@
           <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
           <mat-date-range-picker #picker></mat-date-range-picker>
 
-          @if (range.controls['start'].hasError('matStartDateInvalid')) {
+          @if (range.controls.start.hasError('matStartDateInvalid')) {
             <mat-error>Invalid start date</mat-error>
           }
-          @if (range.controls['end'].hasError('matEndDateInvalid')) {
+          @if (range.controls.end.hasError('matEndDateInvalid')) {
             <mat-error>Invalid end date</mat-error>
           }
         </mat-form-field>
@@ -22,7 +22,7 @@
       <form [formGroup]="clear">
         <mat-checkbox formControlName="clear">Clear after download</mat-checkbox>
       </form>
-      <button type="button" class="form-button" mat-stroked-button [disabled]="!this.range.value.start || !this.range.value.end" (click)="download()">Download</button>
+      <button type="button" class="form-button" mat-stroked-button [disabled]="!range.controls.start.value || !range.controls.end.value" (click)="download()">Download</button>
     </div>
   </div>
 

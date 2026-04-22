@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -8,6 +8,12 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 
 import { AuthService } from '../../../services';
+
+type LoginFormGroup = FormGroup<{
+  username: FormControl<string>;
+  password: FormControl<string>;
+  rememberMe: FormControl<string>;
+}>;
 
 @Component({
   selector: 'carambola-admin-login',
@@ -25,22 +31,26 @@ import { AuthService } from '../../../services';
 })
 export class LoginComponent {
   private authService = inject(AuthService);
-  private formBuilder = inject(UntypedFormBuilder);
+  private formBuilder = inject(FormBuilder);
 
   hide = true;
-  formGroup: UntypedFormGroup;
+  formGroup: LoginFormGroup;
 
   constructor() {
     this.formGroup = this.formBuilder.group({
-      'username': [null, Validators.required],
-      'password': [null, Validators.required],
-      'rememberMe': [null, null],
+      username: this.formBuilder.nonNullable.control('', Validators.required),
+      password: this.formBuilder.nonNullable.control('', Validators.required),
+      rememberMe: this.formBuilder.nonNullable.control('false'),
     });
   }
 
   login() {
     if (this.formGroup.valid) {
-      this.authService.login(this.formGroup.value);
+      this.authService.login({
+        username: this.formGroup.controls.username.value,
+        password: this.formGroup.controls.password.value,
+        rememberMe: this.formGroup.controls.rememberMe.value,
+      });
     }
   }
 

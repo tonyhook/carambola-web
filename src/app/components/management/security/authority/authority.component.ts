@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, OnInit, ViewChild, inject } from '@angular/core';
-import { UntypedFormGroup, UntypedFormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Subject, switchMap } from 'rxjs';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatButtonModule } from '@angular/material/button';
@@ -16,6 +16,10 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { Authority, AuthorityAPI, Query } from '../../../../core';
 import { IsNewPipe } from '../../../../shared';
 import { AuthorityDialogComponent } from '../authority-dialog/authority-dialog.component';
+
+type AuthorityQueryFormGroup = FormGroup<{
+  search: FormControl<string>;
+}>;
 
 @Component({
   selector: 'carambola-authority-manager',
@@ -40,14 +44,14 @@ import { AuthorityDialogComponent } from '../authority-dialog/authority-dialog.c
   styleUrls: ['./authority.component.scss'],
 })
 export class AuthorityManagerComponent implements OnInit, AfterViewInit {
-  private formBuilder = inject(UntypedFormBuilder);
+  private formBuilder = inject(FormBuilder);
   private dialog = inject(MatDialog);
   private authorityAPI = inject(AuthorityAPI);
 
   displayedColumns: string[] = ['name', 'actions'];
   hoverRow: Authority | null = null;
 
-  formGroupQuery: UntypedFormGroup;
+  formGroupQuery: AuthorityQueryFormGroup;
   formQuery: Query<Authority> = {
     filter: {},
     searchKey: ['name'],
@@ -62,7 +66,7 @@ export class AuthorityManagerComponent implements OnInit, AfterViewInit {
 
   constructor() {
     this.formGroupQuery = this.formBuilder.group({
-      'search': ['', null],
+      search: this.formBuilder.nonNullable.control(''),
     });
   }
 
@@ -92,7 +96,7 @@ export class AuthorityManagerComponent implements OnInit, AfterViewInit {
     this.formQuery = {
       filter: {},
       searchKey: ['name'],
-      searchValue: this.formGroupQuery.value.search,
+      searchValue: this.formGroupQuery.controls.search.value,
     };
 
     this.dataRequest$.next(this.formQuery);

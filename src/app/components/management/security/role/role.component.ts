@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, OnInit, ViewChild, inject } from '@angular/core';
-import { UntypedFormGroup, UntypedFormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Subject, switchMap } from 'rxjs';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatButtonModule } from '@angular/material/button';
@@ -17,6 +17,10 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { Query, Role, RoleAPI } from '../../../../core';
 import { IsNewPipe } from '../../../../shared';
 import { RoleDialogComponent } from '../role-dialog/role-dialog.component';
+
+type RoleQueryFormGroup = FormGroup<{
+  search: FormControl<string>;
+}>;
 
 @Component({
   selector: 'carambola-role-manager',
@@ -42,14 +46,14 @@ import { RoleDialogComponent } from '../role-dialog/role-dialog.component';
   styleUrls: ['./role.component.scss'],
 })
 export class RoleManagerComponent implements OnInit, AfterViewInit {
-  private formBuilder = inject(UntypedFormBuilder);
+  private formBuilder = inject(FormBuilder);
   private dialog = inject(MatDialog);
   private roleAPI = inject(RoleAPI);
 
   displayedColumns: string[] = ['name', 'actions'];
   hoverRow: Role | null = null;
 
-  formGroupQuery: UntypedFormGroup;
+  formGroupQuery: RoleQueryFormGroup;
   formQuery: Query<Role> = {
     filter: {},
     searchKey: ['name'],
@@ -64,7 +68,7 @@ export class RoleManagerComponent implements OnInit, AfterViewInit {
 
   constructor() {
     this.formGroupQuery = this.formBuilder.group({
-      'search': ['', null],
+      search: this.formBuilder.nonNullable.control(''),
     });
   }
 
@@ -94,7 +98,7 @@ export class RoleManagerComponent implements OnInit, AfterViewInit {
     this.formQuery = {
       filter: {},
       searchKey: ['name'],
-      searchValue: this.formGroupQuery.value.search,
+      searchValue: this.formGroupQuery.controls.search.value,
     };
 
     this.dataRequest$.next(this.formQuery);
