@@ -1,4 +1,4 @@
-import { booleanAttribute, Component, DestroyRef, effect, input, OnDestroy, signal, ViewChild, inject, AfterViewInit } from '@angular/core';
+import { booleanAttribute, Component, DestroyRef, effect, input, OnDestroy, signal, inject, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ControlValueAccessor, FormBuilder, FormControl, FormGroup, NG_VALIDATORS, NG_VALUE_ACCESSOR, ReactiveFormsModule, ValidationErrors, Validator, Validators } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -34,7 +34,7 @@ type FilteredSelectFormGroup = FormGroup<{
     }
   ],
 })
-export class FilteredSelectComponent implements AfterViewInit, OnDestroy, ControlValueAccessor, Validator {
+export class FilteredSelectComponent implements OnDestroy, ControlValueAccessor, Validator {
   private formBuilder = inject(FormBuilder);
   private destroyRef = inject(DestroyRef);
 
@@ -58,13 +58,13 @@ export class FilteredSelectComponent implements AfterViewInit, OnDestroy, Contro
     return this.requiredInput();
   }
 
-  @ViewChild('select', { static: true }) select?: MatSelect;
+  readonly select = viewChild<MatSelect>('select');
 
   formGroup: FilteredSelectFormGroup;
 
   constructor() {
     this.formGroup = this.formBuilder.group({
-      value: this.formBuilder.control<string | null>(null),
+      value: this.formBuilder.control<string | null>(null, this.required ? Validators.required : []),
       filter: this.formBuilder.control<string | null>(null),
     });
     this.formGroup.valueChanges
@@ -99,18 +99,21 @@ export class FilteredSelectComponent implements AfterViewInit, OnDestroy, Contro
 
       this.filteredCandidates.set(options.slice());
     });
-  }
+    effect(() => {
+      const select = this.select();
 
-  ngAfterViewInit() {
-    if (this.select) {
-      this.select.compareWith = (a, b) => {
+      if (!select) {
+        return;
+      }
+
+      select.compareWith = (a, b) => {
         if (!a || !b) {
           return false;
         }
 
         return a === b;
       };
-    }
+    });
   }
 
   ngOnDestroy() {

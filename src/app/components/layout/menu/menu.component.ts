@@ -1,4 +1,4 @@
-import { Component, ViewChild, ElementRef, inject } from '@angular/core';
+import { Component, ElementRef, inject, viewChild } from '@angular/core';
 import { MatListModule } from '@angular/material/list';
 
 import { MenuService } from '../../../services';
@@ -17,6 +17,6 @@ import { MenuItemComponent } from '../menu-item/menu-item.component';
 export class MenuComponent {
   public menuService = inject(MenuService);
 
-  @ViewChild('appDrawer') appDrawer?: ElementRef;
+  readonly appDrawer = viewChild<ElementRef>('appDrawer');
 
 }
