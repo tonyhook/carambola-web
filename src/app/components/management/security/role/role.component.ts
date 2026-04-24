@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnInit, ViewChild, inject } from '@angular/core';
+import { AfterViewInit, Component, OnInit, inject, viewChild } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Subject, switchMap } from 'rxjs';
 import { MatBadgeModule } from '@angular/material/badge';
@@ -60,8 +60,8 @@ export class RoleManagerComponent implements OnInit, AfterViewInit {
     searchValue: '',
   };
 
-  @ViewChild(MatSort, {static: false}) sort: MatSort | null = null;
-  @ViewChild(MatPaginator, {static: false}) paginator: MatPaginator | null = null;
+  readonly sort = viewChild(MatSort);
+  readonly paginator = viewChild(MatPaginator);
 
   dataRequest$ = new Subject<Query<Role>>();
   dataSource = new MatTableDataSource<Role>([]);
@@ -77,8 +77,8 @@ export class RoleManagerComponent implements OnInit, AfterViewInit {
       switchMap(query => this.roleAPI.getRoleList(query)),
     ).subscribe(roles => {
       this.dataSource.data = roles;
-      this.dataSource.sort = this.sort;
-      this.dataSource.paginator = this.paginator;
+      this.dataSource.sort = this.sort() ?? null;
+      this.dataSource.paginator = this.paginator() ?? null;
     });
   }
 
