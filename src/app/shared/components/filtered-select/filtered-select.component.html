@@ -15,7 +15,7 @@
       @if (!required) {
         <mat-option [value]="null">Any</mat-option>
       }
-      @for (candidate of filteredCandidate$ | async; track candidate) {
+      @for (candidate of filteredCandidates(); track candidate) {
         <mat-option [value]="candidate">
           <span>{{ candidate }}</span>
         </mat-option>
