@@ -1,5 +1,5 @@
-<mat-list-item [ngStyle]="{'padding-left': (depth() * 24) + 'px'}" (click)="onItemSelected()">
-  <div class="item-wrapper" [ngClass]="{'active': active(), 'onpath': onpath(), 'disabled': disabled()}">
+<mat-list-item [style.padding-left]="(depth() * 24) + 'px'" (click)="onItemSelected()">
+  <div class="item-wrapper" [class.active]="active()" [class.onpath]="onpath()" [class.disabled]="disabled()">
     <mat-icon class="item-icon">{{ item().icon }}</mat-icon>
     @if (drawerService.contentMode() !== 'icon') {
       <div class="item-name">{{ item().name }}</div>

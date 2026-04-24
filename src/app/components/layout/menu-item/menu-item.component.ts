@@ -1,5 +1,4 @@
 import { Component, computed, input, OnInit, Signal, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { state, style, transition, animate, trigger } from '@angular/animations';
 import { Router, ActivatedRoute, NavigationExtras } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
@@ -11,7 +10,6 @@ import { DrawerService } from '../../../services';
 @Component({
   selector: 'carambola-admin-menu-item',
   imports: [
-    CommonModule,
     MatListModule,
     MatIconModule,
   ],

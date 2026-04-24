@@ -170,9 +170,9 @@
         </mat-footer-cell>
       </ng-container>
 
-      <mat-header-row *matHeaderRowDef="displayedColumns; sticky: true" [ngStyle]="{'min-width': displayedColumnsWidth + 'px'}"></mat-header-row>
-      <mat-row *matRowDef="let row; columns: displayedColumns" class="element-row" [ngStyle]="{'min-width': displayedColumnsWidth + 'px'}"></mat-row>
-      <mat-footer-row *matFooterRowDef="displayedColumns; sticky: true" [ngStyle]="{'min-width': displayedColumnsWidth + 'px'}"></mat-footer-row>
+      <mat-header-row *matHeaderRowDef="displayedColumns; sticky: true" [style.min-width]="displayedColumnsWidth + 'px'"></mat-header-row>
+      <mat-row *matRowDef="let row; columns: displayedColumns" class="element-row" [style.min-width]="displayedColumnsWidth + 'px'"></mat-row>
+      <mat-footer-row *matFooterRowDef="displayedColumns; sticky: true" [style.min-width]="displayedColumnsWidth + 'px'"></mat-footer-row>
     </mat-table>
   </div>
 </div>
