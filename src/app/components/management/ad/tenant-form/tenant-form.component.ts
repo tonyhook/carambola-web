@@ -1,4 +1,4 @@
-import { Component, effect, ElementRef, input, output, ViewChild, inject, signal, computed } from '@angular/core';
+import { Component, computed, effect, ElementRef, input, output, inject, signal, viewChild } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
@@ -78,9 +78,9 @@ export class TenantFormComponent {
 
     return username ? this._filter(username) : allUsers.slice();
   });
-  @ViewChild('inputManager') inputManager: ElementRef<HTMLInputElement> | undefined;
-  @ViewChild('inputOperator') inputOperator: ElementRef<HTMLInputElement> | undefined;
-  @ViewChild('inputObserver') inputObserver: ElementRef<HTMLInputElement> | undefined;
+  readonly inputManager = viewChild<ElementRef<HTMLInputElement>>('inputManager');
+  readonly inputOperator = viewChild<ElementRef<HTMLInputElement>>('inputOperator');
+  readonly inputObserver = viewChild<ElementRef<HTMLInputElement>>('inputObserver');
 
   readonly = false;
 

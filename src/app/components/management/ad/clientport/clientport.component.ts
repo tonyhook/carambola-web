@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, effect, OnInit, signal, ViewChild, WritableSignal, inject } from '@angular/core';
+import { AfterViewInit, Component, effect, OnInit, signal, WritableSignal, inject, viewChild } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -80,8 +80,8 @@ export class ClientPortManagerComponent implements OnInit, AfterViewInit {
     searchValue: '',
   };
 
-  @ViewChild(MatSort, {static: false}) sort: MatSort | null = null;
-  @ViewChild(MatPaginator, {static: false}) paginator: MatPaginator | null = null;
+  readonly sort = viewChild(MatSort);
+  readonly paginator = viewChild(MatPaginator);
 
   dataRequest$ = new Subject<Query<ClientPort>>();
   dataSource = new MatTableDataSource<ClientPort>([]);
@@ -242,8 +242,8 @@ export class ClientPortManagerComponent implements OnInit, AfterViewInit {
           return 0;
         }
       });
-      this.dataSource.sort = this.sort;
-      this.dataSource.paginator = this.paginator;
+      this.dataSource.sort = this.sort() ?? null;
+      this.dataSource.paginator = this.paginator() ?? null;
       this.dataSource.sortingDataAccessor = (item, property) => {
         switch (property) {
           case 'client':

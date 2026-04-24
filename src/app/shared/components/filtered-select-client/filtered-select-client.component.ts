@@ -1,4 +1,4 @@
-import { booleanAttribute, Component, effect, ElementRef, input, model, OnDestroy, signal, untracked, viewChild, ViewChild, inject, AfterViewInit } from '@angular/core';
+import { booleanAttribute, Component, effect, ElementRef, input, model, OnDestroy, signal, untracked, viewChild, inject } from '@angular/core';
 import { ControlValueAccessor, FormBuilder, FormControl, FormGroup, NgControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
@@ -36,7 +36,7 @@ type FilteredSelectClientFormGroup = FormGroup<{
     },
   ],
 })
-export class FilteredSelectClientComponent implements OnDestroy, AfterViewInit, ControlValueAccessor, MatFormFieldControl<Client | Client[]> {
+export class FilteredSelectClientComponent implements OnDestroy, ControlValueAccessor, MatFormFieldControl<Client | Client[]> {
   private formBuilder = inject(FormBuilder);
   ngControl = inject(NgControl);
   private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
@@ -132,8 +132,6 @@ export class FilteredSelectClientComponent implements OnDestroy, AfterViewInit, 
   options = input<Client[]>([]);
   multiple = input<boolean>(false);
 
-  @ViewChild('selection', { static: true }) selection?: MatSelect;
-
   formGroup: FilteredSelectClientFormGroup;
 
   changedByInternal = false;
@@ -198,18 +196,17 @@ export class FilteredSelectClientComponent implements OnDestroy, AfterViewInit, 
 
       this.filteredCandidates.set(options.slice());
     });
-  }
+    effect(() => {
+      const selectionInput = this.selectionInput();
 
-  ngAfterViewInit() {
-    if (this.selection) {
-      this.selection.compareWith = (a, b) => {
+      selectionInput.compareWith = (a, b) => {
         if (!a || !b) {
           return false;
         }
 
-        return a === b;
+        return a.id === b.id;
       };
-    }
+    });
   }
 
   ngOnDestroy() {

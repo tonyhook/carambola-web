@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, DoCheck, effect, ElementRef, HostListener, KeyValueDiffer, KeyValueDiffers, OnInit, signal, ViewChild, WritableSignal, inject } from '@angular/core';
+import { AfterViewInit, Component, DoCheck, effect, ElementRef, HostListener, KeyValueDiffer, KeyValueDiffers, OnInit, signal, WritableSignal, inject, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
@@ -186,9 +186,9 @@ export class SignComponent implements OnInit, AfterViewInit, DoCheck {
   signViewDataSub: BillView[] = [];
   signViewMapSub: Map<string, BillView> = new Map<string, BillView>();
 
-  @ViewChild(MatSort, {static: false}) sort: MatSort | null = null;
-  @ViewChild(MatPaginator, {static: false}) paginator: MatPaginator | null = null;
-  @ViewChild('table', {static: false}) table: ElementRef | null = null;
+  readonly sort = viewChild(MatSort);
+  readonly paginator = viewChild(MatPaginator);
+  readonly table = viewChild<ElementRef>('table');
 
   dataRequest$ = new Subject<Query<PerformancePlaceholder>>();
   dataSource = new MatTableDataSource<BillView>([]);
@@ -1212,8 +1212,8 @@ export class SignComponent implements OnInit, AfterViewInit, DoCheck {
       const keyb = b.time + '|' + b.clientPort + '|' + b.vendorPort;
       return keya > keyb ? -1 : 1;
     });
-    this.dataSource.sort = this.sort;
-    this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.sort() ?? null;
+    this.dataSource.paginator = this.paginator() ?? null;
     this.dataSource.sortingDataAccessor = (item, property) => {
       switch (property) {
         case 'gfr': return item.request ? (1.0 * (item.response ?? 0) / item.request) : -1;
@@ -1710,7 +1710,7 @@ export class SignComponent implements OnInit, AfterViewInit, DoCheck {
   }
 
   onTableScroll(event: Event) {
-    this.tableWidth = this.table!.nativeElement.clientWidth;
+    this.tableWidth = this.table()?.nativeElement.clientWidth ?? 0;
     if (this.displayedColumnsWidth > this.tableWidth) {
       this.scrollLeft = (event.target as HTMLElement).scrollLeft;
       this.scrollRight = (this.displayedColumnsWidth - this.tableWidth) - (event.target as HTMLElement).scrollLeft;
@@ -1719,7 +1719,7 @@ export class SignComponent implements OnInit, AfterViewInit, DoCheck {
 
   @HostListener('window:resize')
   onResize() {
-    this.tableWidth = this.table!.nativeElement.clientWidth;
+    this.tableWidth = this.table()?.nativeElement.clientWidth ?? 0;
     if (this.displayedColumnsWidth > this.tableWidth) {
       this.scrollRight = (this.displayedColumnsWidth - this.tableWidth) - this.scrollLeft;
     } else {

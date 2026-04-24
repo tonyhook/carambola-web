@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, computed, effect, ElementRef, inject, input, output, signal, ViewChild, WritableSignal } from '@angular/core';
+import { AfterViewInit, Component, computed, effect, ElementRef, inject, input, output, signal, WritableSignal, viewChild } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { AbstractControl, FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
@@ -123,8 +123,8 @@ export class ClientPortFormComponent implements AfterViewInit {
     return this._filter(field[0]);
   });
   selectedFilters: [string, Field][] = [];
-  @ViewChild('inputFilter') inputFilter: ElementRef<HTMLInputElement> | undefined;
-  @ViewChild('queryTypeToggleGroup') queryTypeToggleGroup: MatButtonToggleGroup | undefined;
+  readonly inputFilter = viewChild<ElementRef<HTMLInputElement>>('inputFilter');
+  readonly queryTypeToggleGroup = viewChild<MatButtonToggleGroup>('queryTypeToggleGroup');
 
   formGroup: FormGroup<ClientPortFormControls>;
   clients: WritableSignal<Client[]> = signal([]);
@@ -853,8 +853,9 @@ export class ClientPortFormComponent implements AfterViewInit {
           this.selectedFilters = [];
           this.queryType = 'simple';
         } else {
-          if (this.queryTypeToggleGroup) {
-            this.queryTypeToggleGroup.value = this.queryType;
+          const queryTypeToggleGroup = this.queryTypeToggleGroup();
+          if (queryTypeToggleGroup) {
+            queryTypeToggleGroup.value = this.queryType;
           }
         }
       });

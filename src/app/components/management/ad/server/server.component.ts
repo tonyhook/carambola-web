@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
@@ -36,8 +36,8 @@ export class ServerManagerComponent implements OnInit, OnDestroy {
   displayedColumns: string[] = ['status', 'node', 'domain', 'servingTimestamp', 'trackingTimestamp', 'serverAction', 'servingAction', 'trackingAction', 'actions'];
   hoverRow: Server | null = null;
 
-  @ViewChild(MatSort, {static: false}) sort: MatSort | null = null;
-  @ViewChild(MatPaginator, {static: false}) paginator: MatPaginator | null = null;
+  readonly sort = viewChild(MatSort);
+  readonly paginator = viewChild(MatPaginator);
 
   dataSource = new MatTableDataSource<Server>([]);
   refresher: ReturnType<typeof setInterval> | null = null;
@@ -71,8 +71,8 @@ export class ServerManagerComponent implements OnInit, OnDestroy {
         }
         return 0;
       });
-      this.dataSource.sort = this.sort;
-      this.dataSource.paginator = this.paginator;
+      this.dataSource.sort = this.sort() ?? null;
+      this.dataSource.paginator = this.paginator() ?? null;
     });
   }
 

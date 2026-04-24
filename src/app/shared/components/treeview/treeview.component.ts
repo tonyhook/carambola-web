@@ -1,4 +1,4 @@
-import { Component, input, output, ViewChild, effect, WritableSignal, signal, ElementRef, OnInit } from '@angular/core';
+import { Component, input, output, effect, WritableSignal, signal, ElementRef, OnInit, viewChild } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -85,8 +85,8 @@ export class TreeViewComponent implements OnInit {
   itemCreate = output<ItemNewEvent>();
   itemDelete = output<ItemDeleteEvent>();
 
-  @ViewChild('tree') tree?: MatTree<HierarchyNode>;
-  @ViewChild('emptyNode') emptyNode: ElementRef | undefined;
+  readonly tree = viewChild<MatTree<HierarchyNode>>('tree');
+  readonly emptyNode = viewChild<ElementRef>('emptyNode');
 
   constructor() {
     effect(() => {
@@ -192,12 +192,12 @@ export class TreeViewComponent implements OnInit {
     if (node.parent) {
       let parent: HierarchyNode | undefined | null = this.nodeMap.get(node.parent.id);
       while (parent) {
-        this.tree?.expand(parent);
+        this.tree()?.expand(parent);
         parent = parent.parent;
       }
     }
 
-    this.tree?.expand(node);
+    this.tree()?.expand(node);
   }
 
   addNode(event: MouseEvent, parentNode: HierarchyNode | null) {
@@ -227,7 +227,7 @@ export class TreeViewComponent implements OnInit {
       // TODO: expand node directly after mat-tree bug #30403 is fixed
       let parent: HierarchyNode | undefined | null = this.nodeMap.get(parentNode.id);
       while (parent) {
-        this.tree?.expand(parent);
+        this.tree()?.expand(parent);
         parent = parent.parent;
       }
     } else {
@@ -259,7 +259,7 @@ export class TreeViewComponent implements OnInit {
     if (node.parent) {
       let parent: HierarchyNode | undefined | null = this.nodeMap.get(node.parent.id);
       while (parent) {
-        this.tree?.expand(parent);
+        this.tree()?.expand(parent);
         parent = parent.parent;
       }
     }
@@ -287,7 +287,7 @@ export class TreeViewComponent implements OnInit {
     if (node.parent) {
       let parent: HierarchyNode | undefined | null = this.nodeMap.get(node.parent.id);
       while (parent) {
-        this.tree?.expand(parent);
+        this.tree()?.expand(parent);
         parent = parent.parent;
       }
     }
@@ -322,7 +322,7 @@ export class TreeViewComponent implements OnInit {
     if (node.parent) {
       let parent: HierarchyNode | undefined | null = this.nodeMap.get(node.parent.id);
       while (parent) {
-        this.tree?.expand(parent);
+        this.tree()?.expand(parent);
         parent = parent.parent;
       }
     }
@@ -340,7 +340,7 @@ export class TreeViewComponent implements OnInit {
     this.dragNode = node;
     this.dragNodeExpandOverNode = null;
     this.dragNodeExpandOverTime = 0;
-    this.tree?.collapse(this.dragNode);
+    this.tree()?.collapse(this.dragNode);
   }
 
   handleDragEnd() {
@@ -364,14 +364,16 @@ export class TreeViewComponent implements OnInit {
             this.dragNodeExpandOverTime = new Date().getTime();
           }
           if (((new Date().getTime() - this.dragNodeExpandOverTime) > this.dragNodeExpandOverWaitTimeMs)) {
-            if (!this.tree?.isExpanded(node)) {
-              this.tree?.expand(node);
+            const tree = this.tree();
+            if (!tree?.isExpanded(node)) {
+              tree?.expand(node);
             }
           }
         }
       } else {
-        if (this.tree?.isExpanded(node)) {
-          this.tree?.collapse(node);
+        const tree = this.tree();
+        if (tree?.isExpanded(node)) {
+          tree?.collapse(node);
         }
 
         this.dragNodeExpandOverNode = node;
@@ -384,7 +386,7 @@ export class TreeViewComponent implements OnInit {
     } else {
       this.dragNodeExpandOverNode = null;
       this.dragNodeExpandOverTime = 0;
-      this.tree?.collapse(node);
+      this.tree()?.collapse(node);
     }
 
     // Handle drag area
@@ -465,7 +467,7 @@ export class TreeViewComponent implements OnInit {
     if (node.parent) {
       let parent: HierarchyNode | undefined | null = this.nodeMap.get(node.parent.id);
       while (parent) {
-        this.tree?.expand(parent);
+        this.tree()?.expand(parent);
         parent = parent.parent;
       }
     }
@@ -522,7 +524,7 @@ export class TreeViewComponent implements OnInit {
     if (node.parent) {
       let parent: HierarchyNode | undefined | null = this.nodeMap.get(node.parent.id);
       while (parent) {
-        this.tree?.expand(parent);
+        this.tree()?.expand(parent);
         parent = parent.parent;
       }
     }
@@ -587,7 +589,7 @@ export class TreeViewComponent implements OnInit {
     if (node.parent) {
       let parent: HierarchyNode | undefined | null = this.nodeMap.get(node.parent.id);
       while (parent) {
-        this.tree?.expand(parent);
+        this.tree()?.expand(parent);
         parent = parent.parent;
       }
     }

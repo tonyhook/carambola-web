@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, effect, signal, ViewChild, WritableSignal, inject } from '@angular/core';
+import { AfterViewInit, Component, effect, signal, WritableSignal, inject, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -54,7 +54,7 @@ export class BundleDialogComponent implements AfterViewInit {
 
   displayedColumns = ['client', 'vendor', 'bundle', 'request', 'response', 'gfr', 'gfrv', 'impression', 'click', 'er', 'ctr', 'rv', 'actions'];
   dataSource = new MatTableDataSource<PerformanceView>([]);
-  @ViewChild(MatSort, {static: false}) sort: MatSort | null = null;
+  readonly sort = viewChild(MatSort);
 
   clients: Client[] = [];
   clientMedias: ClientMedia[] = [];
@@ -335,7 +335,7 @@ export class BundleDialogComponent implements AfterViewInit {
       const keyb = b.clientPort + '|' + b.vendorPort;
       return keya > keyb ? -1 : 1;
     });
-    this.dataSource.sort = this.sort;
+    this.dataSource.sort = this.sort() ?? null;
     this.dataSource.sortingDataAccessor = (item, property) => {
       switch (property) {
         case 'request-valid': return item.requestv ?? -1;
