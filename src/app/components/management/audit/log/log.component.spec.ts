@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 
 import { provideCarambolaDateAdapter } from '../../../../shared';
 import { LogManagerComponent } from './log.component';
@@ -12,7 +12,7 @@ describe('LogManagerComponent', () => {
     await TestBed.configureTestingModule({
       imports: [ LogManagerComponent ],
       providers: [
-        provideHttpClient(),
+        provideHttpClientTesting(),
         provideCarambolaDateAdapter(),
       ],
     })

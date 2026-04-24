@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 
 import { PermissionComponent } from './permission.component';
 
@@ -10,7 +10,7 @@ describe('PermissionComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [ PermissionComponent ],
-      providers: [ provideHttpClient() ],
+      providers: [ provideHttpClientTesting() ],
     })
     .compileComponents();
 

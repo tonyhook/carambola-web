@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
 
 import { provideCarambolaDateAdapter } from '../../../../shared';
@@ -14,7 +14,7 @@ describe('DownstreamManagerComponent', () => {
     await TestBed.configureTestingModule({
       imports: [ DownstreamManagerComponent ],
       providers: [
-        provideHttpClient(),
+        provideHttpClientTesting(),
         provideRouter(routes),
         provideCarambolaDateAdapter(),
       ],
