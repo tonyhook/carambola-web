@@ -1,4 +1,4 @@
-import { booleanAttribute, Component, effect, ElementRef, input, model, OnDestroy, signal, untracked, viewChild, ViewChild, Input, inject, AfterViewInit } from '@angular/core';
+import { booleanAttribute, Component, effect, ElementRef, input, model, OnDestroy, signal, untracked, viewChild, ViewChild, inject, AfterViewInit } from '@angular/core';
 import { ControlValueAccessor, FormBuilder, FormControl, FormGroup, NgControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
@@ -74,13 +74,12 @@ export class FilteredSelectVendorPortComponent implements OnDestroy, AfterViewIn
     return this.focused || !this.empty;
   }
   disabled = false;
-  readonly requiredState = signal(false);
-  @Input({ transform: booleanAttribute })
-  set required(value: boolean) {
-    this.requiredState.set(value);
-  }
+  // MatFormFieldControl requires a boolean `required` property, so the signal input
+  // needs a separate field name while preserving the external binding.
+  // eslint-disable-next-line @angular-eslint/no-input-rename
+  readonly requiredInput = input(false, { alias: 'required', transform: booleanAttribute });
   get required(): boolean {
-    return this.requiredState();
+    return this.requiredInput();
   }
   get errorState(): boolean {
     return this.formGroup.invalid && this.touched();
