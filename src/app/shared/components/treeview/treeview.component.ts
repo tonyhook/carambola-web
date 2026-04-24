@@ -1,5 +1,4 @@
 import { Component, input, output, ViewChild, effect, WritableSignal, signal, ElementRef, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -51,7 +50,6 @@ export class HierarchyNode {
 @Component({
   selector: 'carambola-tree-view',
   imports: [
-    CommonModule,
     MatButtonModule,
     MatFormFieldModule,
     MatIconModule,
