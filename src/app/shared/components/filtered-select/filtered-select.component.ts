@@ -1,10 +1,9 @@
-import { CommonModule } from '@angular/common';
-import { booleanAttribute, Component, DestroyRef, effect, Input, input, OnDestroy, signal, ViewChild, inject } from '@angular/core';
+import { booleanAttribute, Component, DestroyRef, effect, Input, input, OnDestroy, signal, ViewChild, inject, AfterViewInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ControlValueAccessor, FormBuilder, FormControl, FormGroup, NG_VALIDATORS, NG_VALUE_ACCESSOR, ReactiveFormsModule, ValidationErrors, Validator, Validators } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelect, MatSelectModule } from '@angular/material/select';
-import { ReplaySubject, Subject, take } from 'rxjs';
+import { Subject } from 'rxjs';
 import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
 
 type FilteredSelectFormGroup = FormGroup<{
@@ -15,7 +14,6 @@ type FilteredSelectFormGroup = FormGroup<{
 @Component({
   selector: 'carambola-filtered-select',
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     MatIconModule,
     MatSelectModule,
@@ -36,7 +34,7 @@ type FilteredSelectFormGroup = FormGroup<{
     }
   ],
 })
-export class FilteredSelectComponent implements OnDestroy, ControlValueAccessor, Validator {
+export class FilteredSelectComponent implements AfterViewInit, OnDestroy, ControlValueAccessor, Validator {
   private formBuilder = inject(FormBuilder);
   private destroyRef = inject(DestroyRef);
 
@@ -45,8 +43,7 @@ export class FilteredSelectComponent implements OnDestroy, ControlValueAccessor,
   _onValidatorChange: () => void = () => {return};
 
   readonly stateChanges = new Subject<void>();
-  filteredCandidate$: ReplaySubject<string[]> = new ReplaySubject<string[]>(1);
-  filteredCandidateCache: string[] = [];
+  readonly filteredCandidates = signal<string[]>([]);
 
   oldValue: string | null = null;
   oldFilter = '';
@@ -89,19 +86,6 @@ export class FilteredSelectComponent implements OnDestroy, ControlValueAccessor,
         }
       }
     );
-    this.filteredCandidate$.pipe(take(1), takeUntilDestroyed())
-      .subscribe(() => {
-        if (this.select) {
-          this.select.compareWith = (a, b) => {
-            if (!a || !b) {
-              return false;
-            }
-
-            return a === b;
-          };
-        }
-      }
-    );
 
     effect(() => {
       if (this.required) {
@@ -114,9 +98,20 @@ export class FilteredSelectComponent implements OnDestroy, ControlValueAccessor,
     effect(() => {
       const options = this.options();
 
-      this.filteredCandidateCache = options.slice();
-      this.filteredCandidate$.next(options.slice());
+      this.filteredCandidates.set(options.slice());
     });
+  }
+
+  ngAfterViewInit() {
+    if (this.select) {
+      this.select.compareWith = (a, b) => {
+        if (!a || !b) {
+          return false;
+        }
+
+        return a === b;
+      };
+    }
   }
 
   ngOnDestroy() {
@@ -172,10 +167,9 @@ export class FilteredSelectComponent implements OnDestroy, ControlValueAccessor,
   filterCandidate() {
     const search = this.formGroup.controls.filter.value;
     if (!search) {
-      this.filteredCandidateCache = this.options().slice();
-      this.filteredCandidate$.next(this.filteredCandidateCache);
+      this.filteredCandidates.set(this.options().slice());
     } else {
-      this.filteredCandidateCache = this.options().filter(option => {
+      this.filteredCandidates.set(this.options().filter(option => {
         const filter = search;
         if (option === null) {
           return false;
@@ -188,8 +182,7 @@ export class FilteredSelectComponent implements OnDestroy, ControlValueAccessor,
         } else {
           return true;
         }
-      });
-      this.filteredCandidate$.next(this.filteredCandidateCache);
+      }));
     }
   }
 

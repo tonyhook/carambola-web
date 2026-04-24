@@ -1,5 +1,4 @@
 import { Component, effect, input, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -9,11 +8,9 @@ import { MatListModule } from '@angular/material/list';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
 
-import { Permission, Role, PermissionAPI, RoleAPI, ManagedResource } from '../../../core';
+import { Permission, Role, PermissionAPI, RoleAPI, ManagedResource, UserAPI } from '../../../core';
 
 import { OperationComponent } from '../operation/operation.component';
-import { GetRoleNamePipe } from '../../pipes/get-role-name.pipe';
-import { GetUserNamePipe } from '../../pipes/get-user-name.pipe';
 
 type PermissionInheritedFormGroup = FormGroup<{
   inherited: FormControl<boolean>;
@@ -27,7 +24,6 @@ type PermissionEditorFormGroup = FormGroup<{
 @Component({
   selector: 'carambola-permission',
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     MatButtonModule,
     MatCardModule,
@@ -36,8 +32,6 @@ type PermissionEditorFormGroup = FormGroup<{
     MatListModule,
     MatSelectModule,
     MatTableModule,
-    GetUserNamePipe,
-    GetRoleNamePipe,
     OperationComponent,
   ],
   templateUrl: './permission.component.html',
@@ -47,8 +41,10 @@ export class PermissionComponent implements OnInit {
   private formBuilder = inject(FormBuilder);
   private permissionAPI = inject(PermissionAPI);
   private roleAPI = inject(RoleAPI);
+  private userAPI = inject(UserAPI);
 
   roles: Role[] = [];
+  roleNameMap: Map<number, string> = new Map<number, string>();
   displayedColumns: string[] = ['roleId', 'permission'];
 
   itemPermissions: Permission[] = [];
@@ -62,6 +58,7 @@ export class PermissionComponent implements OnInit {
 
   inherited = false;
   inheritedPermissionId = 0;
+  ownerName = '';
 
   item = input<ManagedResource | null>(null);
   itemType = input<string>('');
@@ -95,6 +92,7 @@ export class PermissionComponent implements OnInit {
       const item = this.item();
       const itemType = this.itemType();
 
+      this.ownerName = '';
       this.inherited = false;
       this.inheritedPermissionId = 0;
       this.itemPermissions = [];
@@ -104,6 +102,16 @@ export class PermissionComponent implements OnInit {
       this.inheritedPermissionMap.clear();
 
       if (item && item.id && itemType) {
+        if (item.ownerId !== undefined && item.ownerId !== null) {
+          const ownerId = item.ownerId;
+
+          this.userAPI.getUser(ownerId).subscribe(user => {
+            if (this.item()?.ownerId === ownerId) {
+              this.ownerName = user.username;
+            }
+          });
+        }
+
         this.permissionAPI.getItemPermissionList(itemType, item.id).subscribe(data => {
           this.itemPermissions = [...data];
           let inheritedPermissionIndex = -1;
@@ -170,7 +178,12 @@ export class PermissionComponent implements OnInit {
   ngOnInit() {
     this.roleAPI.getRoleList().subscribe(data => {
       this.roles = data;
+      this.roleNameMap = new Map<number, string>(data.map(role => [role.id!, role.name]));
     });
+  }
+
+  getRoleName(roleId: number): string {
+    return this.roleNameMap.get(roleId) ?? String(roleId);
   }
 
   toggleInherited() {

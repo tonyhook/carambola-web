@@ -8,7 +8,7 @@
         <mat-list role="list">
           <mat-list-item>Type: {{ itemType() }}</mat-list-item>
           <mat-list-item>ID: {{ item()?.id }}</mat-list-item>
-          <mat-list-item>Owner: {{ item()?.ownerId! | getUserName | async }}</mat-list-item>
+          <mat-list-item>Owner: {{ ownerName }}</mat-list-item>
         </mat-list>
       </mat-card-content>
     </mat-card>
@@ -37,7 +37,7 @@
         <mat-table [dataSource]="itemPermissionRoleIds">
           <ng-container matColumnDef="roleId">
             <mat-header-cell *matHeaderCellDef>Role</mat-header-cell>
-            <mat-cell *matCellDef="let role">{{ role | getRoleName | async }}</mat-cell>
+            <mat-cell *matCellDef="let role">{{ getRoleName(role) }}</mat-cell>
           </ng-container>
 
           <ng-container matColumnDef="permission">

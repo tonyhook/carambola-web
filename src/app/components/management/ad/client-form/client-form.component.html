@@ -26,7 +26,7 @@
                   [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
                   (matChipInputTokenEnd)="add($event, ctrlUpstream, upstreamUsers)" />
                 <mat-autocomplete #autoUpstream="matAutocomplete" (optionSelected)="select($event, inputUpstream, ctrlUpstream, upstreamUsers)">
-                  @for (user of filteredUpstream | async; track user.username) {
+                  @for (user of filteredUpstream(); track user.username) {
                     <mat-option [value]="user.username">
                       {{ user.username }}
                     </mat-option>

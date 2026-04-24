@@ -1,5 +1,5 @@
-import { AfterViewInit, Component, effect, ElementRef, inject, input, output, signal, ViewChild, WritableSignal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { AfterViewInit, Component, computed, effect, ElementRef, inject, input, output, signal, ViewChild, WritableSignal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { AbstractControl, FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
@@ -16,7 +16,7 @@ import { MatRadioModule } from '@angular/material/radio';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTabsModule } from '@angular/material/tabs';
-import { forkJoin, map, Observable, startWith } from 'rxjs';
+import { forkJoin, startWith } from 'rxjs';
 import {
   Field,
   QueryArrowIconDirective,
@@ -56,7 +56,6 @@ interface ClientPortFormControls {
 @Component({
   selector: 'carambola-clientport-form',
   imports: [
-    CommonModule,
     FormsModule,
     ReactiveFormsModule,
     MatAutocompleteModule,
@@ -109,7 +108,20 @@ export class ClientPortFormComponent implements AfterViewInit {
   PortType = PortType;
 
   ctrlFilter = new FormControl<[string, Field] | string | null>(null);
-  filteredFields: Observable<[string, Field][]> = new Observable<[string, Field][]>();
+  readonly filterField = toSignal(this.ctrlFilter.valueChanges.pipe(startWith(null)), {initialValue: null});
+  readonly filteredFields = computed(() => {
+    const field = this.filterField();
+
+    if (!field) {
+      return this.simpleFields.slice();
+    }
+
+    if (typeof field === 'string') {
+      return this._filter(field);
+    }
+
+    return this._filter(field[0]);
+  });
   selectedFilters: [string, Field][] = [];
   @ViewChild('inputFilter') inputFilter: ElementRef<HTMLInputElement> | undefined;
   @ViewChild('queryTypeToggleGroup') queryTypeToggleGroup: MatButtonToggleGroup | undefined;
@@ -526,21 +538,6 @@ export class ClientPortFormComponent implements AfterViewInit {
         this.autoNameManaged = false;
       }
     });
-
-    this.filteredFields = this.ctrlFilter.valueChanges.pipe(
-      startWith(null),
-      map((field: [string, Field] | string | null) => {
-        if (!field) {
-          return this.simpleFields.slice();
-        }
-
-        if (typeof field === 'string') {
-          return this._filter(field);
-        }
-
-        return this._filter(field[0]);
-      }),
-    );
   }
 
   private createClientControl(value: Client | null, disabled = this.readonly): FormControl<Client | null> {
