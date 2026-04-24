@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
 import { ClientPortDialogComponent } from './clientport-dialog.component';
@@ -12,7 +12,7 @@ describe('ClientPortDialogComponent', () => {
     await TestBed.configureTestingModule({
       imports: [ ClientPortDialogComponent ],
       providers: [
-        provideHttpClient(),
+        provideHttpClientTesting(),
         { provide: MAT_DIALOG_DATA, useValue: {} },
         { provide: MatDialogRef, useValue: {} },
        ],

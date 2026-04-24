@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideEchartsCore } from 'ngx-echarts';
 import * as echarts from 'echarts/core';
 
@@ -13,7 +13,7 @@ describe('ChartFinanceComponent', () => {
     await TestBed.configureTestingModule({
       imports: [ ChartFinanceComponent ],
       providers: [
-        provideHttpClient(),
+        provideHttpClientTesting(),
         provideEchartsCore({ echarts }),
       ],
     })

@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
@@ -15,7 +15,7 @@ describe('ConnectionDialogComponent', () => {
     await TestBed.configureTestingModule({
       imports: [ ConnectionDialogComponent ],
       providers: [
-        provideHttpClient(),
+        provideHttpClientTesting(),
         provideRouter(routes),
         provideCarambolaDateAdapter(),
         { provide: MAT_DIALOG_DATA, useValue: {} },

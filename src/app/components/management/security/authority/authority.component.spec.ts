@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 
 import { AuthorityManagerComponent } from './authority.component';
 
@@ -10,7 +10,7 @@ describe('AuthorityManagerComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [ AuthorityManagerComponent ],
-      providers: [ provideHttpClient() ],
+      providers: [ provideHttpClientTesting() ],
     })
     .compileComponents();
 

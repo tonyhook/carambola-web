@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 
 import { ClientMediaFormComponent } from './clientmedia-form.component';
 
@@ -10,7 +10,7 @@ describe('ClientMediaFormComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [ ClientMediaFormComponent ],
-      providers: [ provideHttpClient() ],
+      providers: [ provideHttpClientTesting() ],
     })
     .compileComponents();
 

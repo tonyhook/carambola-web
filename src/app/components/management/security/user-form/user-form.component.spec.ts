@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 
 import { UserFormComponent } from './user-form.component';
 
@@ -10,7 +10,7 @@ describe('UserFormComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [ UserFormComponent ],
-      providers: [ provideHttpClient() ],
+      providers: [ provideHttpClientTesting() ],
     })
     .compileComponents();
 
