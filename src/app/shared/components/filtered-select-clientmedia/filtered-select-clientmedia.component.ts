@@ -1,12 +1,11 @@
-import { CommonModule } from '@angular/common';
-import { booleanAttribute, Component, effect, ElementRef, input, model, OnDestroy, signal, untracked, viewChild, ViewChild, Input, inject } from '@angular/core';
+import { booleanAttribute, Component, effect, ElementRef, input, model, OnDestroy, signal, untracked, viewChild, ViewChild, Input, inject, AfterViewInit } from '@angular/core';
 import { ControlValueAccessor, FormBuilder, FormControl, FormGroup, NgControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldControl } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelect, MatSelectModule } from '@angular/material/select';
-import { ReplaySubject, Subject, take } from 'rxjs';
+import { Subject } from 'rxjs';
 import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
 
 import { ClientMedia } from '../../../core';
@@ -21,7 +20,6 @@ type FilteredSelectClientMediaFormGroup = FormGroup<{
 @Component({
   selector: 'carambola-filtered-select-clientmedia',
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     MatButtonModule,
     MatIconModule,
@@ -38,7 +36,7 @@ type FilteredSelectClientMediaFormGroup = FormGroup<{
     },
   ],
 })
-export class FilteredSelectClientMediaComponent implements OnDestroy, ControlValueAccessor, MatFormFieldControl<ClientMedia | ClientMedia[]> {
+export class FilteredSelectClientMediaComponent implements OnDestroy, AfterViewInit, ControlValueAccessor, MatFormFieldControl<ClientMedia | ClientMedia[]> {
   private formBuilder = inject(FormBuilder);
   ngControl = inject(NgControl);
   private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
@@ -129,8 +127,7 @@ export class FilteredSelectClientMediaComponent implements OnDestroy, ControlVal
 
   // This is the end of ControlValueAccessor properties.
 
-  filteredCandidate$: ReplaySubject<ClientMedia[]> = new ReplaySubject<ClientMedia[]>(1);
-  filteredCandidateCache: ClientMedia[] = [];
+  readonly filteredCandidates = signal<ClientMedia[]>([]);
   oldFilter = '';
 
   options = input<ClientMedia[]>([]);
@@ -179,19 +176,6 @@ export class FilteredSelectClientMediaComponent implements OnDestroy, ControlVal
         }
       }
     );
-    this.filteredCandidate$.pipe(take(1), takeUntilDestroyed())
-      .subscribe(() => {
-        if (this.selection) {
-          this.selection.compareWith = (a, b) => {
-            if (!a || !b) {
-              return false;
-            }
-
-            return a.id === b.id;
-          };
-        }
-      }
-    );
 
     effect(() => {
       const multiple = this.multiple();
@@ -213,9 +197,20 @@ export class FilteredSelectClientMediaComponent implements OnDestroy, ControlVal
     effect(() => {
       const options = this.options();
 
-      this.filteredCandidateCache = options.slice();
-      this.filteredCandidate$.next(options.slice());
+      this.filteredCandidates.set(options.slice());
     });
+  }
+
+  ngAfterViewInit() {
+    if (this.selection) {
+      this.selection.compareWith = (a, b) => {
+        if (!a || !b) {
+          return false;
+        }
+
+        return a === b;
+      };
+    }
   }
 
   ngOnDestroy() {
@@ -291,10 +286,9 @@ export class FilteredSelectClientMediaComponent implements OnDestroy, ControlVal
   filterCandidate() {
     const search = this.formGroup.controls.filter.value;
     if (!search) {
-      this.filteredCandidateCache = this.options().slice();
-      this.filteredCandidate$.next(this.filteredCandidateCache);
+      this.filteredCandidates.set(this.options().slice());
     } else {
-      this.filteredCandidateCache = this.options().filter(option => {
+      this.filteredCandidates.set(this.options().filter(option => {
         const filter = search;
         if (option === null) {
           return false;
@@ -307,8 +301,7 @@ export class FilteredSelectClientMediaComponent implements OnDestroy, ControlVal
         } else {
           return true;
         }
-      });
-      this.filteredCandidate$.next(this.filteredCandidateCache);
+      }));
     }
   }
 

@@ -1,5 +1,5 @@
-import { Component, effect, ElementRef, input, output, ViewChild, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, effect, ElementRef, input, output, ViewChild, inject, signal, computed } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
@@ -12,7 +12,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTabsModule } from '@angular/material/tabs';
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
-import { map, Observable, startWith } from 'rxjs';
+import { startWith } from 'rxjs';
 
 import { PartnerType, ROLE_TENANT_DOWNSTREAM_MANAGER_DIRECT, ROLE_TENANT_DOWNSTREAM_MANAGER_PROGRAMMATIC, TenantAPI, TenantUser, User, UserAPI, Vendor, VendorAPI } from '../../../../core';
 import { TenantService } from '../../../../services';
@@ -28,7 +28,6 @@ interface VendorFormControls {
 @Component({
   selector: 'carambola-vendor-form',
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     MatAutocompleteModule,
     MatButtonModule,
@@ -56,9 +55,15 @@ export class VendorFormComponent {
 
   formGroup: FormGroup<VendorFormControls>;
   separatorKeysCodes: number[] = [ENTER, COMMA];
-  allUsers: User[] = [];
+  readonly allUsers = signal<User[]>([]);
   ctrlDownstream = new FormControl<string | null>(null);
-  filteredDownstream: Observable<User[]> = new Observable<User[]>();
+  readonly downstreamFilter = toSignal(this.ctrlDownstream.valueChanges.pipe(startWith(null)), {initialValue: null});
+  readonly filteredDownstream = computed(() => {
+    const username = this.downstreamFilter();
+    const allUsers = this.allUsers();
+
+    return username ? this._filter(username) : allUsers.slice();
+  });
   @ViewChild('inputDownstream') inputDownstream: ElementRef<HTMLInputElement> | undefined;
 
   readonly = false;
@@ -93,11 +98,7 @@ export class VendorFormComponent {
 
         if (!this.readonly) {
           this.userAPI.getUserList().subscribe(data => {
-            this.allUsers = data;
-            this.filteredDownstream = this.ctrlDownstream.valueChanges.pipe(
-              startWith(null),
-              map((username: string | null) => (username ? this._filter(username) : this.allUsers.slice())),
-            );
+            this.allUsers.set(data);
           });
         }
 
@@ -144,7 +145,7 @@ export class VendorFormComponent {
   private _filter(value: string): User[] {
     const filterValue = value.toLowerCase();
 
-    return this.allUsers.filter(user => user.username.toLowerCase().includes(filterValue));
+    return this.allUsers().filter(user => user.username.toLowerCase().includes(filterValue));
   }
 
   add(event: MatChipInputEvent, control: FormControl<string | null> | null, users: TenantUser[]): void {

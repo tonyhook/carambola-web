@@ -107,7 +107,7 @@
                   <input placeholder="增加字段" #inputFilter matInput [formControl]="ctrlFilter"
                     [matChipInputFor]="chipGridFilter" [matAutocomplete]="autoFilter"/>
                   <mat-autocomplete #autoFilter="matAutocomplete" (optionSelected)="select($event, inputFilter, ctrlFilter, selectedFilters)">
-                    @for (field of filteredFields | async; track field[0]) {
+                    @for (field of filteredFields(); track field[0]) {
                       <mat-option [value]="field">
                         {{ field[1].name }}
                       </mat-option>

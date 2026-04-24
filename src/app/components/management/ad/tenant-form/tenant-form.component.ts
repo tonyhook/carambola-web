@@ -1,5 +1,5 @@
-import { Component, effect, ElementRef, input, OnInit, output, ViewChild, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, effect, ElementRef, input, output, ViewChild, inject, signal, computed } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
@@ -12,7 +12,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTabsModule } from '@angular/material/tabs';
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
-import { map, Observable, startWith } from 'rxjs';
+import { startWith } from 'rxjs';
 
 import { ROLE_TENANT_DOWNSTREAM_MANAGER_DIRECT, ROLE_TENANT_DOWNSTREAM_MANAGER_PROGRAMMATIC, ROLE_TENANT_MANAGER, ROLE_TENANT_OBSERVER, ROLE_TENANT_OPERATOR, ROLE_TENANT_UPSTREAM_OBSERVER_DIRECT, ROLE_TENANT_UPSTREAM_OBSERVER_PROGRAMMATIC, Tenant, TenantAPI, TenantUser, User, UserAPI } from '../../../../core';
 import { TenantService } from '../../../../services';
@@ -30,7 +30,6 @@ interface TenantFormControls {
 @Component({
   selector: 'carambola-tenant-form',
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     MatAutocompleteModule,
     MatButtonModule,
@@ -45,7 +44,7 @@ interface TenantFormControls {
   templateUrl: './tenant-form.component.html',
   styleUrls: ['./tenant-form.component.scss'],
 })
-export class TenantFormComponent implements OnInit {
+export class TenantFormComponent {
   private formBuilder = inject(FormBuilder);
   private snackBar = inject(MatSnackBar);
   tenantService = inject(TenantService);
@@ -54,13 +53,31 @@ export class TenantFormComponent implements OnInit {
 
   formGroup: FormGroup<TenantFormControls>;
   separatorKeysCodes: number[] = [ENTER, COMMA];
-  allUsers: User[] = [];
+  readonly allUsers = signal<User[]>([]);
   ctrlManager = new FormControl<string | null>(null);
   ctrlOperator = new FormControl<string | null>(null);
   ctrlObserver = new FormControl<string | null>(null);
-  filteredManager: Observable<User[]> = new Observable<User[]>();
-  filteredOperator: Observable<User[]> = new Observable<User[]>();
-  filteredObserver: Observable<User[]> = new Observable<User[]>();
+  readonly managerFilter = toSignal(this.ctrlManager.valueChanges.pipe(startWith(null)), {initialValue: null});
+  readonly operatorFilter = toSignal(this.ctrlOperator.valueChanges.pipe(startWith(null)), {initialValue: null});
+  readonly observerFilter = toSignal(this.ctrlObserver.valueChanges.pipe(startWith(null)), {initialValue: null});
+  readonly filteredManager = computed(() => {
+    const username = this.managerFilter();
+    const allUsers = this.allUsers();
+
+    return username ? this._filter(username) : allUsers.slice();
+  });
+  readonly filteredOperator = computed(() => {
+    const username = this.operatorFilter();
+    const allUsers = this.allUsers();
+
+    return username ? this._filter(username) : allUsers.slice();
+  });
+  readonly filteredObserver = computed(() => {
+    const username = this.observerFilter();
+    const allUsers = this.allUsers();
+
+    return username ? this._filter(username) : allUsers.slice();
+  });
   @ViewChild('inputManager') inputManager: ElementRef<HTMLInputElement> | undefined;
   @ViewChild('inputOperator') inputOperator: ElementRef<HTMLInputElement> | undefined;
   @ViewChild('inputObserver') inputObserver: ElementRef<HTMLInputElement> | undefined;
@@ -139,6 +156,10 @@ export class TenantFormComponent implements OnInit {
       this.formGroup.setControl('downstream', this.createTenantUsersControl(downstream), {emitEvent: false});
       this.formGroup.setControl('enabled', this.createEnabledControl(tenant.enabled), {emitEvent: false});
     });
+
+    this.userAPI.getUserList().subscribe(data => {
+      this.allUsers.set(data);
+    });
   }
 
   get managerUsers(): TenantUser[] {
@@ -175,28 +196,10 @@ export class TenantFormComponent implements OnInit {
     return this.formBuilder.nonNullable.control({value, disabled}, Validators.required);
   }
 
-  ngOnInit() {
-    this.userAPI.getUserList().subscribe(data => {
-      this.allUsers = data;
-      this.filteredManager = this.ctrlManager.valueChanges.pipe(
-        startWith(null),
-        map((username: string | null) => (username ? this._filter(username) : this.allUsers.slice())),
-      );
-      this.filteredOperator = this.ctrlOperator.valueChanges.pipe(
-        startWith(null),
-        map((username: string | null) => (username ? this._filter(username) : this.allUsers.slice())),
-      );
-      this.filteredObserver = this.ctrlObserver.valueChanges.pipe(
-        startWith(null),
-        map((username: string | null) => (username ? this._filter(username) : this.allUsers.slice())),
-      );
-    });
-  }
-
   private _filter(value: string): User[] {
     const filterValue = value.toLowerCase();
 
-    return this.allUsers.filter(user => user.username.toLowerCase().includes(filterValue));
+    return this.allUsers().filter(user => user.username.toLowerCase().includes(filterValue));
   }
 
   add(event: MatChipInputEvent, control: FormControl<string | null> | null, users: TenantUser[]): void {
