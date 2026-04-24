@@ -144,7 +144,7 @@
         </ng-container>
 
         <mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></mat-header-row>
-        <mat-row *matRowDef="let row; columns: displayedColumns" [ngStyle]="{'min-width': '1730px'}"></mat-row>
+        <mat-row *matRowDef="let row; columns: displayedColumns" [style.min-width]="'1730px'"></mat-row>
       </mat-table>
     </div>
   </mat-card-content>
