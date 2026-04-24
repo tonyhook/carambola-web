@@ -1,4 +1,4 @@
-import { Component, effect, ElementRef, input, output, ViewChild, inject, signal, computed } from '@angular/core';
+import { Component, computed, effect, ElementRef, input, output, inject, signal, viewChild } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
@@ -64,7 +64,7 @@ export class VendorFormComponent {
 
     return username ? this._filter(username) : allUsers.slice();
   });
-  @ViewChild('inputDownstream') inputDownstream: ElementRef<HTMLInputElement> | undefined;
+  readonly inputDownstream = viewChild<ElementRef<HTMLInputElement>>('inputDownstream');
 
   readonly = false;
 

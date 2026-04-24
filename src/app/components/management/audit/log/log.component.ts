@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, DoCheck, KeyValueDiffer, KeyValueDiffers, ViewChild, inject } from '@angular/core';
+import { AfterViewInit, Component, DoCheck, KeyValueDiffer, KeyValueDiffers, inject, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -46,8 +46,8 @@ export class LogManagerComponent implements AfterViewInit, DoCheck {
   initialSort: Sort<Log> = {property: 'createTime', order: 'asc'};
   initialQuery: Partial<Query<Log>> = {};
   initialSize = 10;
-  @ViewChild(MatSort, {static: true}) sort: MatSort | undefined;
-  @ViewChild(MatPaginator) paginator: MatPaginator | undefined;
+  readonly sort = viewChild(MatSort);
+  readonly paginator = viewChild(MatPaginator);
 
   clear: LogClearFormGroup;
   range: LogRangeFormGroup;
@@ -72,8 +72,9 @@ export class LogManagerComponent implements AfterViewInit, DoCheck {
   }
 
   ngAfterViewInit() {
-    if (this.sort) {
-      this.sort.sortChange.subscribe(sort => {
+    const sortValue = this.sort();
+    if (sortValue) {
+      sortValue.sortChange.subscribe(sort => {
         if (sort.direction === '') {
           sort.active = this.initialSort.property;
           sort.direction = this.initialSort.order;
