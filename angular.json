@@ -24,7 +24,6 @@
             "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": [
-              "zone.js",
               "@angular/localize/init"
             ],
             "tsConfig": "tsconfig.app.json",
@@ -73,6 +72,9 @@
         },
         "serve": {
           "builder": "@angular/build:dev-server",
+          "options": {
+            "proxyConfig": "proxy.conf.json"
+          },
           "configurations": {
             "production": {
               "buildTarget": "web:build:production"
@@ -90,8 +92,6 @@
           "builder": "@angular/build:karma",
           "options": {
             "polyfills": [
-              "zone.js",
-              "zone.js/testing",
               "@angular/localize/init"
             ],
             "tsConfig": "tsconfig.spec.json",
