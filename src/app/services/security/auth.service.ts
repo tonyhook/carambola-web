@@ -1,4 +1,5 @@
-import { Injectable, signal, WritableSignal, inject } from '@angular/core';
+import { Injectable, signal, WritableSignal, inject, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
@@ -13,6 +14,7 @@ export class AuthService {
   private menuService = inject(MenuService);
   private security = inject(OpenSecurityAPI);
   private snackBar = inject(MatSnackBar);
+  private destroyRef = inject(DestroyRef);
 
   credential: WritableSignal<UserDetails | null> = signal(null);
   redirectUrl = signal<string>('/admin');
@@ -22,7 +24,7 @@ export class AuthService {
   }
 
   getUserDetails(): void {
-    this.security.getUserDetails().subscribe({
+    this.security.getUserDetails().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: data => {
         this.credential.set(data);
 
@@ -41,7 +43,7 @@ export class AuthService {
   }
 
   login(post: Login) {
-    this.security.login(post).subscribe({
+    this.security.login(post).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.getUserDetails();
         this.router.navigate(['/admin/pending']);
@@ -61,7 +63,7 @@ export class AuthService {
   }
 
   logout() {
-    this.security.logout().subscribe({
+    this.security.logout().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.getUserDetails();
         this.redirectUrl.set('/admin');
