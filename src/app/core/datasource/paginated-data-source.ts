@@ -1,9 +1,8 @@
-import { DataSource } from '@angular/cdk/collections';
-import { Observable } from 'rxjs';
-
-import { PageEvent } from '@angular/material/paginator';
 import { computed, effect, Signal, signal, WritableSignal } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
+import { DataSource } from '@angular/cdk/collections';
+import { PageEvent } from '@angular/material/paginator';
+import { Observable } from 'rxjs';
 
 export interface Sort<T> {
   property: keyof T;

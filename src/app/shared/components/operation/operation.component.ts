@@ -1,4 +1,4 @@
-import { Component, effect, input, model, inject } from '@angular/core';
+import { Component, effect, inject, input, model } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 

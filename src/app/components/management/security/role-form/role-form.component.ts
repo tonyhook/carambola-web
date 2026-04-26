@@ -1,4 +1,4 @@
-import { Component, effect, input, OnInit, output, signal, WritableSignal, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, input, OnInit, output, signal, WritableSignal } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -8,6 +8,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
 import { MatTabsModule } from '@angular/material/tabs';
+import { forkJoin } from 'rxjs';
 
 import { Authority, AuthorityAPI, Permission, PermissionAPI, Role, RoleAPI } from '../../../../core';
 import { OperationComponent } from '../../../../shared/components/operation/operation.component';
@@ -18,6 +19,7 @@ type RoleFormGroup = FormGroup<{
 
 @Component({
   selector: 'carambola-role-form',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
     MatButtonModule,
@@ -65,32 +67,52 @@ export class RoleFormComponent implements OnInit {
       });
     });
 
-    effect(() => {
+    effect((onCleanup) => {
       const role = this.role();
       const authorities = this.authorities();
       const resourcesTypes = this.resourcesTypes();
 
       const roleAuthoritySet = new Set<Authority>();
       const rolePermissionMap = new Map<string, Permission>();
-      if (role) {
-        if (role.authorities) {
-          role.authorities.forEach(authority => {
-            roleAuthoritySet.add(authorities.find(a => a.id === authority.id)!);
-          });
-        }
-        this.roleAuthoritySet.set(roleAuthoritySet);
 
-        resourcesTypes.forEach(resourceType => {
-          this.permissionAPI.getClassPermissionList(resourceType).subscribe(permissions => {
-            for (const permission of permissions) {
-              if (permission.roleId === role.id) {
-                rolePermissionMap.set(resourceType, permission);
-              }
-            }
-          });
-        });
+      if (!role) {
+        this.roleAuthoritySet.set(roleAuthoritySet);
         this.rolePermissionMap.set(rolePermissionMap);
+        return;
       }
+
+      if (role.authorities) {
+        role.authorities.forEach(authority => {
+          const matchedAuthority = authorities.find(a => a.id === authority.id);
+          if (matchedAuthority) {
+            roleAuthoritySet.add(matchedAuthority);
+          }
+        });
+      }
+      this.roleAuthoritySet.set(roleAuthoritySet);
+      this.rolePermissionMap.set(rolePermissionMap);
+
+      if (resourcesTypes.length === 0) {
+        return;
+      }
+
+      const roleId = role.id;
+      const subscription = forkJoin(resourcesTypes.map(resourceType => this.permissionAPI.getClassPermissionList(resourceType))).subscribe(permissionLists => {
+        if (this.role()?.id !== roleId) {
+          return;
+        }
+
+        const nextRolePermissionMap = new Map<string, Permission>();
+        permissionLists.forEach((permissions, index) => {
+          const permission = permissions.find(p => p.roleId === roleId);
+          if (permission) {
+            nextRolePermissionMap.set(resourcesTypes[index], permission);
+          }
+        });
+        this.rolePermissionMap.set(nextRolePermissionMap);
+      });
+
+      onCleanup(() => subscription.unsubscribe());
     });
   }
 
@@ -169,9 +191,21 @@ export class RoleFormComponent implements OnInit {
     if (role) {
       if (event.checked) {
         role.authorities.push(authority);
+        this.roleAuthoritySet.update(authorities => {
+          const nextAuthorities = new Set(authorities);
+          nextAuthorities.add(authority);
+          return nextAuthorities;
+        });
       } else {
         const index = role.authorities.findIndex(a => a.id === authority.id);
-        role.authorities.splice(index, 1);
+        if (index >= 0) {
+          role.authorities.splice(index, 1);
+        }
+        this.roleAuthoritySet.update(authorities => {
+          const nextAuthorities = new Set(authorities);
+          nextAuthorities.delete(authority);
+          return nextAuthorities;
+        });
       }
 
       this.roleAPI.updateRole(role.id!, role).subscribe();
@@ -204,19 +238,25 @@ export class RoleFormComponent implements OnInit {
         };
 
         this.permissionAPI.addPermission(permission).subscribe(data => {
-          rolePermissionMap.set(resourceType, data);
-          this.rolePermissionMap.set(rolePermissionMap);
+          this.rolePermissionMap.update(rolePermissionMap => {
+            const nextRolePermissionMap = new Map(rolePermissionMap);
+            nextRolePermissionMap.set(resourceType, data);
+            return nextRolePermissionMap;
+          });
         });
       } else {
         if (!newOp || newOp.length === 0) {
           this.permissionAPI.removePermission(permission.id!).subscribe(() => {
-            rolePermissionMap.delete(resourceType);
-            this.rolePermissionMap.set(rolePermissionMap);
+            this.rolePermissionMap.update(rolePermissionMap => {
+              const nextRolePermissionMap = new Map(rolePermissionMap);
+              nextRolePermissionMap.delete(resourceType);
+              return nextRolePermissionMap;
+            });
           });
         } else {
           permission.permission = newOp;
           this.permissionAPI.updatePermission(permission.id!, permission).subscribe(() => {
-            this.rolePermissionMap.set(rolePermissionMap);
+            this.rolePermissionMap.update(rolePermissionMap => new Map(rolePermissionMap));
           });
         }
       }

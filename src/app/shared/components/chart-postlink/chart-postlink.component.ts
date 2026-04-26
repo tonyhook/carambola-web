@@ -1,7 +1,7 @@
-import { Component, effect, input, inject, ChangeDetectorRef } from '@angular/core';
-import { NgxEchartsModule } from 'ngx-echarts';
+import { Component, effect, inject, input, signal } from '@angular/core';
 import { EChartsType } from 'echarts/core';
 import { EChartsOption, SeriesOption } from 'echarts/types/dist/shared';
+import { NgxEchartsModule } from 'ngx-echarts';
 import { forkJoin } from 'rxjs';
 
 import { ClientPort, ClientPortAPI, PerformanceAPI, PerformancePartner, VendorPort, VendorPortAPI } from '../../../core';
@@ -20,7 +20,6 @@ export class ChartPostlinkComponent {
   private performanceAPI = inject(PerformanceAPI);
   private clientPortAPI = inject(ClientPortAPI);
   private vendorPortAPI = inject(VendorPortAPI);
-  private cdr = inject(ChangeDetectorRef);
 
   private eventTypeNames: Record<string, string> = {
     '503': 'deeplink尝试调起',
@@ -87,21 +86,23 @@ export class ChartPostlinkComponent {
   mode = input<string>('postlink');
 
   echarts!: EChartsType;
-  dataReady = false;
-  bundleDataReady = false;
+  dataReady = signal(false);
+  bundleDataReady = signal(false);
 
-  clientPortList: ClientPort[] = [];
-  vendorPortList: VendorPort[] = [];
-  performanceData: PerformancePartner[] = [];
-  timestamps: Date[] = [];
-  selectedPortId = 0;
+  clientPortList = signal<ClientPort[]>([]);
+  vendorPortList = signal<VendorPort[]>([]);
+  performanceData = signal<PerformancePartner[]>([]);
+  timestamps = signal<Date[]>([]);
+  selectedPortId = signal(0);
 
-  chartOption: EChartsOption = {};
+  chartOption = signal<EChartsOption>({});
 
   constructor() {
     effect(() => {
       const clientPort = this.clientPort();
       const vendorPort = this.vendorPort();
+
+      this.resetState();
 
       if (clientPort) {
         this.performanceAPI.getPerformanceClientBundleList(
@@ -117,11 +118,10 @@ export class ChartPostlinkComponent {
             searchValue: '',
           }
         ).subscribe(result => {
-          this.performanceData = result;
+          this.performanceData.set(result);
           this.prepareTimestampList();
           this.updateChart(0, null, null);
-          this.dataReady = true;
-          this.cdr.detectChanges();
+          this.dataReady.set(true);
 
           this.performanceAPI.getPerformanceClientBundleList(
             'day',
@@ -145,11 +145,10 @@ export class ChartPostlinkComponent {
 
             forkJoin([...vendorPortIdSet.map(vendorPortId => this.vendorPortAPI.getVendorPort(vendorPortId))])
             .subscribe(results => {
-              this.vendorPortList = results;
-              this.cdr.detectChanges();
+              this.vendorPortList.set(results);
             });
 
-            this.performanceData = [...this.performanceData, ...result];
+            this.performanceData.update(performanceData => [...performanceData, ...result]);
           });
         });
       }
@@ -167,11 +166,10 @@ export class ChartPostlinkComponent {
             searchValue: '',
           }
         ).subscribe(result => {
-          this.performanceData = result;
+          this.performanceData.set(result);
           this.prepareTimestampList();
           this.updateChart(0, null, null);
-          this.dataReady = true;
-          this.cdr.detectChanges();
+          this.dataReady.set(true);
 
           this.performanceAPI.getPerformanceClientBundleList(
             'day',
@@ -195,10 +193,10 @@ export class ChartPostlinkComponent {
 
             forkJoin([...clientPortIdSet.map(clientPortId => this.clientPortAPI.getClientPort(clientPortId))])
             .subscribe(results => {
-              this.clientPortList = results;
+              this.clientPortList.set(results);
             });
 
-            this.performanceData = [...this.performanceData, ...result];
+            this.performanceData.update(performanceData => [...performanceData, ...result]);
           });
         });
       }
@@ -213,21 +211,33 @@ export class ChartPostlinkComponent {
       const hoveredEventName = params.seriesName as string;
       const hoveredEventCode = this.getEventTypeCode(hoveredEventName);
 
-      this.updatePieChart(this.selectedPortId, hoveredDate, hoveredEventCode);
+      this.updatePieChart(this.selectedPortId(), hoveredDate, hoveredEventCode);
     });
   }
 
+  private resetState() {
+    this.dataReady.set(false);
+    this.bundleDataReady.set(false);
+    this.clientPortList.set([]);
+    this.vendorPortList.set([]);
+    this.performanceData.set([]);
+    this.timestamps.set([]);
+    this.selectedPortId.set(0);
+    this.chartOption.set({});
+  }
+
   updateChart(port: number, time: string | null, event: string | null) {
-    if (!this.performanceData || this.performanceData.length === 0) {
+    const performanceData = this.performanceData();
+    if (performanceData.length === 0) {
       return;
     }
 
     let portPerformanceData: PerformancePartner[] = [];
     if (this.clientPort()) {
-      portPerformanceData = this.performanceData.filter(item => item.vendorPort === port);
+      portPerformanceData = performanceData.filter(item => item.vendorPort === port);
     }
     if (this.vendorPort()) {
-      portPerformanceData = this.performanceData.filter(item => item.clientPort === port);
+      portPerformanceData = performanceData.filter(item => item.clientPort === port);
     }
 
     const performanceMap = new Map<string, PerformancePartner>();
@@ -308,13 +318,14 @@ export class ChartPostlinkComponent {
 
     const eventTypeArray = Array.from(generalEventTypes).sort();
 
-    const header = ['事件类型', ...this.timestamps.map(ts => this.formatDate(ts))];
+    const timestamps = this.timestamps();
+    const header = ['事件类型', ...timestamps.map(ts => this.formatDate(ts))];
 
     const dataRows = eventTypeArray.map(eventType => {
       const eventName = this.getEventTypeName(eventType);
       const row: (string | number)[] = [eventName];
 
-      this.timestamps.forEach(timestamp => {
+      timestamps.forEach(timestamp => {
         const dateKey = this.formatDate(timestamp);
         const data = performanceMap.get(dateKey);
         const value = (data && data.general && data.general[eventType]) ? data.general[eventType] : 0;
@@ -339,7 +350,7 @@ export class ChartPostlinkComponent {
       const targetEventType = event || eventTypeArray[0];
       const bundleMap = new Map<string, number>();
 
-      const targetDate = time || (this.timestamps.length > 0 ? this.formatDate(this.timestamps[this.timestamps.length - 1]) : null);
+      const targetDate = time || (timestamps.length > 0 ? this.formatDate(timestamps[timestamps.length - 1]) : null);
 
       if (targetDate) {
         portPerformanceData
@@ -375,7 +386,7 @@ export class ChartPostlinkComponent {
       }
     }
 
-    this.chartOption = {
+    this.chartOption.set({
       color: eventTypeArray.map(et => this.eventTypeColors[et]).filter(c => c !== undefined) as string[],
       legend: {
         top: 10,
@@ -402,20 +413,21 @@ export class ChartPostlinkComponent {
         bottom: 60
       },
       series
-    };
+    });
   }
 
   updatePieChart(port: number, time: string, event: string) {
-    if (!this.echarts || !this.performanceData || this.performanceData.length === 0) {
+    const performanceData = this.performanceData();
+    if (!this.echarts || performanceData.length === 0) {
       return;
     }
 
     let portPerformanceData: PerformancePartner[] = [];
     if (this.clientPort()) {
-      portPerformanceData = this.performanceData.filter(item => item.vendorPort === port);
+      portPerformanceData = performanceData.filter(item => item.vendorPort === port);
     }
     if (this.vendorPort()) {
-      portPerformanceData = this.performanceData.filter(item => item.clientPort === port);
+      portPerformanceData = performanceData.filter(item => item.clientPort === port);
     }
     const bundleMap = new Map<string, number>();
 
@@ -452,9 +464,8 @@ export class ChartPostlinkComponent {
   }
 
   selectPort(portId: number) {
-    this.selectedPortId = portId;
+    this.selectedPortId.set(portId);
     this.updateChart(portId, null, null);
-    this.cdr.detectChanges();
   }
 
   getEventTypeName(eventType: string): string {
@@ -491,7 +502,7 @@ export class ChartPostlinkComponent {
   }
 
   prepareTimestampList() {
-    this.timestamps = [];
+    const timestamps: Date[] = [];
 
     for (let t = this.end.getTime(); t >= this.start.getTime();) {
       const date = new Date(t);
@@ -500,12 +511,12 @@ export class ChartPostlinkComponent {
       date.setMinutes(0);
       date.setHours(0);
 
-      this.timestamps.push(date);
+      timestamps.push(date);
       t = date.getTime();
       t = t - 86400000;
     }
 
-    this.timestamps.reverse();
+    this.timestamps.set(timestamps.reverse());
   }
 
 }

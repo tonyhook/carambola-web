@@ -1,12 +1,12 @@
-import { booleanAttribute, Component, effect, ElementRef, input, model, OnDestroy, signal, untracked, viewChild, inject } from '@angular/core';
-import { ControlValueAccessor, FormBuilder, FormControl, FormGroup, NgControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { booleanAttribute, ChangeDetectionStrategy, Component, effect, ElementRef, inject, input, model, OnDestroy, signal, untracked, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ControlValueAccessor, FormBuilder, FormControl, FormGroup, NgControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldControl } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelect, MatSelectModule } from '@angular/material/select';
-import { Subject } from 'rxjs';
 import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
+import { Subject } from 'rxjs';
 
 import { ClientPort } from '../../../core';
 import { AdEntityComponent } from '../ad-entity/ad-entity.component';
@@ -19,6 +19,7 @@ type FilteredSelectClientPortFormGroup = FormGroup<{
 
 @Component({
   selector: 'carambola-filtered-select-clientport',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
     MatButtonModule,
@@ -94,7 +95,12 @@ export class FilteredSelectClientPortComponent implements OnDestroy, ControlValu
     )!;
     controlElement.setAttribute('aria-describedby', ids.join(' '));
   }
-  onContainerClick(): void {
+  onContainerClick(event: MouseEvent): void {
+    if (this.shouldIgnoreContainerClick(event)) {
+      return;
+    }
+
+    this.selectionInput().focus();
     this.selectionInput().open();
   }
 
@@ -122,6 +128,7 @@ export class FilteredSelectClientPortComponent implements OnDestroy, ControlValu
     } else {
       untracked(() => this.formGroup.enable({emitEvent: false}));
     }
+    this.notifyStateChanged();
   }
 
   // This is the end of ControlValueAccessor properties.
@@ -190,6 +197,7 @@ export class FilteredSelectClientPortComponent implements OnDestroy, ControlValu
         this.formGroup.controls.selection.setValidators(null);
       }
       this.formGroup.controls.selection.updateValueAndValidity({emitEvent: false});
+      this.notifyStateChanged();
     });
     effect(() => {
       const options = this.options();
@@ -216,6 +224,7 @@ export class FilteredSelectClientPortComponent implements OnDestroy, ControlValu
   onFocusIn() {
     if (!this.focused) {
       this.focused = true;
+      this.notifyStateChanged();
     }
   }
 
@@ -232,6 +241,7 @@ export class FilteredSelectClientPortComponent implements OnDestroy, ControlValu
     this.focused = false;
     this.touched.set(true);
     this._onTouched();
+    this.notifyStateChanged();
   }
 
   onOpenedChange(opened: boolean) {
@@ -241,6 +251,7 @@ export class FilteredSelectClientPortComponent implements OnDestroy, ControlValu
       this.touched.set(true);
       this._onTouched();
     }
+    this.notifyStateChanged();
   }
 
   onTouched() {
@@ -277,6 +288,21 @@ export class FilteredSelectClientPortComponent implements OnDestroy, ControlValu
     }
 
     this.changedByInternal = false;
+    this.notifyStateChanged();
+  }
+
+  private notifyStateChanged(): void {
+    this.stateChanges.next();
+  }
+
+  private shouldIgnoreContainerClick(event: MouseEvent): boolean {
+    const target = event.target as HTMLElement | null;
+
+    return !!target && (
+      target.tagName === 'MAT-OPTION'
+      || target.classList.contains('cdk-overlay-backdrop')
+      || !!target.closest('.mat-mdc-select-panel')
+    );
   }
 
   filterCandidate() {

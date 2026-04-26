@@ -1,7 +1,6 @@
-import { Injectable, inject } from '@angular/core';
-import { HttpEvent, HttpInterceptor, HttpHandler, HttpRequest, HttpErrorResponse } from '@angular/common/http';
+import { inject, Injectable } from '@angular/core';
+import { HttpErrorResponse, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
-
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 

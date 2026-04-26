@@ -1,6 +1,5 @@
-import { AfterViewInit, Component, effect, OnInit, signal, WritableSignal, inject, viewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, effect, inject, OnInit, signal, untracked, viewChild, WritableSignal } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -10,11 +9,12 @@ import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
+import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, debounceTime, of, Subject, switchMap } from 'rxjs';
 
 import { Client, ClientAPI, ClientMedia, ClientMediaAPI, ClientPort, ClientPortAPI, PartnerType, PortType, Query } from '../../../../core';
-import { AdEntityComponent, FilteredSelectClientComponent, FilteredSelectClientMediaComponent } from '../../../../shared';
 import { TenantService } from '../../../../services';
+import { AdEntityComponent, FilteredSelectClientComponent, FilteredSelectClientMediaComponent } from '../../../../shared';
 import { ClientPortDialogComponent, ClientPortDialogData } from '../clientport-dialog/clientport-dialog.component';
 
 interface ClientPortQueryControls {
@@ -30,6 +30,7 @@ interface ClientPortQueryControls {
 
 @Component({
   selector: 'carambola-clientport-manager',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
     MatButtonModule,
@@ -66,13 +67,13 @@ export class ClientPortManagerComponent implements OnInit, AfterViewInit {
 
   mode: WritableSignal<PartnerType> = signal(PartnerType.PARTNER_TYPE_UNKNOWN);
   formGroupQuery: FormGroup<ClientPortQueryControls>;
-  filterClient: Client[] = [];
-  allClientMedia: ClientMedia[] = [];
-  filterClientMedia: ClientMedia[] = [];
+  filterClient = signal<Client[]>([]);
+  allClientMedia = signal<ClientMedia[]>([]);
+  filterClientMedia = signal<ClientMedia[]>([]);
   filterPlatform: Map<string, string>;
   filterFormat: Map<string, string>;
   filterBudget: Map<string, string>;
-  filterMode: Map<string, string>;
+  filterMode = signal(new Map<string, string>());
   filterStatus: Map<string, string>;
   formQuery: Query<ClientPort> = {
     filter: {},
@@ -84,7 +85,7 @@ export class ClientPortManagerComponent implements OnInit, AfterViewInit {
   readonly paginator = viewChild(MatPaginator);
 
   dataRequest$ = new Subject<Query<ClientPort>>();
-  dataSource = new MatTableDataSource<ClientPort>([]);
+  dataSource = signal(this.createDataSource([]));
 
   constructor() {
     this.formGroupQuery = this.formBuilder.group({
@@ -128,11 +129,11 @@ export class ClientPortManagerComponent implements OnInit, AfterViewInit {
       ['juheshangcheng', '聚合电商'],
       ['mangguo', '芒果'],
     ]);
-    this.filterMode = new Map([
+    this.filterMode.set(new Map([
       ['1', '分成模式'],
       ['2', '竞价模式'],
       ['3', '直通模式'],
-    ]);
+    ]));
     this.filterStatus = new Map([
       ['1', '启用'],
       ['2', '未启用'],
@@ -157,7 +158,7 @@ export class ClientPortManagerComponent implements OnInit, AfterViewInit {
         searchValue: '',
       }).subscribe(clients => {
         clients = clients.filter(client => !client.deleted);
-        this.filterClient = clients;
+        this.filterClient.set(clients);
       });
       this.clientMediaAPI.getClientMediaList({
         filter: {
@@ -167,11 +168,11 @@ export class ClientPortManagerComponent implements OnInit, AfterViewInit {
         searchValue: '',
       }).subscribe(clientMedias => {
         clientMedias = clientMedias.filter(clientMedia => !clientMedia.deleted);
-        this.allClientMedia = clientMedias;
-        this.filterClientMedia = clientMedias;
+        this.allClientMedia.set(clientMedias);
+        this.filterClientMedia.set(clientMedias);
       });
 
-      this.query();
+      untracked(() => this.query());
     });
   }
 
@@ -231,7 +232,7 @@ export class ClientPortManagerComponent implements OnInit, AfterViewInit {
           });
         }
       }
-      this.dataSource.data = data.sort((a, b) => {
+      data = data.sort((a, b) => {
         const keya = a.updateTime ? new Date(a.updateTime) : new Date(0);
         const keyb = b.updateTime ? new Date(b.updateTime) : new Date(0);
         if (keya < keyb) {
@@ -242,30 +243,8 @@ export class ClientPortManagerComponent implements OnInit, AfterViewInit {
           return 0;
         }
       });
-      this.dataSource.sort = this.sort() ?? null;
-      this.dataSource.paginator = this.paginator() ?? null;
-      this.dataSource.sortingDataAccessor = (item, property) => {
-        switch (property) {
-          case 'client':
-            return item.client.name;
-          case 'clientMedia':
-            return item.clientMedia.name;
-          case 'name':
-            return item.name;
-          case 'format':
-            return item.format;
-          case 'budget':
-            return item.budget;
-          case 'tagId':
-            return item.tagId;
-          case 'mode':
-            return item.mode;
-          case 'connection':
-            return item.connection.filter(connection => connection.enabled).length;
-          default:
-            return '';
-        }
-      }
+
+      this.dataSource.set(this.createDataSource(data));
     });
 
     this.formGroupQuery.valueChanges.subscribe(() => {
@@ -283,7 +262,7 @@ export class ClientPortManagerComponent implements OnInit, AfterViewInit {
       this.formGroupQuery.controls.mode.setValue([]);
       this.formGroupQuery.controls.status.setValue([]);
       this.formGroupQuery.controls.search.setValue('');
-      this.dataSource.data = [];
+      this.dataSource.set(this.createDataSource([]));
 
       if (params['directMode']) {
         this.mode.set(params['directMode'] === 'true' ? PartnerType.PARTNER_TYPE_DIRECT : PartnerType.PARTNER_TYPE_PROGRAMMATIC);
@@ -295,18 +274,18 @@ export class ClientPortManagerComponent implements OnInit, AfterViewInit {
         if (this.selectedModes.indexOf(String(PartnerType.PARTNER_TYPE_DIRECT)) < 0) {
           this.formGroupQuery.controls.mode.setValue([]);
         }
-        this.filterMode = new Map([
+        this.filterMode.set(new Map([
           ['3', '直通模式'],
-        ]);
+        ]));
       }
       if (this.mode() === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
         if (this.selectedModes.indexOf(String(PartnerType.PARTNER_TYPE_DIRECT)) >= 0) {
           this.formGroupQuery.controls.mode.setValue([]);
         }
-        this.filterMode = new Map([
+        this.filterMode.set(new Map([
           ['1', '分成模式'],
           ['2', '竞价模式'],
-        ]);
+        ]));
       }
 
       const clientMediaId = params['clientmedia'];
@@ -341,11 +320,40 @@ export class ClientPortManagerComponent implements OnInit, AfterViewInit {
     this.hoverRow = null;
   }
 
+  private createDataSource(data: ClientPort[]): MatTableDataSource<ClientPort> {
+    const dataSource = new MatTableDataSource(data);
+    dataSource.sort = this.sort() ?? null;
+    dataSource.paginator = this.paginator() ?? null;
+    dataSource.sortingDataAccessor = (item, property) => {
+      switch (property) {
+        case 'client':
+          return item.client.name;
+        case 'clientMedia':
+          return item.clientMedia.name;
+        case 'name':
+          return item.name;
+        case 'format':
+          return item.format;
+        case 'budget':
+          return item.budget;
+        case 'tagId':
+          return item.tagId;
+        case 'mode':
+          return item.mode;
+        case 'connection':
+          return item.connection.filter(connection => connection.enabled).length;
+        default:
+          return '';
+      }
+    };
+    return dataSource;
+  }
+
   query() {
     if (this.selectedPlatforms.length > 0) {
-      this.filterClientMedia = this.allClientMedia.filter(clientMedia => this.selectedPlatforms.indexOf(clientMedia.platform) >= 0);
+      this.filterClientMedia.set(this.allClientMedia().filter(clientMedia => this.selectedPlatforms.indexOf(clientMedia.platform) >= 0));
     } else {
-      this.filterClientMedia = this.allClientMedia;
+      this.filterClientMedia.set(this.allClientMedia());
     }
 
     this.formQuery = {

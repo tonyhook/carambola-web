@@ -5,7 +5,7 @@
         <mat-form-field class="third-width-input" subscriptSizing="dynamic">
           <mat-label>反作弊规则</mat-label>
           <mat-select formControlName="rule">
-            @for (antiFraudRule of antiFraudRules; track antiFraudRule.id) {
+            @for (antiFraudRule of antiFraudRules(); track antiFraudRule.id) {
               <mat-option [value]="antiFraudRule.code">{{antiFraudRule.brief}}</mat-option>
             }
           </mat-select>

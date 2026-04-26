@@ -1,17 +1,17 @@
 import { ApplicationConfig, provideZonelessChangeDetection } from '@angular/core';
-import { provideRouter } from '@angular/router';
 import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
-import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { MatPaginatorIntl } from '@angular/material/paginator';
-import { provideEchartsCore } from 'ngx-echarts';
-import * as echarts from 'echarts/core';
+import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
+import { provideRouter } from '@angular/router';
 import { LineChart, PieChart } from 'echarts/charts';
-import { GridComponent, TooltipComponent, LegendComponent, DatasetComponent } from 'echarts/components';
+import { DatasetComponent, GridComponent, LegendComponent, TooltipComponent } from 'echarts/components';
+import * as echarts from 'echarts/core';
 import { CanvasRenderer, SVGRenderer } from 'echarts/renderers';
+import { provideEchartsCore } from 'ngx-echarts';
 
-import { routes } from './app.routes';
-import { provideCarambolaDateAdapter } from './shared';
 import { CarambolaMatPaginatorIntl, HttpErrorInterceptor } from './shared';
+import { provideCarambolaDateAdapter } from './shared';
+import { routes } from './app.routes';
 
 echarts.use([LineChart, PieChart, GridComponent, TooltipComponent, LegendComponent, DatasetComponent, CanvasRenderer, SVGRenderer]);
 

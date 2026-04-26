@@ -1,8 +1,8 @@
-import { AfterViewInit, Component, DoCheck, effect, ElementRef, HostListener, KeyValueDiffer, KeyValueDiffers, OnInit, signal, WritableSignal, inject, viewChild } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { AfterViewInit, ChangeDetectionStrategy, Component, DoCheck, effect, ElementRef, HostListener, inject, KeyValueDiffer, KeyValueDiffers, OnInit, signal, viewChild, WritableSignal } from '@angular/core';
 import { animate, state, style, transition, trigger } from '@angular/animations';
+import { CdkMenuModule } from '@angular/cdk/menu';
+import { CommonModule } from '@angular/common';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleChange, MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatCardModule } from '@angular/material/card';
@@ -16,7 +16,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatTimepickerModule } from '@angular/material/timepicker';
-import { CdkMenuModule } from '@angular/cdk/menu';
+import { ActivatedRoute } from '@angular/router';
 import { catchError, debounceTime, forkJoin, of, Subject, switchMap } from 'rxjs';
 
 import { Client, ClientAPI, ClientMedia, ClientMediaAPI, ClientPort, ClientPortAPI, PartnerType, PerformanceAPI, PerformancePartner, PerformancePlaceholder, PerformanceView, PortType, Query, Vendor, VendorAPI, VendorMedia, VendorMediaAPI, VendorPort, VendorPortAPI } from '../../../../core';
@@ -50,6 +50,7 @@ interface PerformanceRangeControls {
 
 @Component({
   selector: 'carambola-performance',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -100,7 +101,7 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
 
   PortType = PortType;
 
-  displayedColumns: string[] = [];
+  displayedColumns = signal<string[]>([]);
   displayedColumnsWidth = 0;
   scrollLeft = 0;
   scrollRight = 0;
@@ -108,7 +109,7 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
   candidateColumns: Map<string, string> = new Map<string, string>();
   hoverRow: PerformanceView | null = null;
   expandedRow: PerformanceView | null = null;
-  loading = false;
+  loading = signal(false);
   formGroupColumn: FormGroup<PerformanceColumnControls>;
 
   clients: Client[] = [];
@@ -195,9 +196,9 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
   readonly table = viewChild<ElementRef>('table');
 
   dataRequest$ = new Subject<Query<PerformancePlaceholder>>();
-  dataSource = new MatTableDataSource<PerformanceView>([]);
+  dataSource = signal(this.createDataSource([]));
   dataRequestSub$ = new Subject<Query<PerformancePlaceholder>>();
-  dataSourceSub = new MatTableDataSource<PerformanceView>([]);
+  dataSourceSub = signal(new MatTableDataSource<PerformanceView>([]));
 
   constructor() {
     this.formGroupColumn = this.formBuilder.group({
@@ -273,7 +274,7 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
         return;
       }
 
-      this.dataSource.data = [];
+      this.dataSource.set(this.createDataSource([]));
       this.performanceViewTotal = {
         time: '',
         start: new Date(),
@@ -503,7 +504,7 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
       )),
     ).subscribe(result => {
       this.performanceDataSub = result;
-      this.loading = false;
+      this.loading.set(false);
       this.updatePerformanceViewSub();
     });
 
@@ -626,8 +627,8 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
 
     this.performanceViewDataSub.length = 0;
     this.performanceViewMapSub.clear();
-    this.dataSourceSub.data = [];
-    this.loading = true;
+    this.dataSourceSub.set(new MatTableDataSource<PerformanceView>([]));
+    this.loading.set(true);
 
     this.formQuerySub = {
       filter: {
@@ -811,19 +812,19 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
   }
 
   prepareDisplayColumns() {
-    this.displayedColumns = ['expand', 'time'];
+    const displayedColumns = ['expand', 'time'];
     this.displayedColumnsWidth = 80 + 250;
     if (this.direction() === 'client' && (this.performanceAggregateUpstream === 'client' || this.performanceAggregateUpstream === 'clientport')) {
-      this.displayedColumns.push('partner');
+      displayedColumns.push('partner');
       // time column is 120px when partner column exists
       this.displayedColumnsWidth = this.displayedColumnsWidth - 250 + 120 + 250;
     }
     if (this.direction() === 'vendor' && (this.performanceAggregateDownstream === 'vendor' || this.performanceAggregateDownstream === 'vendorport')) {
-      this.displayedColumns.push('partner');
+      displayedColumns.push('partner');
       // time column is 120px when partner column exists
       this.displayedColumnsWidth = this.displayedColumnsWidth - 250 + 120 + 250;
     }
-    this.displayedColumns = [...this.displayedColumns, ...this.selectedColumns, 'actions'];
+    this.displayedColumns.set([...displayedColumns, ...this.selectedColumns, 'actions']);
     this.displayedColumnsWidth = this.displayedColumnsWidth + this.selectedColumns.length * 120 + 80;
 
     this.onResize();
@@ -1286,14 +1287,22 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
       this.performanceViewMap.set(time + '|', performanceView);
     }
 
-    this.dataSource.data = this.performanceViewData.sort((a, b) => {
+    const data = this.performanceViewData.sort((a, b) => {
       const keya = a.time + '|' + a.clientPort + '|' + a.vendorPort;
       const keyb = b.time + '|' + b.clientPort + '|' + b.vendorPort;
       return keya > keyb ? -1 : 1;
     });
-    this.dataSource.sort = this.sort() ?? null;
-    this.dataSource.paginator = this.paginator() ?? null;
-    this.dataSource.sortingDataAccessor = (item, property) => {
+
+    this.dataSource.set(this.createDataSource(data));
+
+    this.changedByProgram = false;
+  }
+
+  private createDataSource(data: PerformanceView[]): MatTableDataSource<PerformanceView> {
+    const dataSource = new MatTableDataSource(data);
+    dataSource.sort = this.sort() ?? null;
+    dataSource.paginator = this.paginator() ?? null;
+    dataSource.sortingDataAccessor = (item, property) => {
       switch (property) {
         case 'request-valid': return item.requestv ?? -1;
         case 'response-valid': return item.responsev ?? -1;
@@ -1321,8 +1330,7 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
         }
       }
     };
-
-    this.changedByProgram = false;
+    return dataSource;
   }
 
   updatePerformanceViewSub() {
@@ -1439,7 +1447,7 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
 
     this.performanceViewDataSub = Array.from(this.performanceViewMapSub.values());
 
-    this.dataSourceSub.data = this.performanceViewDataSub.sort((a, b) => {
+    const dataSourceSub = new MatTableDataSource(this.performanceViewDataSub.sort((a, b) => {
       if (a.client === -1 || a.clientPort === -1 || a.vendor === -1 || a.vendorPort === -1) {
         return 1;
       }
@@ -1449,7 +1457,8 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
       const keya = a.request;
       const keyb = b.request;
       return keya > keyb ? -1 : 1;
-    });
+    }));
+    this.dataSourceSub.set(dataSourceSub);
   }
 
   onTableScroll(event: Event) {

@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, computed, effect, ElementRef, inject, input, output, signal, WritableSignal, viewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, computed, effect, ElementRef, inject, input, output, signal, viewChild, WritableSignal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { AbstractControl, FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
@@ -16,27 +16,14 @@ import { MatRadioModule } from '@angular/material/radio';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTabsModule } from '@angular/material/tabs';
+import { Field, QueryArrowIconDirective, QueryBuilderComponent, QueryBuilderConfig, QueryButtonGroupDirective, QueryEntityDirective, QueryFieldDirective, QueryInputDirective, QueryOperatorDirective, QueryRemoveButtonDirective, QuerySwitchGroupDirective, RuleSet } from '@solidexpert/ngx-query-builder';
 import { forkJoin, startWith } from 'rxjs';
-import {
-  Field,
-  QueryArrowIconDirective,
-  QueryBuilderComponent,
-  QueryBuilderConfig,
-  QueryButtonGroupDirective,
-  QueryEntityDirective,
-  QueryFieldDirective,
-  QueryInputDirective,
-  QueryOperatorDirective,
-  QueryRemoveButtonDirective,
-  QuerySwitchGroupDirective,
-  RuleSet,
-} from '@solidexpert/ngx-query-builder';
 
 import { AntiFraud, AntiFraudAPI, AntiFraudPeriod, Client, ClientAPI, ClientMedia, ClientMediaAPI, ClientPort, ClientPortAPI, Connection, PartnerType, PortType, TrafficControl, TrafficControlAPI, TrafficControlIndicator, TrafficControlPeriod } from '../../../../core';
 import { TenantService } from '../../../../services';
 import { AntiFraudComponent, AntiFraudDialogComponent, buildPortNameTemplate, ChartPostlinkComponent, ConfirmDialogComponent, ConnectionComponent, FilteredSelectClientComponent, FilteredSelectClientMediaComponent, TrafficControlComponent, TrafficControlDialogComponent } from '../../../../shared';
-import { ChartTrafficComponent } from "../../../../shared/components/chart-traffic/chart-traffic.component";
 import { ChartFinanceComponent } from '../../../../shared/components/chart-finance/chart-finance.component';
+import { ChartTrafficComponent } from "../../../../shared/components/chart-traffic/chart-traffic.component";
 
 type ClientPortQueryType = 'simple' | 'advanced' | 'predefined1' | 'predefined2' | 'predefined3' | 'predefined4';
 
@@ -55,6 +42,7 @@ interface ClientPortFormControls {
 
 @Component({
   selector: 'carambola-clientport-form',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FormsModule,
     ReactiveFormsModule,
@@ -150,12 +138,12 @@ export class ClientPortFormComponent implements AfterViewInit {
   clientPort = input<ClientPort | null>(null);
   changed = output<boolean>();
 
-  clientPortFull: ClientPort | null = null;
-  connections: Connection[] = [];
-  trafficControls: TrafficControl[] = [];
-  antiFrauds: AntiFraud[] = [];
-  trackers: string[] = [];
-  selectedIndex = 0;
+  clientPortFull = signal<ClientPort | null>(null);
+  connections = signal<Connection[]>([]);
+  trafficControls = signal<TrafficControl[]>([]);
+  antiFrauds = signal<AntiFraud[]>([]);
+  trackers = signal<string[]>([]);
+  selectedIndex = signal(0);
 
   query: RuleSet = {
     condition: 'and',
@@ -329,9 +317,9 @@ export class ClientPortFormComponent implements AfterViewInit {
 
                 this.formClientId.set(client.id!);
                 this.managedClientMedias.set(clientMedias.filter(clientMedia => clientMedia.client.id === client.id));
-                this.connections = [];
-                this.trafficControls = [];
-                this.antiFrauds = [];
+                this.connections.set([]);
+                this.trafficControls.set([]);
+                this.antiFrauds.set([]);
 
                 this.formGroup.setControl('client', this.createClientControl(client), {emitEvent: false});
                 this.formGroup.setControl('clientMedia', this.createClientMediaControl(clientMedia), {emitEvent: false});
@@ -361,9 +349,9 @@ export class ClientPortFormComponent implements AfterViewInit {
           } else {
             this.initialized = true;
 
-            this.connections = [];
-            this.trafficControls = [];
-            this.antiFrauds = [];
+            this.connections.set([]);
+            this.trafficControls.set([]);
+            this.antiFrauds.set([]);
 
             this.formGroup.setControl('client', this.createClientControl(null, false), {emitEvent: false});
             this.formGroup.setControl('clientMedia', this.createClientMediaControl(null, true), {emitEvent: false});
@@ -397,8 +385,8 @@ export class ClientPortFormComponent implements AfterViewInit {
             const antifrauds = results[2];
             const trackers = results[3];
 
-            this.clientPortFull = clientPort;
-            this.trackers = trackers;
+            this.clientPortFull.set(clientPort);
+            this.trackers.set(trackers);
 
             this.readonly = !this.tenantService.isTenantManager() && !this.tenantService.isManager();
             this.isConnectionManager = this.tenantService.isTenantManager() || this.tenantService.isTenantOperator() || this.tenantService.isManager();
@@ -411,10 +399,10 @@ export class ClientPortFormComponent implements AfterViewInit {
 
               this.formClientId.set(client.id!);
               this.managedClientMedias.set(clientMedias.filter(clientMedia => clientMedia.client.id === client.id));
-              this.connections = clientPort.connection.filter(connection => !connection.deleted).filter(connection => !connection.vendorPort.deleted);
-              this.trafficControls = trafficControls;
-              this.antiFrauds = antifrauds;
-              this.selectedIndex = tab === 'property' ? 0 : tab === 'connection' ? 1 : tab === 'deeplink' ? 2 : tab === 'tracker' ? 3 : tab === 'traffic' ? 4 : 5;
+              this.connections.set(clientPort.connection.filter(connection => !connection.deleted).filter(connection => !connection.vendorPort.deleted));
+              this.trafficControls.set(trafficControls);
+              this.antiFrauds.set(antifrauds);
+              this.selectedIndex.set(tab === 'property' ? 0 : tab === 'connection' ? 1 : tab === 'deeplink' ? 2 : tab === 'tracker' ? 3 : tab === 'traffic' ? 4 : 5);
 
               this.formGroup.setControl('client', this.createClientControl(client), {emitEvent: false});
               this.formGroup.setControl('clientMedia', this.createClientMediaControl(clientMedia), {emitEvent: false});
@@ -690,13 +678,13 @@ export class ClientPortFormComponent implements AfterViewInit {
 
     this.clientPortAPI.addClientPort(clientPort).subscribe(clientPort => {
       const requests = [];
-      for (const trafficControl of this.trafficControls) {
+      for (const trafficControl of this.trafficControls()) {
         if (trafficControl.limitation >= 0) {
           trafficControl.clientPort = clientPort.id;
           requests.push(this.trafficControlAPI.addTrafficControl(trafficControl));
         }
       }
-      for (const antiFraud of this.antiFrauds) {
+      for (const antiFraud of this.antiFrauds()) {
         if (antiFraud.limitation >= 0) {
           antiFraud.clientPort = clientPort.id;
           requests.push(this.antiFraudAPI.addAntiFraud(antiFraud));
@@ -757,7 +745,7 @@ export class ClientPortFormComponent implements AfterViewInit {
 
     this.clientPortAPI.updateClientPort(clientPort.id!, clientPort).subscribe(() => {
       const requests = [];
-      for (const trafficControl of this.trafficControls) {
+      for (const trafficControl of this.trafficControls()) {
         if (trafficControl.limitation >= 0) {
           if (trafficControl.clientPort === null) {
             trafficControl.clientPort = clientPort.id;
@@ -771,7 +759,7 @@ export class ClientPortFormComponent implements AfterViewInit {
           }
         }
       }
-      for (const antiFraud of this.antiFrauds) {
+      for (const antiFraud of this.antiFrauds()) {
         if (antiFraud.limitation >= 0) {
           if (antiFraud.clientPort === null) {
             antiFraud.clientPort = clientPort.id;
@@ -832,7 +820,7 @@ export class ClientPortFormComponent implements AfterViewInit {
 
   connectionChanged() {
     this.clientPortAPI.getClientPort(this.clientPort()!.id!).subscribe(clientPort => {
-      this.connections = clientPort.connection.filter(connection => !connection.deleted).filter(connection => !connection.vendorPort.deleted);
+      this.connections.set(clientPort.connection.filter(connection => !connection.deleted).filter(connection => !connection.vendorPort.deleted));
     });
   }
 
@@ -962,7 +950,7 @@ export class ClientPortFormComponent implements AfterViewInit {
   }
 
   getValidTrafficControls(): TrafficControl[] {
-    return this.trafficControls?.filter(tc => tc.limitation >= 0);
+    return this.trafficControls().filter(tc => tc.limitation >= 0);
   }
 
   addTrafficControl() {
@@ -984,7 +972,7 @@ export class ClientPortFormComponent implements AfterViewInit {
 
     dialogRef.afterClosed().subscribe(trafficControl => {
       if (trafficControl) {
-        this.trafficControls.push(trafficControl);
+        this.trafficControls.update(trafficControls => [...trafficControls, trafficControl]);
       }
     });
   }
@@ -994,7 +982,7 @@ export class ClientPortFormComponent implements AfterViewInit {
   }
 
   getValidAntiFrauds(): AntiFraud[] {
-    return this.antiFrauds?.filter(af => af.limitation >= 0);
+    return this.antiFrauds().filter(af => af.limitation >= 0);
   }
 
   addAntiFraud() {
@@ -1014,7 +1002,7 @@ export class ClientPortFormComponent implements AfterViewInit {
 
     dialogRef.afterClosed().subscribe(antiFraud => {
       if (antiFraud) {
-        this.antiFrauds.push(antiFraud);
+        this.antiFrauds.update(antiFrauds => [...antiFrauds, antiFraud]);
       }
     });
   }

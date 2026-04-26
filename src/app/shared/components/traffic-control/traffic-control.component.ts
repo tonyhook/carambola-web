@@ -1,6 +1,7 @@
 import { Component, input } from '@angular/core';
 
 import { TrafficControl, TrafficControlIndicator, TrafficControlPeriod } from '../../../core';
+
 @Component({
   selector: 'carambola-traffic-control',
   imports: [],

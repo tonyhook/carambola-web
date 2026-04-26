@@ -1,8 +1,8 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -38,7 +38,7 @@ export class AntiFraudDialogComponent implements OnInit {
   AntiFraudPeriod = AntiFraudPeriod;
 
   antiFraud: AntiFraud;
-  antiFraudRules: AntiFraudRule[] = [];
+  antiFraudRules = signal<AntiFraudRule[]>([]);
 
   formGroup: FormGroup<AntiFraudDialogControls>;
 
@@ -60,7 +60,7 @@ export class AntiFraudDialogComponent implements OnInit {
 
   ngOnInit() {
     this.antiFraudRuleAPI.getAntiFraudRuleList().subscribe(antiFraudRules => {
-      this.antiFraudRules = antiFraudRules.filter(antiFraudRule => antiFraudRule.enabled);
+      this.antiFraudRules.set(antiFraudRules.filter(antiFraudRule => antiFraudRule.enabled));
     });
   }
 

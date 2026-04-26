@@ -1,7 +1,7 @@
 <ng-container>
   <mat-card class="card-in-container">
     <mat-card-content>
-      <mat-tab-group class="tab-in-card" [selectedIndex]="selectedIndex">
+      <mat-tab-group class="tab-in-card" [selectedIndex]="selectedIndex()">
         <mat-tab label="上游广告位属性">
           <ng-template mat-tab-label>
             <mat-icon>description</mat-icon>上游广告位属性
@@ -310,13 +310,13 @@
               <mat-icon>cable</mat-icon>流量对接
             </ng-template>
             <div class="connection-list">
-              @for (connection of connections; track connection.id) {
+              @for (connection of connections(); track connection.id) {
                 <carambola-connection [clientPort]="connection.clientPort" [vendorPort]="connection.vendorPort" [mode]="'client'" [readonly]="!isConnectionManager" (connectionChanged)="connectionChanged()"></carambola-connection>
               }
               @if (isConnectionManager) {
-                <carambola-connection [clientPort]="clientPortFull" [mode]="'add'" (connectionChanged)="connectionChanged()"></carambola-connection>
+                <carambola-connection [clientPort]="clientPortFull()" [mode]="'add'" (connectionChanged)="connectionChanged()"></carambola-connection>
               }
-              @if (!isConnectionManager && connections.length === 0) {
+              @if (!isConnectionManager && connections().length === 0) {
                 <carambola-connection [mode]="'empty'"></carambola-connection>
               }
             </div>
@@ -338,12 +338,12 @@
               <mat-icon>graph_2</mat-icon>上游分析
             </ng-template>
             <div class="tracker-list">
-              @if (trackers.length === 0) {
+              @if (trackers().length === 0) {
                 <mat-card class="tracker">
                   没有上游分析数据
                 </mat-card>
               } @else {
-                @for (tracker of trackers; track tracker) {
+                @for (tracker of trackers(); track tracker) {
                   <mat-card class="tracker">
                     {{ tracker }}
                   </mat-card>

@@ -1,8 +1,8 @@
-import { Component, computed, input, OnInit, Signal, inject } from '@angular/core';
-import { state, style, transition, animate, trigger } from '@angular/animations';
-import { Router, ActivatedRoute, NavigationExtras } from '@angular/router';
+import { Component, computed, inject, input, OnInit, Signal } from '@angular/core';
+import { animate, state, style, transition, trigger } from '@angular/animations';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
+import { ActivatedRoute, NavigationExtras, Router } from '@angular/router';
 
 import { MenuTreeNode } from '../../../core';
 import { DrawerService } from '../../../services';

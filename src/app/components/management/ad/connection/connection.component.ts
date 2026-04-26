@@ -1,5 +1,5 @@
-import { AfterViewInit, Component, inject } from '@angular/core';
-import { MatTableDataSource, MatTableModule } from '@angular/material/table';
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
+import { MatTableModule } from '@angular/material/table';
 import { forkJoin } from 'rxjs';
 
 import { ClientPort, ClientPortAPI, Connection, VendorPort, VendorPortAPI } from '../../../../core';
@@ -7,6 +7,7 @@ import { AdEntityComponent } from '../../../../shared';
 
 @Component({
   selector: 'carambola-connection-manager',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     MatTableModule,
     AdEntityComponent
@@ -14,21 +15,19 @@ import { AdEntityComponent } from '../../../../shared';
   templateUrl: './connection.component.html',
   styleUrls: ['./connection.component.scss'],
 })
-export class ConnectionManagerComponent implements AfterViewInit {
+export class ConnectionManagerComponent implements OnInit {
   private clientPortAPI = inject(ClientPortAPI);
   private vendorPortAPI = inject(VendorPortAPI);
 
   displayedColumns: string[] = ['client', 'vendor'];
-  dataSource = new MatTableDataSource<Connection>([]);
-
-  connectionData: Connection[] = [];
+  connections = signal<Connection[]>([]);
 
   clientPorts: ClientPort[] = [];
   vendorPorts: VendorPort[] = [];
-  clientPortMap: Map<number, ClientPort> = new Map<number, ClientPort>();
-  vendorPortMap: Map<number, VendorPort> = new Map<number, VendorPort>();
+  clientPortMap = signal(new Map<number, ClientPort>());
+  vendorPortMap = signal(new Map<number, VendorPort>());
 
-  ngAfterViewInit() {
+  ngOnInit() {
     forkJoin([
       this.clientPortAPI.getClientPortList(),
       this.vendorPortAPI.getVendorPortList(),
@@ -36,14 +35,14 @@ export class ConnectionManagerComponent implements AfterViewInit {
       this.clientPorts = data[0];
       this.vendorPorts = data[1];
 
-      this.clientPortMap = new Map(this.clientPorts.map(cp => [cp.id!, cp]));
-      this.vendorPortMap = new Map(this.vendorPorts.map(vp => [vp.id!, vp]));
+      this.clientPortMap.set(new Map(this.clientPorts.map(cp => [cp.id!, cp])));
+      this.vendorPortMap.set(new Map(this.vendorPorts.map(vp => [vp.id!, vp])));
 
-      this.connectionData = this.clientPorts.map(clientPort => clientPort.connection).flat();
-      this.connectionData = this.connectionData.reduce((unique, item) => {
+      let connections = this.clientPorts.map(clientPort => clientPort.connection).flat();
+      connections = connections.reduce((unique, item) => {
         return unique.find(x => x.id === item.id) ? unique : [...unique, item];
       }, [] as Connection[]);
-      this.connectionData.sort((a, b) => {
+      connections.sort((a, b) => {
         const clientA = a.clientPort?.client?.name ?? '';
         const clientB = b.clientPort?.client?.name ?? '';
 
@@ -62,7 +61,7 @@ export class ConnectionManagerComponent implements AfterViewInit {
         return tagIdA.localeCompare(tagIdB);
       });
 
-      this.dataSource.data = this.connectionData;
+      this.connections.set(connections);
     });
   }
 

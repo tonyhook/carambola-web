@@ -28,7 +28,7 @@
     @if (!required && !multiple()) {
       <mat-option [value]="null">任意</mat-option>
     }
-    @for (candidate of filteredCandidates(); track candidate) {
+    @for (candidate of filteredCandidates(); track candidate.id) {
       <mat-option [value]="candidate">
         <carambola-ad-entity type="clientMedia" mode="brief" [clientMedia]="candidate" />
       </mat-option>

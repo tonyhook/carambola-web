@@ -4,21 +4,21 @@
       <div class="full-width-input wrapper">
         <mat-form-field class="half-width-input" subscriptSizing="dynamic">
           <mat-label>广告主</mat-label>
-          <carambola-filtered-select-client formControlName="client" required [options]="clients" />
+          <carambola-filtered-select-client formControlName="client" required [options]="clients()" />
         </mat-form-field>
         <mat-form-field class="half-width-input" subscriptSizing="dynamic">
           <mat-label>上游广告位</mat-label>
-          <carambola-filtered-select-clientport formControlName="clientPort" required [options]="validClientPorts" />
+          <carambola-filtered-select-clientport formControlName="clientPort" required [options]="validClientPorts()" />
         </mat-form-field>
       </div>
       <div class="full-width-input wrapper">
         <mat-form-field class="half-width-input" subscriptSizing="dynamic">
           <mat-label>流量主</mat-label>
-          <carambola-filtered-select-vendor formControlName="vendor" required [options]="vendors" />
+          <carambola-filtered-select-vendor formControlName="vendor" required [options]="vendors()" />
         </mat-form-field>
         <mat-form-field class="half-width-input" subscriptSizing="dynamic">
           <mat-label>下游广告位</mat-label>
-          <carambola-filtered-select-vendorport formControlName="vendorPort" required [options]="validVendorPorts" />
+          <carambola-filtered-select-vendorport formControlName="vendorPort" required [options]="validVendorPorts()" />
         </mat-form-field>
       </div>
     </form>

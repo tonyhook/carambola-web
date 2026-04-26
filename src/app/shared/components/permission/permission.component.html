@@ -8,7 +8,7 @@
         <mat-list role="list">
           <mat-list-item>Type: {{ itemType() }}</mat-list-item>
           <mat-list-item>ID: {{ item()?.id }}</mat-list-item>
-          <mat-list-item>Owner: {{ ownerName }}</mat-list-item>
+          <mat-list-item>Owner: {{ ownerName() }}</mat-list-item>
         </mat-list>
       </mat-card-content>
     </mat-card>
@@ -34,7 +34,7 @@
           </mat-checkbox>
         </form>
 
-        <mat-table [dataSource]="itemPermissionRoleIds">
+        <mat-table [dataSource]="itemPermissionRoleIds()">
           <ng-container matColumnDef="roleId">
             <mat-header-cell *matHeaderCellDef>Role</mat-header-cell>
             <mat-cell *matCellDef="let role">{{ getRoleName(role) }}</mat-cell>
@@ -44,8 +44,8 @@
             <mat-header-cell *matHeaderCellDef>Permission</mat-header-cell>
             <mat-cell *matCellDef="let role">
               <carambola-operation
-                [permission]="itemPermissionMap.get(role)?.permission!"
-                [basePermission]="inheritedPermissionMap.get(role)?.permission!"
+                [permission]="itemPermissionMap().get(role)?.permission!"
+                [basePermission]="inheritedPermissionMap().get(role)?.permission!"
                 (permissionChange)="togglePermission($event, role)" />
             </mat-cell>
           </ng-container>
@@ -53,7 +53,7 @@
           <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
           <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
         </mat-table>
-        @if (itemPermissionRoleIds.length === 0) {
+        @if (itemPermissionRoleIds().length === 0) {
           <div class="no-permission">No permission rule</div>
         }
 
@@ -62,7 +62,7 @@
           <div class="full-width-input flex">
             <mat-form-field subscriptSizing="dynamic">
               <mat-select formControlName="roleid">
-                @for (role of roles; track role.id) {
+                @for (role of roles(); track role.id) {
                   <mat-option [value]="role.id">{{ role.name }}</mat-option>
                 }
               </mat-select>

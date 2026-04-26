@@ -1,6 +1,6 @@
 <mat-toolbar class="expanded-toolbar">
-  <button mat-button>{{ company }}</button>
-  @if (registration) {
-    <button mat-button><a href="https://beian.miit.gov.cn">{{ registration }}</a></button>
+  <button mat-button>{{ company() }}</button>
+  @if (registration()) {
+    <button mat-button><a href="https://beian.miit.gov.cn">{{ registration() }}</a></button>
   }
 </mat-toolbar>

@@ -1,6 +1,5 @@
-import { AfterViewInit, Component, effect, OnInit, signal, WritableSignal, inject, viewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, effect, inject, OnInit, signal, viewChild, WritableSignal } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -9,6 +8,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
+import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, debounceTime, of, Subject, switchMap } from 'rxjs';
 
 import { PartnerType, Query, Vendor, VendorAPI } from '../../../../core';
@@ -22,6 +22,7 @@ interface VendorQueryControls {
 
 @Component({
   selector: 'carambola-vendor-manager',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
     MatButtonModule,
@@ -63,7 +64,7 @@ export class VendorManagerComponent implements OnInit, AfterViewInit {
   readonly paginator = viewChild(MatPaginator);
 
   dataRequest$ = new Subject<Query<Vendor>>();
-  dataSource = new MatTableDataSource<Vendor>([]);
+  dataSource = signal(this.createDataSource([]));
 
   constructor() {
     this.formGroupQuery = this.formBuilder.group({
@@ -100,7 +101,7 @@ export class VendorManagerComponent implements OnInit, AfterViewInit {
         )
       ),
     ).subscribe(vendors => {
-      this.dataSource.data = vendors.filter(vendor => !vendor.deleted).sort((a, b) => {
+      const data = vendors.filter(vendor => !vendor.deleted).sort((a, b) => {
         const keya = a.updateTime ? new Date(a.updateTime) : new Date(0);
         const keyb = b.updateTime ? new Date(b.updateTime) : new Date(0);
         if (keya < keyb) {
@@ -111,8 +112,8 @@ export class VendorManagerComponent implements OnInit, AfterViewInit {
           return 0;
         }
       });
-      this.dataSource.sort = this.sort() ?? null;
-      this.dataSource.paginator = this.paginator() ?? null;
+
+      this.dataSource.set(this.createDataSource(data));
     });
 
     this.formGroupQuery.valueChanges.subscribe(() => {
@@ -123,7 +124,7 @@ export class VendorManagerComponent implements OnInit, AfterViewInit {
   ngAfterViewInit() {
     this.route.queryParams.subscribe(params => {
       this.formGroupQuery.controls.search.setValue('');
-      this.dataSource.data = [];
+      this.dataSource.set(this.createDataSource([]));
 
       if (params['directMode']) {
         this.mode.set(params['directMode'] === 'true' ? PartnerType.PARTNER_TYPE_DIRECT : PartnerType.PARTNER_TYPE_PROGRAMMATIC);
@@ -131,6 +132,13 @@ export class VendorManagerComponent implements OnInit, AfterViewInit {
         this.mode.set(PartnerType.PARTNER_TYPE_PROGRAMMATIC);
       }
     });
+  }
+
+  private createDataSource(data: Vendor[]): MatTableDataSource<Vendor> {
+    const dataSource = new MatTableDataSource(data);
+    dataSource.sort = this.sort() ?? null;
+    dataSource.paginator = this.paginator() ?? null;
+    return dataSource;
   }
 
   mouseenter(row: Vendor) {

@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, inject, viewChild } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, signal, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
@@ -41,14 +41,14 @@ export class ServerManagerComponent implements OnInit, OnDestroy {
 
   dataSource = new MatTableDataSource<Server>([]);
   refresher: ReturnType<typeof setInterval> | null = null;
-  status: Record<number, number> = {};
+  status = signal<Record<number, number>>({});
 
   ngOnInit() {
     this.query();
 
     this.refresher = setInterval(() => {
       this.serverAPI.getServerStatus().subscribe(data => {
-        this.status = data;
+        this.status.set(data);
       });
     }, 5000);
   }
@@ -119,10 +119,11 @@ export class ServerManagerComponent implements OnInit, OnDestroy {
   }
 
   getStatus(node: number): number {
-    if (this.status[node] === undefined) {
+    const status = this.status();
+    if (status[node] === undefined) {
       return -1;
     }
-    return this.status[node];
+    return status[node];
   }
 
   service(row: Server, service: string, action: string) {

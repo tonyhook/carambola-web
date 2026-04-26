@@ -3,7 +3,7 @@
     <div class="full-width-input flex">
       <mat-form-field subscriptSizing="dynamic">
         <mat-label>广告主</mat-label>
-        <carambola-filtered-select-client formControlName="client" [multiple]="true" [options]="filterClient" />
+        <carambola-filtered-select-client formControlName="client" [multiple]="true" [options]="filterClient()" />
         @if (selectedClients.length > 0) {
           <button type="button" matSuffix mat-icon-button (click)="clear($event, 'client', [])">
             <mat-icon>clear</mat-icon>
@@ -37,7 +37,7 @@
     </div>
   </form>
 
-  <mat-table matSort [dataSource]="dataSource">
+  <mat-table matSort [dataSource]="dataSource()">
     <ng-container matColumnDef="client">
       <mat-header-cell *matHeaderCellDef mat-sort-header>
         广告主

@@ -9,10 +9,10 @@
     <button class="header-gt-sm" mat-icon-button routerLink="/admin">
       <mat-icon>home</mat-icon>
     </button>
-    <button class="header-gt-sm" mat-button>{{ name }}</button>
-    <button class="header-sm" mat-button>{{ name }}</button>
+    <button class="header-gt-sm" mat-button>{{ name() }}</button>
+    <button class="header-sm" mat-button>{{ name() }}</button>
   </div>
-  <button class="header-xs" mat-button>{{ name }}</button>
+  <button class="header-xs" mat-button>{{ name() }}</button>
   <div class="header-gt-sm">
     <button mat-button (click)="downloadDocument()">
       <mat-icon>book_2</mat-icon>

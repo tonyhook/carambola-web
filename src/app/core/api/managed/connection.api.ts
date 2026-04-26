@@ -1,9 +1,9 @@
-import { Injectable, inject } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-import { environment } from '../../../../environments/environment';
 import { Connection, Page, PageRequest, PerformancePlaceholder, Query } from '../..';
+import { environment } from '../../../../environments/environment';
 
 export type TimedPairedClientPortMap = Record<number, Record<number, number[]>>;
 export type TimedPairedVendorPortMap = Record<number, Record<number, number[]>>;
