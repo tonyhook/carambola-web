@@ -1,4 +1,5 @@
-import { AfterViewInit, Component, inject, OnInit, viewChild } from '@angular/core';
+import { AfterViewInit, Component, DestroyRef, inject, OnInit, viewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatBadgeModule } from '@angular/material/badge';
@@ -49,6 +50,7 @@ interface TenantQueryControls {
   styleUrls: ['./tenant.component.scss'],
 })
 export class TenantManagerComponent implements OnInit, AfterViewInit {
+  private destroyRef = inject(DestroyRef);
   private formBuilder = inject(FormBuilder);
   private dialog = inject(MatDialog);
   private tenantAPI = inject(TenantAPI);
@@ -105,7 +107,7 @@ export class TenantManagerComponent implements OnInit, AfterViewInit {
       this.dataSource.paginator = this.paginator() ?? null;
     });
 
-    this.formGroupQuery.valueChanges.subscribe(() => {
+    this.formGroupQuery.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       this.query();
     })
   }

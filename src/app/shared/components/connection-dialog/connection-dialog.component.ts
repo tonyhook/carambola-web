@@ -1,4 +1,5 @@
-import { AfterViewInit, Component, inject, OnInit, signal } from '@angular/core';
+import { AfterViewInit, Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { formatDate } from '@angular/common';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -67,6 +68,7 @@ export interface ConnectionDialogData {
   styleUrls: ['./connection-dialog.component.scss'],
 })
 export class ConnectionDialogComponent implements OnInit, AfterViewInit {
+  private destroyRef = inject(DestroyRef);
   private formBuilder = inject(FormBuilder);
   private route = inject(ActivatedRoute);
   private clientAPI = inject(ClientAPI);
@@ -176,7 +178,7 @@ export class ConnectionDialogComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit() {
-    this.formGroupPort.valueChanges.subscribe(() => {
+    this.formGroupPort.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       const rawPort = this.formGroupPort.getRawValue();
 
       if (rawPort.client !== null && rawPort.client !== this.client) {
@@ -201,7 +203,7 @@ export class ConnectionDialogComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit() {
-    this.route.queryParams.subscribe(params => {
+    this.route.queryParams.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
       let mode = PartnerType.PARTNER_TYPE_PROGRAMMATIC;
       if (params['directMode']) {
         mode = params['directMode'] === 'true' ? PartnerType.PARTNER_TYPE_DIRECT : PartnerType.PARTNER_TYPE_PROGRAMMATIC;
