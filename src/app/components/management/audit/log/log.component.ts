@@ -1,4 +1,5 @@
-import { AfterViewInit, Component, DoCheck, inject, KeyValueDiffer, KeyValueDiffers, viewChild } from '@angular/core';
+import { AfterViewInit, Component, DestroyRef, DoCheck, inject, KeyValueDiffer, KeyValueDiffers, viewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -39,6 +40,7 @@ type LogRangeFormGroup = FormGroup<{
   styleUrls: ['./log.component.scss'],
 })
 export class LogManagerComponent implements AfterViewInit, DoCheck {
+  private destroyRef = inject(DestroyRef);
   private readonly differs = inject(KeyValueDiffers);
   private logAPI = inject(LogAPI);
 
@@ -74,7 +76,7 @@ export class LogManagerComponent implements AfterViewInit, DoCheck {
   ngAfterViewInit() {
     const sortValue = this.sort();
     if (sortValue) {
-      sortValue.sortChange.subscribe(sort => {
+      sortValue.sortChange.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(sort => {
         if (sort.direction === '') {
           sort.active = this.initialSort.property;
           sort.direction = this.initialSort.order;
