@@ -1,9 +1,8 @@
-import { booleanAttribute, Component, DestroyRef, effect, input, OnDestroy, signal, inject, viewChild } from '@angular/core';
+import { booleanAttribute, ChangeDetectionStrategy, Component, DestroyRef, effect, inject, input, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ControlValueAccessor, FormBuilder, FormControl, FormGroup, NG_VALIDATORS, NG_VALUE_ACCESSOR, ReactiveFormsModule, ValidationErrors, Validator, Validators } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelect, MatSelectModule } from '@angular/material/select';
-import { Subject } from 'rxjs';
 import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
 
 type FilteredSelectFormGroup = FormGroup<{
@@ -13,6 +12,7 @@ type FilteredSelectFormGroup = FormGroup<{
 
 @Component({
   selector: 'carambola-filtered-select',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
     MatIconModule,
@@ -34,7 +34,7 @@ type FilteredSelectFormGroup = FormGroup<{
     }
   ],
 })
-export class FilteredSelectComponent implements OnDestroy, ControlValueAccessor, Validator {
+export class FilteredSelectComponent implements ControlValueAccessor, Validator {
   private formBuilder = inject(FormBuilder);
   private destroyRef = inject(DestroyRef);
 
@@ -42,7 +42,6 @@ export class FilteredSelectComponent implements OnDestroy, ControlValueAccessor,
   _onTouched: () => void = () => {return};
   _onValidatorChange: () => void = () => {return};
 
-  readonly stateChanges = new Subject<void>();
   readonly filteredCandidates = signal<string[]>([]);
 
   oldValue: string | null = null;
@@ -112,10 +111,6 @@ export class FilteredSelectComponent implements OnDestroy, ControlValueAccessor,
         return a === b;
       };
     });
-  }
-
-  ngOnDestroy() {
-    this.stateChanges.complete();
   }
 
   writeValue(obj: string): void {

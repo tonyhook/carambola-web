@@ -1,4 +1,4 @@
-import { Component, input, output, effect, WritableSignal, signal, ElementRef, OnInit, viewChild } from '@angular/core';
+import { Component, effect, ElementRef, input, OnInit, output, signal, untracked, viewChild, WritableSignal } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -68,14 +68,14 @@ export class TreeViewComponent implements OnInit {
   nodes: WritableSignal<HierarchyNode[]> = signal([]);
   observableNodes: Observable<HierarchyNode[]> = toObservable(this.nodes);
 
-  nodeMap: Map<number, HierarchyNode> = new Map<number, HierarchyNode>();
-  newNode?: HierarchyNode;
-  selectedNode?: HierarchyNode;
-  dragNode: HierarchyNode | null = null;
+  nodeMap = signal(new Map<number, HierarchyNode>());
+  newNode = signal<HierarchyNode | null>(null);
+  selectedNode = signal<HierarchyNode | null>(null);
+  dragNode = signal<HierarchyNode | null>(null);
   dragNodeExpandOverWaitTimeMs = 500;
-  dragNodeExpandOverNode: unknown;
-  dragNodeExpandOverTime = 0;
-  dragNodeExpandOverArea = 'center';
+  dragNodeExpandOverNode = signal<HierarchyNode | null>(null);
+  dragNodeExpandOverTime = signal(0);
+  dragNodeExpandOverArea = signal('center');
 
   items = input<HierarchyManagedResource[]>([]);
   item = input<HierarchyManagedResource | null>(null);
@@ -128,10 +128,11 @@ export class TreeViewComponent implements OnInit {
 
       this.refreshNodes(tree);
 
-      if (this.selectedNode) {
-        this.selectedNode = this.nodeMap.get(this.selectedNode.id);
-        if (this.selectedNode) {
-          this.selectNode(this.selectedNode, false);
+      const selectedNode = untracked(() => this.selectedNode());
+      if (selectedNode) {
+        const refreshedSelectedNode = untracked(() => this.nodeMap().get(selectedNode.id)) ?? null;
+        if (refreshedSelectedNode) {
+          this.selectNode(refreshedSelectedNode, false);
         }
       }
     });
@@ -139,7 +140,7 @@ export class TreeViewComponent implements OnInit {
     effect(() => {
       const item = this.item();
       if (item !== null && item.id) {
-        const node = this.nodeMap.get(item.id);
+        const node = this.nodeMap().get(item.id);
         if (node) {
           this.selectNode(node, false);
         }
@@ -172,15 +173,16 @@ export class TreeViewComponent implements OnInit {
       collect(node, map);
     });
 
-    this.nodeMap = map;
+    this.nodeMap.set(map);
   }
 
   selectNode(node: HierarchyNode, emitEvent: boolean) {
-    if (this.newNode && this.newNode.parent?.id !== node.id) {
-      this.cancelNode(null, this.newNode);
+    const newNode = this.newNode();
+    if (newNode && newNode.parent?.id !== node.id) {
+      this.cancelNode(null, newNode);
     }
 
-    this.selectedNode = node;
+    this.selectedNode.set(node);
 
     if (emitEvent) {
       this.itemSelect.emit({
@@ -190,7 +192,7 @@ export class TreeViewComponent implements OnInit {
 
     // TODO: expand node directly after mat-tree bug #30403 is fixed
     if (node.parent) {
-      let parent: HierarchyNode | undefined | null = this.nodeMap.get(node.parent.id);
+      let parent: HierarchyNode | undefined | null = this.nodeMap().get(node.parent.id);
       while (parent) {
         this.tree()?.expand(parent);
         parent = parent.parent;
@@ -203,8 +205,9 @@ export class TreeViewComponent implements OnInit {
   addNode(event: MouseEvent, parentNode: HierarchyNode | null) {
     event.stopPropagation();
 
-    if (this.newNode) {
-      this.cancelNode(null, this.newNode, false);
+    const currentNewNode = this.newNode();
+    if (currentNewNode) {
+      this.cancelNode(null, currentNewNode, false);
     }
 
     const items = this.items();
@@ -221,11 +224,11 @@ export class TreeViewComponent implements OnInit {
       };
       parentNode.children.push(newItem);
       this.refreshNodes(this.nodes());
-      this.newNode = this.nodeMap.get(maxId + 1);
-      this.selectedNode = undefined;
+      this.newNode.set(this.nodeMap().get(maxId + 1) ?? null);
+      this.selectedNode.set(null);
 
       // TODO: expand node directly after mat-tree bug #30403 is fixed
-      let parent: HierarchyNode | undefined | null = this.nodeMap.get(parentNode.id);
+      let parent: HierarchyNode | undefined | null = this.nodeMap().get(parentNode.id);
       while (parent) {
         this.tree()?.expand(parent);
         parent = parent.parent;
@@ -240,15 +243,15 @@ export class TreeViewComponent implements OnInit {
         expandable: false,
       };
       this.refreshNodes([...this.nodes(), newItem]);
-      this.newNode = this.nodeMap.get(maxId + 1);
-      this.selectedNode = undefined;
+      this.newNode.set(this.nodeMap().get(maxId + 1) ?? null);
+      this.selectedNode.set(null);
     }
   }
 
   saveNode(event: MouseEvent, node: HierarchyNode, itemValue: string) {
     event.stopPropagation();
 
-    this.newNode = undefined;
+    this.newNode.set(null);
     this.itemCreate.emit({
       name: itemValue,
       parentId: node.parent ? node.parent.id : null,
@@ -257,7 +260,7 @@ export class TreeViewComponent implements OnInit {
 
     // TODO: expand node directly after mat-tree bug #30403 is fixed
     if (node.parent) {
-      let parent: HierarchyNode | undefined | null = this.nodeMap.get(node.parent.id);
+      let parent: HierarchyNode | undefined | null = this.nodeMap().get(node.parent.id);
       while (parent) {
         this.tree()?.expand(parent);
         parent = parent.parent;
@@ -275,17 +278,17 @@ export class TreeViewComponent implements OnInit {
       if (refresh) {
         this.refreshNodes(this.nodes());
       }
-      this.newNode = undefined;
+      this.newNode.set(null);
     } else {
       if (refresh) {
         this.refreshNodes(this.nodes().filter(item => item.id !== node.id));
       }
-      this.newNode = undefined;
+      this.newNode.set(null);
     }
 
     // TODO: expand node directly after mat-tree bug #30403 is fixed
     if (node.parent) {
-      let parent: HierarchyNode | undefined | null = this.nodeMap.get(node.parent.id);
+      let parent: HierarchyNode | undefined | null = this.nodeMap().get(node.parent.id);
       while (parent) {
         this.tree()?.expand(parent);
         parent = parent.parent;
@@ -309,18 +312,18 @@ export class TreeViewComponent implements OnInit {
     if (node.parent) {
       node.parent.children = [...node.parent.children, ...node.children];
       this.refreshNodes(this.nodes());
-      this.selectedNode = node.parent;
+      this.selectedNode.set(node.parent);
     } else {
 
       this.refreshNodes([...this.nodes().filter(item => item.id !== node.id), ...node.children]);
-      this.selectedNode = undefined;
+      this.selectedNode.set(null);
     }
-    this.newNode = undefined;
+    this.newNode.set(null);
     this.itemDelete.emit({id: node.id});
 
     // TODO: expand node directly after mat-tree bug #30403 is fixed
     if (node.parent) {
-      let parent: HierarchyNode | undefined | null = this.nodeMap.get(node.parent.id);
+      let parent: HierarchyNode | undefined | null = this.nodeMap().get(node.parent.id);
       while (parent) {
         this.tree()?.expand(parent);
         parent = parent.parent;
@@ -337,33 +340,38 @@ export class TreeViewComponent implements OnInit {
       event.dataTransfer.effectAllowed = 'move';
     }
 
-    this.dragNode = node;
-    this.dragNodeExpandOverNode = null;
-    this.dragNodeExpandOverTime = 0;
-    this.tree()?.collapse(this.dragNode);
+    this.dragNode.set(node);
+    this.dragNodeExpandOverNode.set(null);
+    this.dragNodeExpandOverTime.set(0);
+    this.tree()?.collapse(node);
   }
 
   handleDragEnd() {
-    this.dragNode = null;
-    this.dragNodeExpandOverNode = null;
-    this.dragNodeExpandOverTime = 0;
+    this.dragNode.set(null);
+    this.dragNodeExpandOverNode.set(null);
+    this.dragNodeExpandOverTime.set(0);
   }
 
   handleDragOver(event: DragEvent, node: HierarchyNode) {
     event.preventDefault();
 
     const percentageY = event.offsetY / (event.target as Element).clientHeight;
+    const dragNode = this.dragNode();
+    const dragNodeExpandOverNode = this.dragNodeExpandOverNode();
+    const dragNodeExpandOverTime = this.dragNodeExpandOverTime();
 
     // Handle node expand
-    if (this.dragNode !== node) {
-      if (node === this.dragNodeExpandOverNode) {
+    if (dragNode !== node) {
+      if (node === dragNodeExpandOverNode) {
         if ((percentageY < 0.33) || (percentageY > 0.67)) {
-          this.dragNodeExpandOverTime = 0;
+          this.dragNodeExpandOverTime.set(0);
         } else {
-          if (this.dragNodeExpandOverTime === 0) {
-            this.dragNodeExpandOverTime = new Date().getTime();
+          let nextDragNodeExpandOverTime = dragNodeExpandOverTime;
+          if (dragNodeExpandOverTime === 0) {
+            nextDragNodeExpandOverTime = new Date().getTime();
+            this.dragNodeExpandOverTime.set(nextDragNodeExpandOverTime);
           }
-          if (((new Date().getTime() - this.dragNodeExpandOverTime) > this.dragNodeExpandOverWaitTimeMs)) {
+          if (((new Date().getTime() - nextDragNodeExpandOverTime) > this.dragNodeExpandOverWaitTimeMs)) {
             const tree = this.tree();
             if (!tree?.isExpanded(node)) {
               tree?.expand(node);
@@ -376,49 +384,51 @@ export class TreeViewComponent implements OnInit {
           tree?.collapse(node);
         }
 
-        this.dragNodeExpandOverNode = node;
+        this.dragNodeExpandOverNode.set(node);
         if ((percentageY < 0.33) || (percentageY > 0.67)) {
-          this.dragNodeExpandOverTime = 0;
+          this.dragNodeExpandOverTime.set(0);
         } else {
-          this.dragNodeExpandOverTime = new Date().getTime();
+          this.dragNodeExpandOverTime.set(new Date().getTime());
         }
       }
     } else {
-      this.dragNodeExpandOverNode = null;
-      this.dragNodeExpandOverTime = 0;
+      this.dragNodeExpandOverNode.set(null);
+      this.dragNodeExpandOverTime.set(0);
       this.tree()?.collapse(node);
     }
 
     // Handle drag area
     if (percentageY < 0.33) {
-      this.dragNodeExpandOverArea = 'above';
+      this.dragNodeExpandOverArea.set('above');
     } else if (percentageY > 0.67) {
-      this.dragNodeExpandOverArea = 'below';
+      this.dragNodeExpandOverArea.set('below');
     } else {
-      this.dragNodeExpandOverArea = 'center';
+      this.dragNodeExpandOverArea.set('center');
     }
   }
 
   handleDrop(event: DragEvent, node: HierarchyNode) {
     event.preventDefault();
 
-    if (node !== this.dragNode && this.dragNode) {
-      const dragNodeHierarchy = this.dragNode;
+    const dragNode = this.dragNode();
+    if (node !== dragNode && dragNode) {
+      const dragNodeHierarchy = dragNode;
       const nodeHierarchy = node;
+      const dragNodeExpandOverArea = this.dragNodeExpandOverArea();
 
       if (typeof dragNodeHierarchy !== 'undefined' && typeof nodeHierarchy !== 'undefined') {
-        if (this.dragNodeExpandOverArea === 'above') {
+        if (dragNodeExpandOverArea === 'above') {
           this.moveItemAbove(dragNodeHierarchy, nodeHierarchy);
-        } else if (this.dragNodeExpandOverArea === 'below') {
+        } else if (dragNodeExpandOverArea === 'below') {
           this.moveItemBelow(dragNodeHierarchy, nodeHierarchy);
-        } else if (this.dragNodeExpandOverArea === 'center') {
+        } else if (dragNodeExpandOverArea === 'center') {
           this.moveItemUnder(dragNodeHierarchy, nodeHierarchy);
         }
       }
     }
-    this.dragNode = null;
-    this.dragNodeExpandOverNode = null;
-    this.dragNodeExpandOverTime = 0;
+    this.dragNode.set(null);
+    this.dragNodeExpandOverNode.set(null);
+    this.dragNodeExpandOverTime.set(0);
   }
 
   moveItemUnder(node: HierarchyNode, to: HierarchyNode) {
@@ -465,7 +475,7 @@ export class TreeViewComponent implements OnInit {
 
     // TODO: expand node directly after mat-tree bug #30403 is fixed
     if (node.parent) {
-      let parent: HierarchyNode | undefined | null = this.nodeMap.get(node.parent.id);
+      let parent: HierarchyNode | undefined | null = this.nodeMap().get(node.parent.id);
       while (parent) {
         this.tree()?.expand(parent);
         parent = parent.parent;
@@ -522,7 +532,7 @@ export class TreeViewComponent implements OnInit {
 
     // TODO: expand node directly after mat-tree bug #30403 is fixed
     if (node.parent) {
-      let parent: HierarchyNode | undefined | null = this.nodeMap.get(node.parent.id);
+      let parent: HierarchyNode | undefined | null = this.nodeMap().get(node.parent.id);
       while (parent) {
         this.tree()?.expand(parent);
         parent = parent.parent;
@@ -587,7 +597,7 @@ export class TreeViewComponent implements OnInit {
 
     // TODO: expand node directly after mat-tree bug #30403 is fixed
     if (node.parent) {
-      let parent: HierarchyNode | undefined | null = this.nodeMap.get(node.parent.id);
+      let parent: HierarchyNode | undefined | null = this.nodeMap().get(node.parent.id);
       while (parent) {
         this.tree()?.expand(parent);
         parent = parent.parent;
