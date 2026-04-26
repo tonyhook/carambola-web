@@ -1,13 +1,14 @@
-import { inject, Injectable, OnDestroy, signal } from '@angular/core';
+import { DestroyRef, inject, Injectable, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BreakpointObserver, Breakpoints, BreakpointState } from '@angular/cdk/layout';
 import { MatDrawerMode } from '@angular/material/sidenav';
 import { Event, NavigationEnd, Router } from '@angular/router';
-import { Subscription } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
 })
-export class DrawerService implements OnDestroy {
+export class DrawerService {
+  private destroyRef = inject(DestroyRef);
   private router = inject(Router);
   private breakpointObserver = inject(BreakpointObserver);
 
@@ -17,11 +18,10 @@ export class DrawerService implements OnDestroy {
   screenMode = signal<string>('large');
   contentMode = signal<string>('full');
   currentUrl = signal<string>('');
-  watcher: Subscription;
   activeMediaQuery = '';
 
   constructor() {
-    this.router.events.subscribe((event: Event) => {
+    this.router.events.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event: Event) => {
       if (event instanceof NavigationEnd) {
         this.currentUrl.set(event.urlAfterRedirects);
       }
@@ -33,7 +33,7 @@ export class DrawerService implements OnDestroy {
       Breakpoints.Large,
       Breakpoints.XLarge,
     ]);
-    this.watcher = layoutChanges.subscribe((result: BreakpointState) => {
+    layoutChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((result: BreakpointState) => {
       for (const query of Object.keys(result.breakpoints)) {
         if (result.breakpoints[query]) {
           if (query === Breakpoints.XSmall) {
@@ -105,9 +105,4 @@ export class DrawerService implements OnDestroy {
   getMode(): MatDrawerMode {
     return this.drawerMode;
   }
-
-  ngOnDestroy() {
-    this.watcher.unsubscribe();
-  }
-
 }
