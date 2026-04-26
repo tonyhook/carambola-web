@@ -16,7 +16,7 @@ describe('FilteredSelectVendorPortComponent', () => {
 
     fixture = TestBed.createComponent(FilteredSelectVendorPortComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges();
+    await fixture.whenStable();
   });
 
   it('should create', () => {

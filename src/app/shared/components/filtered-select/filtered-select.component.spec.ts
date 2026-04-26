@@ -14,7 +14,7 @@ describe('FilteredSelectComponent', () => {
 
     fixture = TestBed.createComponent(FilteredSelectComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges();
+    await fixture.whenStable();
   });
 
   it('should create', () => {
