@@ -1,4 +1,5 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, DoCheck, effect, ElementRef, HostListener, inject, KeyValueDiffer, KeyValueDiffers, OnInit, signal, viewChild, WritableSignal } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, DestroyRef, DoCheck, effect, ElementRef, HostListener, inject, KeyValueDiffer, KeyValueDiffers, OnInit, signal, viewChild, WritableSignal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { CdkMenuModule } from '@angular/cdk/menu';
 import { CommonModule } from '@angular/common';
@@ -83,6 +84,7 @@ interface SignRangeControls {
   ],
 })
 export class SignComponent implements OnInit, AfterViewInit, DoCheck {
+  private destroyRef = inject(DestroyRef);
   private formBuilder = inject(FormBuilder);
   private tenantService = inject(TenantService);
   private clientAPI = inject(ClientAPI);
@@ -470,16 +472,16 @@ export class SignComponent implements OnInit, AfterViewInit, DoCheck {
       this.updateSignView();
     });
 
-    this.formGroupColumn.valueChanges.subscribe(() => {
+    this.formGroupColumn.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       this.prepareDisplayColumns();
     });
-    this.formGroupQuery.valueChanges.subscribe(() => {
+    this.formGroupQuery.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       this.query();
     });
   }
 
   ngAfterViewInit() {
-    this.route.queryParams.subscribe(params => {
+    this.route.queryParams.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
       if (params['directMode']) {
         this.mode.set(params['directMode'] === 'true' ? PartnerType.PARTNER_TYPE_DIRECT : PartnerType.PARTNER_TYPE_PROGRAMMATIC);
       } else {

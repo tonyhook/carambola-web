@@ -1,4 +1,5 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, computed, effect, ElementRef, inject, input, output, signal, viewChild, WritableSignal } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, computed, DestroyRef, effect, ElementRef, inject, input, output, signal, viewChild, WritableSignal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { AbstractControl, FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
@@ -82,6 +83,7 @@ interface ClientPortFormControls {
   styleUrls: ['./clientport-form.component.scss'],
 })
 export class ClientPortFormComponent implements AfterViewInit {
+  private destroyRef = inject(DestroyRef);
   private formBuilder = inject(FormBuilder);
   private snackBar = inject(MatSnackBar);
   private tenantService = inject(TenantService);
@@ -483,7 +485,7 @@ export class ClientPortFormComponent implements AfterViewInit {
   }
 
   ngAfterViewInit() {
-    this.formGroup.valueChanges.subscribe(data => {
+    this.formGroup.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(data => {
       const client = data.client;
 
       if (client && client.id !== null && client.id !== this.formClientId()) {
@@ -517,7 +519,7 @@ export class ClientPortFormComponent implements AfterViewInit {
       this.syncAutoName();
     });
 
-    this.formGroup.controls.name.valueChanges.subscribe(name => {
+    this.formGroup.controls.name.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(name => {
       if (this.syncingAutoName || !this.autoNameManaged) {
         return;
       }

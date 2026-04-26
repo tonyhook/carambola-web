@@ -1,4 +1,5 @@
-import { Component, ElementRef, inject, viewChild } from '@angular/core';
+import { Component, DestroyRef, ElementRef, inject, viewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -53,6 +54,7 @@ export interface SignDialogData {
   styleUrls: ['./sign-dialog.component.scss'],
 })
 export class SignDialogComponent {
+  private destroyRef = inject(DestroyRef);
   private formBuilder = inject(FormBuilder);
   private clientAPI = inject(ClientAPI);
   private clientPortAPI = inject(ClientPortAPI);
@@ -539,7 +541,7 @@ export class SignDialogComponent {
         click: this.formBuilder.control<number | null>(Math.round((1 - this.clickRatio) * 10000) / 100, [Validators.required, Validators.pattern('^[0-9]*[\\.]?[0-9]*$'), Validators.min(0), Validators.max(100)]),
         cost: this.formBuilder.control<number | null>(Math.round((1 - this.costRatio) * 10000) / 100, [Validators.required, Validators.pattern('^[0-9]*[\\.]?[0-9]*$'), Validators.min(0), Validators.max(100)]),
       });
-      this.formGroupRatio.valueChanges.subscribe(() => {
+      this.formGroupRatio.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
         this.requestRatio = 1 - (this.formGroupRatio.controls.request.value ?? 0) / 100;
         this.responseRatio = 1 - (this.formGroupRatio.controls.response.value ?? 0) / 100;
         this.impressionRatio = 1 - (this.formGroupRatio.controls.impression.value ?? 0) / 100;
@@ -719,7 +721,7 @@ export class SignDialogComponent {
         click: this.formBuilder.control<number | null>(0, [Validators.required, Validators.pattern('^[0-9]*[\\.]?[0-9]*$'), Validators.min(0), Validators.max(100)]),
         cost: this.formBuilder.control<number | null>(0, [Validators.required, Validators.pattern('^[0-9]*[\\.]?[0-9]*$'), Validators.min(0), Validators.max(100)]),
       });
-      this.formGroupRatio.valueChanges.subscribe(() => {
+      this.formGroupRatio.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
         this.requestRatio = 1 - (this.formGroupRatio.controls.request.value ?? 0) / 100;
         this.responseRatio = 1 - (this.formGroupRatio.controls.response.value ?? 0) / 100;
         this.impressionRatio = 1 - (this.formGroupRatio.controls.impression.value ?? 0) / 100;

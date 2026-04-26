@@ -1,4 +1,5 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, effect, inject, OnInit, signal, viewChild, WritableSignal } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, DestroyRef, effect, inject, OnInit, signal, viewChild, WritableSignal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
@@ -45,6 +46,7 @@ interface VendorMediaQueryControls {
   styleUrls: ['./vendormedia.component.scss'],
 })
 export class VendorMediaManagerComponent implements OnInit, AfterViewInit {
+  private destroyRef = inject(DestroyRef);
   private formBuilder = inject(FormBuilder);
   private dialog = inject(MatDialog);
   private tenantService = inject(TenantService);
@@ -151,7 +153,7 @@ export class VendorMediaManagerComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit() {
-    this.route.queryParams.subscribe(params => {
+    this.route.queryParams.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
       this.formGroupQuery.controls.vendor.setValue([]);
       this.formGroupQuery.controls.platform.setValue([]);
       this.formGroupQuery.controls.search.setValue('');
@@ -171,7 +173,7 @@ export class VendorMediaManagerComponent implements OnInit, AfterViewInit {
       }
     });
 
-    this.formGroupQuery.valueChanges.subscribe(() => {
+    this.formGroupQuery.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       this.query();
     })
   }

@@ -1,4 +1,5 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, DoCheck, effect, ElementRef, HostListener, inject, KeyValueDiffer, KeyValueDiffers, OnInit, signal, viewChild, WritableSignal } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, DestroyRef, DoCheck, effect, ElementRef, HostListener, inject, KeyValueDiffer, KeyValueDiffers, OnInit, signal, viewChild, WritableSignal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CdkMenuModule } from '@angular/cdk/menu';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
@@ -66,6 +67,7 @@ interface DownstreamManagerRangeControls {
   styleUrls: ['./downstream-manager.component.scss'],
 })
 export class DownstreamManagerComponent implements OnInit, AfterViewInit, DoCheck {
+  private destroyRef = inject(DestroyRef);
   private formBuilder = inject(FormBuilder);
   private tenantService = inject(TenantService);
   private vendorAPI = inject(VendorAPI);
@@ -325,13 +327,13 @@ export class DownstreamManagerComponent implements OnInit, AfterViewInit, DoChec
       this.updateSignView();
     });
 
-    this.formGroupQuery.valueChanges.subscribe(() => {
+    this.formGroupQuery.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       this.query();
     });
   }
 
   ngAfterViewInit() {
-    this.route.queryParams.subscribe(params => {
+    this.route.queryParams.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
       if (params['directMode']) {
         this.mode.set(params['directMode'] === 'true' ? PartnerType.PARTNER_TYPE_DIRECT : PartnerType.PARTNER_TYPE_PROGRAMMATIC);
       } else {

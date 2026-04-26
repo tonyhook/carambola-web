@@ -1,4 +1,5 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, effect, inject, OnInit, signal, viewChild, WritableSignal } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, DestroyRef, effect, inject, OnInit, signal, viewChild, WritableSignal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
@@ -40,6 +41,7 @@ interface VendorQueryControls {
   styleUrls: ['./vendor.component.scss'],
 })
 export class VendorManagerComponent implements OnInit, AfterViewInit {
+  private destroyRef = inject(DestroyRef);
   private formBuilder = inject(FormBuilder);
   private dialog = inject(MatDialog);
   private vendorAPI = inject(VendorAPI);
@@ -116,13 +118,13 @@ export class VendorManagerComponent implements OnInit, AfterViewInit {
       this.dataSource.set(this.createDataSource(data));
     });
 
-    this.formGroupQuery.valueChanges.subscribe(() => {
+    this.formGroupQuery.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       this.query();
     })
   }
 
   ngAfterViewInit() {
-    this.route.queryParams.subscribe(params => {
+    this.route.queryParams.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
       this.formGroupQuery.controls.search.setValue('');
       this.dataSource.set(this.createDataSource([]));
 
