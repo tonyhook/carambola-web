@@ -1,4 +1,5 @@
-import { Component, inject, OnDestroy, OnInit, signal, WritableSignal } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, signal, WritableSignal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -38,7 +39,8 @@ type MenuFormGroup = FormGroup<{
   templateUrl: './menu.component.html',
   styleUrls: ['./menu.component.scss'],
 })
-export class MenuManagerComponent implements OnInit, OnDestroy {
+export class MenuManagerComponent implements OnInit {
+  private destroyRef = inject(DestroyRef);
   private formBuilder = inject(FormBuilder);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
@@ -61,13 +63,13 @@ export class MenuManagerComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.route.params.subscribe(params => {
+    this.destroyRef.onDestroy(() => {
+      this.clearPendingMenuUpdates();
+    });
+
+    this.route.params.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
       this.reloadMenuList(params['id'] != null ? +params['id'] : null);
     });
-  }
-
-  ngOnDestroy() {
-    this.clearPendingMenuUpdates();
   }
 
   reloadMenuList(selectedMenuId: number | null = this.menu()?.id ?? null) {
