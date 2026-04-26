@@ -1,7 +1,7 @@
-import { Injectable, signal, WritableSignal, inject, DestroyRef } from '@angular/core';
+import { DestroyRef, inject, Injectable, signal, WritableSignal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { Router } from '@angular/router';
 
 import { Login, OpenSecurityAPI, UserDetails } from '../../core';
 import { MenuService } from '../../services';

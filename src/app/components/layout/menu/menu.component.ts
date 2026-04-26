@@ -2,7 +2,6 @@ import { Component, ElementRef, inject, viewChild } from '@angular/core';
 import { MatListModule } from '@angular/material/list';
 
 import { MenuService } from '../../../services';
-
 import { MenuItemComponent } from '../menu-item/menu-item.component';
 
 @Component({

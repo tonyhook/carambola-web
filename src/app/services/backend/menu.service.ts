@@ -1,4 +1,4 @@
-import { Injectable, signal, WritableSignal, inject } from '@angular/core';
+import { inject, Injectable, signal, WritableSignal } from '@angular/core';
 
 import { Menu, MenuAPI, MenuTreeNode } from '../../core';
 
