@@ -1,7 +1,7 @@
 <ng-container>
   <mat-card class="card-in-container">
     <mat-card-content>
-      <mat-tab-group class="tab-in-card" [selectedIndex]="selectedIndex">
+      <mat-tab-group class="tab-in-card" [selectedIndex]="selectedIndex()">
         <mat-tab label="下游广告位属性">
           <ng-template mat-tab-label>
             <mat-icon>description</mat-icon>下游广告位属性
@@ -93,13 +93,13 @@
               <mat-icon>cable</mat-icon>流量对接
             </ng-template>
             <div class="connection-list">
-              @for (connection of connections; track connection.id) {
+              @for (connection of connections(); track connection.id) {
                 <carambola-connection [clientPort]="connection.clientPort" [vendorPort]="connection.vendorPort" [mode]="'vendor'" [readonly]="!isConnectionManager" (connectionChanged)="connectionChanged()"></carambola-connection>
               }
               @if (isConnectionManager) {
-                <carambola-connection [vendorPort]="vendorPortFull" [mode]="'add'" (connectionChanged)="connectionChanged()"></carambola-connection>
+                <carambola-connection [vendorPort]="vendorPortFull()" [mode]="'add'" (connectionChanged)="connectionChanged()"></carambola-connection>
               }
-              @if (!isConnectionManager && connections.length === 0) {
+              @if (!isConnectionManager && connections().length === 0) {
                 <carambola-connection [mode]="'empty'"></carambola-connection>
               }
             </div>

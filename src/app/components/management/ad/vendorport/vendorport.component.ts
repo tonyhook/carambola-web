@@ -1,6 +1,5 @@
-import { AfterViewInit, Component, effect, OnInit, signal, WritableSignal, inject, viewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, effect, inject, OnInit, signal, untracked, viewChild, WritableSignal } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -10,11 +9,12 @@ import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
+import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, debounceTime, of, Subject, switchMap } from 'rxjs';
 
 import { PartnerType, PortType, Query, Vendor, VendorAPI, VendorMedia, VendorMediaAPI, VendorPort, VendorPortAPI } from '../../../../core';
-import { AdEntityComponent, FilteredSelectVendorComponent, FilteredSelectVendorMediaComponent } from '../../../../shared';
 import { TenantService } from '../../../../services';
+import { AdEntityComponent, FilteredSelectVendorComponent, FilteredSelectVendorMediaComponent } from '../../../../shared';
 import { VendorPortDialogComponent, VendorPortDialogData } from '../vendorport-dialog/vendorport-dialog.component';
 
 interface VendorPortQueryControls {
@@ -30,6 +30,7 @@ interface VendorPortQueryControls {
 
 @Component({
   selector: 'carambola-vendorport-manager',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
     MatButtonModule,
@@ -66,13 +67,13 @@ export class VendorPortManagerComponent implements OnInit, AfterViewInit {
 
   mode: WritableSignal<PartnerType> = signal(PartnerType.PARTNER_TYPE_UNKNOWN);
   formGroupQuery: FormGroup<VendorPortQueryControls>;
-  filterVendor: Vendor[] = [];
-  allVendorMedia: VendorMedia[] = [];
-  filterVendorMedia: VendorMedia[] = [];
+  filterVendor = signal<Vendor[]>([]);
+  allVendorMedia = signal<VendorMedia[]>([]);
+  filterVendorMedia = signal<VendorMedia[]>([]);
   filterPlatform: Map<string, string>;
   filterFormat: Map<string, string>;
   filterBudget: Map<string, string>;
-  filterMode: Map<string, string>;
+  filterMode = signal(new Map<string, string>());
   filterStatus: Map<string, string>;
   formQuery: Query<VendorPort> = {
     filter: {},
@@ -84,7 +85,7 @@ export class VendorPortManagerComponent implements OnInit, AfterViewInit {
   readonly paginator = viewChild(MatPaginator);
 
   dataRequest$ = new Subject<Query<VendorPort>>();
-  dataSource = new MatTableDataSource<VendorPort>([]);
+  dataSource = signal(this.createDataSource([]));
 
   constructor() {
     this.formGroupQuery = this.formBuilder.group({
@@ -128,11 +129,11 @@ export class VendorPortManagerComponent implements OnInit, AfterViewInit {
       ['juheshangcheng', '聚合电商'],
       ['mangguo', '芒果'],
     ]);
-    this.filterMode = new Map([
+    this.filterMode.set(new Map([
       ['1', '分成模式'],
       ['2', '竞价模式'],
       ['3', '直通模式'],
-    ]);
+    ]));
     this.filterStatus = new Map([
       ['1', '启用'],
       ['2', '未启用'],
@@ -157,7 +158,7 @@ export class VendorPortManagerComponent implements OnInit, AfterViewInit {
         searchValue: '',
       }).subscribe(vendors => {
         vendors = vendors.filter(vendor => !vendor.deleted);
-        this.filterVendor = vendors;
+        this.filterVendor.set(vendors);
       });
       this.vendorMediaAPI.getVendorMediaList({
         filter: {
@@ -167,11 +168,11 @@ export class VendorPortManagerComponent implements OnInit, AfterViewInit {
         searchValue: '',
       }).subscribe(vendorMedias => {
         vendorMedias = vendorMedias.filter(vendorMedia => !vendorMedia.deleted);
-        this.allVendorMedia = vendorMedias;
-        this.filterVendorMedia = vendorMedias;
+        this.allVendorMedia.set(vendorMedias);
+        this.filterVendorMedia.set(vendorMedias);
       });
 
-      this.query();
+      untracked(() => this.query());
     });
   }
 
@@ -231,7 +232,7 @@ export class VendorPortManagerComponent implements OnInit, AfterViewInit {
           });
         }
       }
-      this.dataSource.data = data.sort((a, b) => {
+      data = data.sort((a, b) => {
         const keya = a.updateTime ? new Date(a.updateTime) : new Date(0);
         const keyb = b.updateTime ? new Date(b.updateTime) : new Date(0);
         if (keya < keyb) {
@@ -242,30 +243,8 @@ export class VendorPortManagerComponent implements OnInit, AfterViewInit {
           return 0;
         }
       });
-      this.dataSource.sort = this.sort() ?? null;
-      this.dataSource.paginator = this.paginator() ?? null;
-      this.dataSource.sortingDataAccessor = (item, property) => {
-        switch (property) {
-          case 'vendor':
-            return item.vendor.name;
-          case 'vendorMedia':
-            return item.vendorMedia.name;
-          case 'name':
-            return item.name;
-          case 'format':
-            return item.format;
-          case 'budget':
-            return item.budget;
-          case 'tagId':
-            return item.tagId;
-          case 'mode':
-            return item.mode;
-          case 'connection':
-            return item.connection.filter(connection => connection.enabled).length;
-          default:
-            return '';
-        }
-      }
+
+      this.dataSource.set(this.createDataSource(data));
     });
 
     this.formGroupQuery.valueChanges.subscribe(() => {
@@ -283,7 +262,7 @@ export class VendorPortManagerComponent implements OnInit, AfterViewInit {
       this.formGroupQuery.controls.mode.setValue([]);
       this.formGroupQuery.controls.status.setValue([]);
       this.formGroupQuery.controls.search.setValue('');
-      this.dataSource.data = [];
+      this.dataSource.set(this.createDataSource([]));
 
       if (params['directMode']) {
         this.mode.set(params['directMode'] === 'true' ? PartnerType.PARTNER_TYPE_DIRECT : PartnerType.PARTNER_TYPE_PROGRAMMATIC);
@@ -295,18 +274,18 @@ export class VendorPortManagerComponent implements OnInit, AfterViewInit {
         if (this.selectedModes.indexOf(String(PartnerType.PARTNER_TYPE_DIRECT)) < 0) {
           this.formGroupQuery.controls.mode.setValue([]);
         }
-        this.filterMode = new Map([
+        this.filterMode.set(new Map([
           ['3', '直通模式'],
-        ]);
+        ]));
       }
       if (this.mode() === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
         if (this.selectedModes.indexOf(String(PartnerType.PARTNER_TYPE_DIRECT)) >= 0) {
           this.formGroupQuery.controls.mode.setValue([]);
         }
-        this.filterMode = new Map([
+        this.filterMode.set(new Map([
           ['1', '分成模式'],
           ['2', '竞价模式'],
-        ]);
+        ]));
       }
 
       const vendorMediaId = params['vendormedia'];
@@ -341,11 +320,40 @@ export class VendorPortManagerComponent implements OnInit, AfterViewInit {
     this.hoverRow = null;
   }
 
+  private createDataSource(data: VendorPort[]): MatTableDataSource<VendorPort> {
+    const dataSource = new MatTableDataSource(data);
+    dataSource.sort = this.sort() ?? null;
+    dataSource.paginator = this.paginator() ?? null;
+    dataSource.sortingDataAccessor = (item, property) => {
+      switch (property) {
+        case 'vendor':
+          return item.vendor.name;
+        case 'vendorMedia':
+          return item.vendorMedia.name;
+        case 'name':
+          return item.name;
+        case 'format':
+          return item.format;
+        case 'budget':
+          return item.budget;
+        case 'tagId':
+          return item.tagId;
+        case 'mode':
+          return item.mode;
+        case 'connection':
+          return item.connection.filter(connection => connection.enabled).length;
+        default:
+          return '';
+      }
+    };
+    return dataSource;
+  }
+
   query() {
     if (this.selectedPlatforms.length > 0) {
-      this.filterVendorMedia = this.allVendorMedia.filter(vendorMedia => this.selectedPlatforms.indexOf(vendorMedia.platform) >= 0);
+      this.filterVendorMedia.set(this.allVendorMedia().filter(vendorMedia => this.selectedPlatforms.indexOf(vendorMedia.platform) >= 0));
     } else {
-      this.filterVendorMedia = this.allVendorMedia;
+      this.filterVendorMedia.set(this.allVendorMedia());
     }
 
     this.formQuery = {

@@ -1,7 +1,7 @@
-import { ChangeDetectorRef, Component, effect, inject, input } from '@angular/core';
-import { NgxEchartsModule } from 'ngx-echarts';
+import { Component, effect, inject, input, signal } from '@angular/core';
 import { EChartsType } from 'echarts/core';
 import { EChartsOption, SeriesOption } from 'echarts/types/dist/shared';
+import { NgxEchartsModule } from 'ngx-echarts';
 import { forkJoin, of } from 'rxjs';
 
 import { ClientPort, ClientPortAPI, PerformanceAPI, PerformancePartner, VendorPort, VendorPortAPI } from '../../../core';
@@ -36,7 +36,6 @@ export class ChartFinanceComponent {
   private performanceAPI = inject(PerformanceAPI);
   private clientPortAPI = inject(ClientPortAPI);
   private vendorPortAPI = inject(VendorPortAPI);
-  private cdr = inject(ChangeDetectorRef);
 
   private readonly stackMetrics: FinanceMetricDefinition[] = [
     { key: 'outcomeUpstream', label: '上游支出', color: '#ef6c00' },
@@ -52,15 +51,15 @@ export class ChartFinanceComponent {
   vendorPort = input<VendorPort | null>(null);
 
   echarts!: EChartsType;
-  dataReady = false;
+  dataReady = signal(false);
 
-  clientPortList: ClientPort[] = [];
-  vendorPortList: VendorPort[] = [];
-  performanceData: PerformancePartner[] = [];
-  timestamps: Date[] = [];
-  selectedPortId = 0;
+  clientPortList = signal<ClientPort[]>([]);
+  vendorPortList = signal<VendorPort[]>([]);
+  performanceData = signal<PerformancePartner[]>([]);
+  timestamps = signal<Date[]>([]);
+  selectedPortId = signal(0);
 
-  chartOption: EChartsOption = {};
+  chartOption = signal<EChartsOption>({});
 
   constructor() {
     effect(() => {
@@ -82,18 +81,17 @@ export class ChartFinanceComponent {
   }
 
   selectPort(portId: number) {
-    this.selectedPortId = portId;
+    this.selectedPortId.set(portId);
     this.updateChart(portId);
-    this.cdr.detectChanges();
   }
 
   private resetState() {
-    this.dataReady = false;
-    this.selectedPortId = 0;
-    this.clientPortList = [];
-    this.vendorPortList = [];
-    this.performanceData = [];
-    this.chartOption = {};
+    this.dataReady.set(false);
+    this.selectedPortId.set(0);
+    this.clientPortList.set([]);
+    this.vendorPortList.set([]);
+    this.performanceData.set([]);
+    this.chartOption.set({});
     this.prepareTimestampList();
   }
 
@@ -111,12 +109,12 @@ export class ChartFinanceComponent {
         searchValue: '',
       },
     ).subscribe(result => {
-      this.performanceData = result;
+      this.performanceData.set(result);
       const vendorPortIds = this.uniqueIds(result.map(item => item.vendorPort));
       const vendorRequests = vendorPortIds.map(vendorPortId => this.vendorPortAPI.getVendorPort(vendorPortId));
 
       (vendorRequests.length > 0 ? forkJoin(vendorRequests) : of([])).subscribe(vendorPorts => {
-        this.vendorPortList = vendorPorts;
+        this.vendorPortList.set(vendorPorts);
         this.finishLoading();
       });
     });
@@ -136,12 +134,12 @@ export class ChartFinanceComponent {
         searchValue: '',
       },
     ).subscribe(result => {
-      this.performanceData = result;
+      this.performanceData.set(result);
       const clientPortIds = this.uniqueIds(result.map(item => item.clientPort));
       const clientRequests = clientPortIds.map(clientPortId => this.clientPortAPI.getClientPort(clientPortId));
 
       (clientRequests.length > 0 ? forkJoin(clientRequests) : of([])).subscribe(clientPorts => {
-        this.clientPortList = clientPorts;
+        this.clientPortList.set(clientPorts);
         this.finishLoading();
       });
     });
@@ -149,20 +147,20 @@ export class ChartFinanceComponent {
 
   private finishLoading() {
     this.updateChart(0);
-    this.dataReady = true;
-    this.cdr.detectChanges();
+    this.dataReady.set(true);
   }
 
   private updateChart(port: number) {
     const portPerformanceData = this.getSelectedPortPerformance(port);
     const performanceMap = this.aggregateByDate(portPerformanceData);
 
-    const header = ['指标', ...this.timestamps.map(timestamp => this.formatDate(timestamp))];
+    const timestamps = this.timestamps();
+    const header = ['指标', ...timestamps.map(timestamp => this.formatDate(timestamp))];
     const stackMetricsReversed = [...this.stackMetrics].reverse();
     const stackRows = stackMetricsReversed.map(definition => {
       const row: (string | number)[] = [definition.label];
 
-      this.timestamps.forEach(timestamp => {
+      timestamps.forEach(timestamp => {
         const point = performanceMap.get(this.formatDate(timestamp)) ?? this.createEmptyPoint();
         row.push(point[definition.key]);
       });
@@ -171,7 +169,7 @@ export class ChartFinanceComponent {
     });
 
     const incomeRow: (string | number)[] = ['收入'];
-    this.timestamps.forEach(timestamp => {
+    timestamps.forEach(timestamp => {
       const point = performanceMap.get(this.formatDate(timestamp)) ?? this.createEmptyPoint();
       incomeRow.push(point.income);
     });
@@ -200,7 +198,7 @@ export class ChartFinanceComponent {
       })),
     ];
 
-    this.chartOption = {
+    this.chartOption.set({
       title: {
         text: '费用趋势',
         left: 'center',
@@ -231,7 +229,7 @@ export class ChartFinanceComponent {
         bottom: 60,
       },
       series,
-    } satisfies EChartsOption;
+    } satisfies EChartsOption);
   }
 
   private aggregateByDate(data: PerformancePartner[]) {
@@ -256,14 +254,14 @@ export class ChartFinanceComponent {
 
   private getSelectedPortPerformance(port: number) {
     if (port === 0) {
-      return this.performanceData;
+      return this.performanceData();
     }
 
     if (this.clientPort()) {
-      return this.performanceData.filter(item => item.vendorPort === port);
+      return this.performanceData().filter(item => item.vendorPort === port);
     }
 
-    return this.performanceData.filter(item => item.clientPort === port);
+    return this.performanceData().filter(item => item.clientPort === port);
   }
 
   private createEmptyPoint(): FinancePoint {
@@ -315,7 +313,7 @@ export class ChartFinanceComponent {
   }
 
   private prepareTimestampList() {
-    this.timestamps = [];
+    const timestamps: Date[] = [];
 
     for (let t = this.end.getTime(); t >= this.start.getTime();) {
       const date = new Date(t);
@@ -324,10 +322,10 @@ export class ChartFinanceComponent {
       date.setMinutes(0);
       date.setHours(0);
 
-      this.timestamps.push(date);
+      timestamps.push(date);
       t = date.getTime() - 86400000;
     }
 
-    this.timestamps.reverse();
+    this.timestamps.set(timestamps.reverse());
   }
 }

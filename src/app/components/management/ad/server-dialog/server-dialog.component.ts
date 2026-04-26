@@ -1,8 +1,8 @@
 import { Component, inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
-import { ServerFormComponent } from '../server-form/server-form.component';
 import { Server } from '../../../../core';
+import { ServerFormComponent } from '../server-form/server-form.component';
 
 @Component({
   selector: 'carambola-server-dialog',

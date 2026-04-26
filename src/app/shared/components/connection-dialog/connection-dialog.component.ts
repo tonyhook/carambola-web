@@ -1,16 +1,16 @@
+import { AfterViewInit, Component, inject, OnInit, signal } from '@angular/core';
 import { formatDate } from '@angular/common';
-import { AfterViewInit, Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatDialogRef, MAT_DIALOG_DATA, MatDialog } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { ActivatedRoute } from '@angular/router';
 import { forkJoin } from 'rxjs';
 
 import { Client, ClientAPI, ClientMedia, ClientPort, ClientPortAPI, Connection, PartnerType, PortType, TrafficControl, TrafficControlAPI, TrafficControlIndicator, TrafficControlPeriod, Vendor, VendorAPI, VendorMedia, VendorPort, VendorPortAPI } from '../../../core';
@@ -18,8 +18,8 @@ import { FilteredSelectClientComponent } from '../filtered-select-client/filtere
 import { FilteredSelectClientPortComponent } from '../filtered-select-clientport/filtered-select-clientport.component';
 import { FilteredSelectVendorComponent } from '../filtered-select-vendor/filtered-select-vendor.component';
 import { FilteredSelectVendorPortComponent } from '../filtered-select-vendorport/filtered-select-vendorport.component';
-import { TrafficControlComponent } from '../traffic-control/traffic-control.component';
 import { TrafficControlDialogComponent } from '../traffic-control-dialog/traffic-control-dialog.component';
+import { TrafficControlComponent } from '../traffic-control/traffic-control.component';
 
 interface ConnectionPortControls {
   client: FormControl<Client | null>;
@@ -86,17 +86,17 @@ export class ConnectionDialogComponent implements OnInit, AfterViewInit {
   vendor: Vendor | null = null;
   vendorPort: VendorPort | null = null;
   connection: Connection | null = null;
-  trafficControls: TrafficControl[] = [];
+  trafficControls = signal<TrafficControl[]>([]);
 
-  clients: Client[] = [];
+  clients = signal<Client[]>([]);
   clientPorts: ClientPort[] = [];
-  vendors: Vendor[] = [];
+  vendors = signal<Vendor[]>([]);
   vendorPorts: VendorPort[] = [];
 
   validClientMedias: ClientMedia[] = [];
-  validClientPorts: ClientPort[] = [];
+  validClientPorts = signal<ClientPort[]>([]);
   validVendorMedias: VendorMedia[] = [];
-  validVendorPorts: VendorPort[] = [];
+  validVendorPorts = signal<VendorPort[]>([]);
 
   formGroupPort: FormGroup<ConnectionPortControls>;
   formGroupConnection: FormGroup<ConnectionFormControls>;
@@ -128,7 +128,7 @@ export class ConnectionDialogComponent implements OnInit, AfterViewInit {
       if (data.clientPort) {
         this.clientPortAPI.getClientPort(data.clientPort.id!).subscribe(clientPort => {
           this.client = clientPort.client;
-          this.clients = [clientPort.client];
+          this.clients.set([clientPort.client]);
           this.formGroupPort.setControl('client', this.formBuilder.control({value: this.client, disabled: true}, Validators.required), {emitEvent: false,});
         });
         this.clientPort = data.clientPort;
@@ -139,7 +139,7 @@ export class ConnectionDialogComponent implements OnInit, AfterViewInit {
       if (data.vendorPort) {
         this.vendorPortAPI.getVendorPort(data.vendorPort.id!).subscribe(vendorPort => {
           this.vendor = vendorPort.vendor;
-          this.vendors = [vendorPort.vendor];
+          this.vendors.set([vendorPort.vendor]);
           this.formGroupPort.setControl('vendor', this.formBuilder.control({value: this.vendor, disabled: true}, Validators.required), {emitEvent: false,});
         });
         this.vendorPort = data.vendorPort;
@@ -151,13 +151,13 @@ export class ConnectionDialogComponent implements OnInit, AfterViewInit {
         this.connection = data.connection;
         this.clientPortAPI.getClientPort(data.connection.clientPort.id!).subscribe(clientPort => {
           this.client = clientPort.client;
-          this.clients = [clientPort.client];
+          this.clients.set([clientPort.client]);
           this.formGroupPort.setControl('client', this.formBuilder.control({value: this.client, disabled: true}, Validators.required), {emitEvent: false,});
         });
         this.clientPort = data.connection.clientPort;
         this.vendorPortAPI.getVendorPort(data.connection.vendorPort.id!).subscribe(vendorPort => {
           this.vendor = vendorPort.vendor;
-          this.vendors = [vendorPort.vendor];
+          this.vendors.set([vendorPort.vendor]);
           this.formGroupPort.setControl('vendor', this.formBuilder.control({value: this.vendor, disabled: true}, Validators.required), {emitEvent: false,});
         });
         this.vendorPort = data.connection.vendorPort;
@@ -182,7 +182,7 @@ export class ConnectionDialogComponent implements OnInit, AfterViewInit {
       if (rawPort.client !== null && rawPort.client !== this.client) {
         this.client = rawPort.client;
         this.clientPort = null;
-        this.validClientPorts = this.clientPorts.filter(clientPort => clientPort.client.id === rawPort.client!.id);
+        this.validClientPorts.set(this.clientPorts.filter(clientPort => clientPort.client.id === rawPort.client!.id));
         this.formGroupPort.setControl('clientPort', this.formBuilder.control({value: this.clientPort, disabled: false}, Validators.required), {emitEvent: false,});
       }
       if (rawPort.clientPort !== null && rawPort.clientPort !== this.clientPort) {
@@ -191,7 +191,7 @@ export class ConnectionDialogComponent implements OnInit, AfterViewInit {
       if (rawPort.vendor !== null && rawPort.vendor !== this.vendor) {
         this.vendor = rawPort.vendor;
         this.vendorPort = null;
-        this.validVendorPorts = this.vendorPorts.filter(vendorPort => vendorPort.vendor.id === rawPort.vendor!.id);
+        this.validVendorPorts.set(this.vendorPorts.filter(vendorPort => vendorPort.vendor.id === rawPort.vendor!.id));
         this.formGroupPort.setControl('vendorPort', this.formBuilder.control({value: this.vendorPort, disabled: false}, Validators.required), {emitEvent: false,});
       }
       if (rawPort.vendorPort !== null && rawPort.vendorPort !== this.vendorPort) {
@@ -226,15 +226,15 @@ export class ConnectionDialogComponent implements OnInit, AfterViewInit {
             searchValue: '',
           }),
         ]).subscribe(results => {
-          this.clients = results[0].filter(client => !client.deleted);
+          this.clients.set(results[0].filter(client => !client.deleted));
           this.clientPorts = results[1].filter(clientPort => !clientPort.deleted);
 
           this.formGroupPort.setControl('client', this.formBuilder.control({value: null, disabled: this.readonly}, Validators.required), {emitEvent: false,});
           this.formGroupPort.setControl('clientPort', this.formBuilder.control({value: null, disabled: true}, Validators.required), {emitEvent: false,});
         });
       } else {
-        this.clients = [this.client!];
-        this.validClientPorts = [this.clientPort!];
+        this.clients.set([this.client!]);
+        this.validClientPorts.set([this.clientPort!]);
 
         this.formGroupPort.setControl('client', this.formBuilder.control({value: this.client, disabled: true}, Validators.required), {emitEvent: false,});
         this.formGroupPort.setControl('clientPort', this.formBuilder.control({value: this.clientPort, disabled: true}, Validators.required), {emitEvent: false,});
@@ -257,15 +257,15 @@ export class ConnectionDialogComponent implements OnInit, AfterViewInit {
             searchValue: '',
           }),
         ]).subscribe(results => {
-          this.vendors = results[0].filter(vendor => !vendor.deleted);
+          this.vendors.set(results[0].filter(vendor => !vendor.deleted));
           this.vendorPorts = results[1].filter(vendorPort => !vendorPort.deleted);
 
           this.formGroupPort.setControl('vendor', this.formBuilder.control({value: null, disabled: this.readonly}, Validators.required), {emitEvent: false,});
           this.formGroupPort.setControl('vendorPort', this.formBuilder.control({value: null, disabled: true}, Validators.required), {emitEvent: false,});
         });
       } else {
-        this.vendors = [this.vendor!];
-        this.validVendorPorts = [this.vendorPort!];
+        this.vendors.set([this.vendor!]);
+        this.validVendorPorts.set([this.vendorPort!]);
 
         this.formGroupPort.setControl('vendor', this.formBuilder.control({value: this.vendor, disabled: true}, Validators.required), {emitEvent: false,});
         this.formGroupPort.setControl('vendorPort', this.formBuilder.control({value: this.vendorPort, disabled: true}, Validators.required), {emitEvent: false,});
@@ -273,7 +273,7 @@ export class ConnectionDialogComponent implements OnInit, AfterViewInit {
 
       if (this.connection) {
         this.trafficControlAPI.getTrafficControlListByPort(this.connection.clientPort.id!, this.connection.vendorPort.id!).subscribe(trafficControls => {
-          this.trafficControls = trafficControls;
+          this.trafficControls.set(trafficControls);
         });
       }
     });
@@ -376,7 +376,7 @@ export class ConnectionDialogComponent implements OnInit, AfterViewInit {
     };
 
     const requests = [];
-    for (const trafficControl of this.trafficControls) {
+    for (const trafficControl of this.trafficControls()) {
       if (trafficControl.limitation !== -1) {
         if (trafficControl.clientPort === null) {
           trafficControl.clientPort = connection.clientPort.id;
@@ -404,7 +404,7 @@ export class ConnectionDialogComponent implements OnInit, AfterViewInit {
   }
 
   getValidTrafficControls(): TrafficControl[] {
-    return this.trafficControls?.filter(tc => tc.limitation >= 0);
+    return this.trafficControls().filter(tc => tc.limitation >= 0);
   }
 
   addTrafficControl() {
@@ -424,13 +424,21 @@ export class ConnectionDialogComponent implements OnInit, AfterViewInit {
 
     dialogRef.afterClosed().subscribe(trafficControl => {
       if (trafficControl) {
-        this.trafficControls.push(trafficControl);
+        this.trafficControls.update(trafficControls => [...trafficControls, trafficControl]);
       }
     });
   }
 
   removeTrafficControl(trafficControl: TrafficControl) {
-    trafficControl.limitation = -1;
+    this.trafficControls.update(trafficControls => trafficControls.map(currentTrafficControl => {
+      if (currentTrafficControl !== trafficControl) {
+        return currentTrafficControl;
+      }
+      return {
+        ...currentTrafficControl,
+        limitation: -1,
+      };
+    }));
   }
 
 }

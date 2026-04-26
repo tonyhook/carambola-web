@@ -1,37 +1,34 @@
 import { Routes } from '@angular/router';
 
 import { AuthGuard } from './services';
-
 import { AdminComponent } from './components/layout/admin/admin.component';
 import { HomeComponent } from './components/layout/home/home.component';
 import { LoginComponent } from './components/layout/login/login.component';
 import { LogoutComponent } from './components/layout/logout/logout.component';
 import { MainComponent } from './components/layout/main/main.component';
-import { PendingComponent } from './components/layout/pending/pending.component';
-
 import { MeComponent } from './components/layout/me/me.component';
+import { PendingComponent } from './components/layout/pending/pending.component';
+import { BillComponent } from './components/management/ad/bill/bill.component';
+import { ClientManagerComponent } from './components/management/ad/client/client.component';
+import { ClientMediaManagerComponent } from './components/management/ad/clientmedia/clientmedia.component';
+import { ClientPortManagerComponent } from './components/management/ad/clientport/clientport.component';
+import { ConnectionManagerComponent } from './components/management/ad/connection/connection.component';
+import { DownstreamManagerComponent } from './components/management/ad/downstream-manager/downstream-manager.component';
+import { PerformanceComponent } from './components/management/ad/performance/performance.component';
+import { ServerManagerComponent } from './components/management/ad/server/server.component';
+import { SignComponent } from './components/management/ad/sign/sign.component';
+import { SummaryComponent } from './components/management/ad/summary/summary.component';
+import { TenantManagerComponent } from './components/management/ad/tenant/tenant.component';
+import { UpstreamObserverComponent } from './components/management/ad/upstream-observer/upstream-observer.component';
+import { VendorManagerComponent } from './components/management/ad/vendor/vendor.component';
+import { VendorMediaManagerComponent } from './components/management/ad/vendormedia/vendormedia.component';
+import { VendorPortManagerComponent } from './components/management/ad/vendorport/vendorport.component';
+import { LogManagerComponent } from './components/management/audit/log/log.component';
 import { MenuManagerComponent } from './components/management/backend/menu/menu.component';
 import { AuthorityManagerComponent } from './components/management/security/authority/authority.component';
 import { RoleManagerComponent } from './components/management/security/role/role.component';
 import { UserManagerComponent } from './components/management/security/user/user.component';
-import { LogManagerComponent } from './components/management/audit/log/log.component';
-
-import { TenantManagerComponent } from './components/management/ad/tenant/tenant.component';
-import { ClientManagerComponent } from './components/management/ad/client/client.component';
-import { ClientMediaManagerComponent } from './components/management/ad/clientmedia/clientmedia.component';
-import { ClientPortManagerComponent } from './components/management/ad/clientport/clientport.component';
-import { VendorManagerComponent } from './components/management/ad/vendor/vendor.component';
-import { VendorMediaManagerComponent } from './components/management/ad/vendormedia/vendormedia.component';
-import { VendorPortManagerComponent } from './components/management/ad/vendorport/vendorport.component';
-import { PerformanceComponent } from './components/management/ad/performance/performance.component';
-import { BillComponent } from './components/management/ad/bill/bill.component';
-import { SignComponent } from './components/management/ad/sign/sign.component';
-import { SummaryComponent } from './components/management/ad/summary/summary.component';
 import { EncryptComponent } from './components/open/encrypt/encrypt.component';
-import { UpstreamObserverComponent } from './components/management/ad/upstream-observer/upstream-observer.component';
-import { DownstreamManagerComponent } from './components/management/ad/downstream-manager/downstream-manager.component';
-import { ConnectionManagerComponent } from './components/management/ad/connection/connection.component';
-import { ServerManagerComponent } from './components/management/ad/server/server.component';
 
 export const routes: Routes = [
   {

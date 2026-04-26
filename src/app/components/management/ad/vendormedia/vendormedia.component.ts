@@ -1,6 +1,5 @@
-import { AfterViewInit, Component, effect, OnInit, signal, WritableSignal, inject, viewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, effect, inject, OnInit, signal, viewChild, WritableSignal } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -10,11 +9,12 @@ import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
+import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, debounceTime, of, Subject, switchMap } from 'rxjs';
 
-import { Vendor, VendorAPI, VendorMedia, VendorMediaAPI, PartnerType, Query } from '../../../../core';
-import { AdEntityComponent, FilteredSelectVendorComponent } from '../../../../shared';
+import { PartnerType, Query, Vendor, VendorAPI, VendorMedia, VendorMediaAPI } from '../../../../core';
 import { TenantService } from '../../../../services';
+import { AdEntityComponent, FilteredSelectVendorComponent } from '../../../../shared';
 import { VendorMediaDialogComponent, VendorMediaDialogData } from '../vendormedia-dialog/vendormedia-dialog.component';
 
 interface VendorMediaQueryControls {
@@ -25,6 +25,7 @@ interface VendorMediaQueryControls {
 
 @Component({
   selector: 'carambola-vendormedia-manager',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
     MatButtonModule,
@@ -57,7 +58,7 @@ export class VendorMediaManagerComponent implements OnInit, AfterViewInit {
 
   mode: WritableSignal<PartnerType> = signal(PartnerType.PARTNER_TYPE_UNKNOWN);
   formGroupQuery: FormGroup<VendorMediaQueryControls>;
-  filterVendor: Vendor[] = [];
+  filterVendor = signal<Vendor[]>([]);
   filterPlatform: Map<string, string>;
   formQuery: Query<VendorMedia> = {
     filter: {},
@@ -69,7 +70,7 @@ export class VendorMediaManagerComponent implements OnInit, AfterViewInit {
   readonly paginator = viewChild(MatPaginator);
 
   dataRequest$ = new Subject<Query<VendorMedia>>();
-  dataSource = new MatTableDataSource<VendorMedia>([]);
+  dataSource = signal(this.createDataSource([]));
 
   constructor() {
     this.formGroupQuery = this.formBuilder.group({
@@ -103,7 +104,7 @@ export class VendorMediaManagerComponent implements OnInit, AfterViewInit {
         searchValue: '',
       }).subscribe(vendors => {
         vendors = vendors.filter(vendor => !vendor.deleted);
-        this.filterVendor = vendors;
+        this.filterVendor.set(vendors);
       });
 
       this.query();
@@ -133,7 +134,7 @@ export class VendorMediaManagerComponent implements OnInit, AfterViewInit {
         )
       ),
     ).subscribe(vendorMedias => {
-      this.dataSource.data = vendorMedias.filter(vendorMedia => !vendorMedia.deleted).sort((a, b) => {
+      const data = vendorMedias.filter(vendorMedia => !vendorMedia.deleted).sort((a, b) => {
         const keya = a.updateTime ? new Date(a.updateTime) : new Date(0);
         const keyb = b.updateTime ? new Date(b.updateTime) : new Date(0);
         if (keya < keyb) {
@@ -144,8 +145,8 @@ export class VendorMediaManagerComponent implements OnInit, AfterViewInit {
           return 0;
         }
       });
-      this.dataSource.sort = this.sort() ?? null;
-      this.dataSource.paginator = this.paginator() ?? null;
+
+      this.dataSource.set(this.createDataSource(data));
     });
   }
 
@@ -154,7 +155,7 @@ export class VendorMediaManagerComponent implements OnInit, AfterViewInit {
       this.formGroupQuery.controls.vendor.setValue([]);
       this.formGroupQuery.controls.platform.setValue([]);
       this.formGroupQuery.controls.search.setValue('');
-      this.dataSource.data = [];
+      this.dataSource.set(this.createDataSource([]));
 
       if (params['directMode']) {
         this.mode.set(params['directMode'] === 'true' ? PartnerType.PARTNER_TYPE_DIRECT : PartnerType.PARTNER_TYPE_PROGRAMMATIC);
@@ -181,6 +182,13 @@ export class VendorMediaManagerComponent implements OnInit, AfterViewInit {
 
   mouseleave() {
     this.hoverRow = null;
+  }
+
+  private createDataSource(data: VendorMedia[]): MatTableDataSource<VendorMedia> {
+    const dataSource = new MatTableDataSource(data);
+    dataSource.sort = this.sort() ?? null;
+    dataSource.paginator = this.paginator() ?? null;
+    return dataSource;
   }
 
   query() {

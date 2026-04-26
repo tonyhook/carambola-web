@@ -1,7 +1,7 @@
-import { ChangeDetectorRef, Component, effect, inject, input } from '@angular/core';
-import { NgxEchartsModule } from 'ngx-echarts';
+import { Component, effect, inject, input, signal } from '@angular/core';
 import { EChartsType } from 'echarts/core';
 import { EChartsOption, SeriesOption } from 'echarts/types/dist/shared';
+import { NgxEchartsModule } from 'ngx-echarts';
 import { forkJoin, of } from 'rxjs';
 
 import { ClientPort, ClientPortAPI, PerformanceAPI, PerformancePartner, VendorPort, VendorPortAPI } from '../../../core';
@@ -38,7 +38,6 @@ export class ChartTrafficComponent {
   private performanceAPI = inject(PerformanceAPI);
   private clientPortAPI = inject(ClientPortAPI);
   private vendorPortAPI = inject(VendorPortAPI);
-  private cdr = inject(ChangeDetectorRef);
 
   private readonly clientFunnelMetrics: TrafficMetricDefinition[] = [
     { key: 'request', label: '请求', color: '#1565c0' },
@@ -99,18 +98,18 @@ export class ChartTrafficComponent {
   echartsLostResponse!: EChartsType;
   echartsFailedResponse!: EChartsType;
 
-  dataReady = false;
+  dataReady = signal(false);
 
-  clientPortList: ClientPort[] = [];
-  vendorPortList: VendorPort[] = [];
-  performanceData: PerformancePartner[] = [];
-  timestamps: Date[] = [];
-  selectedPortId = 0;
+  clientPortList = signal<ClientPort[]>([]);
+  vendorPortList = signal<VendorPort[]>([]);
+  performanceData = signal<PerformancePartner[]>([]);
+  timestamps = signal<Date[]>([]);
+  selectedPortId = signal(0);
 
-  chartFunnelOption: EChartsOption = {};
-  chartFailedRequestOption: EChartsOption = {};
-  chartLostResponseOption: EChartsOption = {};
-  chartFailedResponseOption: EChartsOption = {};
+  chartFunnelOption = signal<EChartsOption>({});
+  chartFailedRequestOption = signal<EChartsOption>({});
+  chartLostResponseOption = signal<EChartsOption>({});
+  chartFailedResponseOption = signal<EChartsOption>({});
 
   constructor() {
     effect(() => {
@@ -144,21 +143,20 @@ export class ChartTrafficComponent {
   }
 
   selectPort(portId: number) {
-    this.selectedPortId = portId;
+    this.selectedPortId.set(portId);
     this.updateCharts(portId);
-    this.cdr.detectChanges();
   }
 
   private resetState() {
-    this.dataReady = false;
-    this.selectedPortId = 0;
-    this.clientPortList = [];
-    this.vendorPortList = [];
-    this.performanceData = [];
-    this.chartFunnelOption = {};
-    this.chartFailedRequestOption = {};
-    this.chartLostResponseOption = {};
-    this.chartFailedResponseOption = {};
+    this.dataReady.set(false);
+    this.selectedPortId.set(0);
+    this.clientPortList.set([]);
+    this.vendorPortList.set([]);
+    this.performanceData.set([]);
+    this.chartFunnelOption.set({});
+    this.chartFailedRequestOption.set({});
+    this.chartLostResponseOption.set({});
+    this.chartFailedResponseOption.set({});
     this.prepareTimestampList();
   }
 
@@ -176,12 +174,12 @@ export class ChartTrafficComponent {
         searchValue: '',
       },
     ).subscribe(result => {
-      this.performanceData = result;
+      this.performanceData.set(result);
       const vendorPortIds = this.uniqueIds(result.map(item => item.vendorPort));
       const vendorRequests = vendorPortIds.map(vendorPortId => this.vendorPortAPI.getVendorPort(vendorPortId));
 
       (vendorRequests.length > 0 ? forkJoin(vendorRequests) : of([])).subscribe(vendorPorts => {
-        this.vendorPortList = vendorPorts;
+        this.vendorPortList.set(vendorPorts);
         this.finishLoading();
       });
     });
@@ -201,12 +199,12 @@ export class ChartTrafficComponent {
         searchValue: '',
       },
     ).subscribe(result => {
-      this.performanceData = result;
+      this.performanceData.set(result);
       const clientPortIds = this.uniqueIds(result.map(item => item.clientPort));
       const clientRequests = clientPortIds.map(clientPortId => this.clientPortAPI.getClientPort(clientPortId));
 
       (clientRequests.length > 0 ? forkJoin(clientRequests) : of([])).subscribe(clientPorts => {
-        this.clientPortList = clientPorts;
+        this.clientPortList.set(clientPorts);
         this.finishLoading();
       });
     });
@@ -214,8 +212,7 @@ export class ChartTrafficComponent {
 
   private finishLoading() {
     this.updateCharts(0);
-    this.dataReady = true;
-    this.cdr.detectChanges();
+    this.dataReady.set(true);
   }
 
   private updateCharts(port: number) {
@@ -223,17 +220,17 @@ export class ChartTrafficComponent {
 
     if (this.vendorPort()) {
       const trafficMap = this.aggregateVendorByDate(portPerformanceData);
-      this.chartFunnelOption = this.createChartOption('流量漏斗', this.vendorFunnelMetrics, trafficMap);
-      this.chartFailedRequestOption = this.createChartOption('请求失败原因', this.vendorFailedRequestMetrics, trafficMap);
-      this.chartLostResponseOption = this.createChartOption('响应丢失原因', this.vendorLostResponseMetrics, trafficMap);
+      this.chartFunnelOption.set(this.createChartOption('流量漏斗', this.vendorFunnelMetrics, trafficMap));
+      this.chartFailedRequestOption.set(this.createChartOption('请求失败原因', this.vendorFailedRequestMetrics, trafficMap));
+      this.chartLostResponseOption.set(this.createChartOption('响应丢失原因', this.vendorLostResponseMetrics, trafficMap));
       return;
     }
 
     const trafficMap = this.aggregateClientByDate(portPerformanceData);
-    this.chartFunnelOption = this.createChartOption('流量漏斗', this.clientFunnelMetrics, trafficMap);
-    this.chartFailedRequestOption = this.createChartOption('请求失败原因', this.clientFailedRequestMetrics, trafficMap);
-    this.chartLostResponseOption = this.createChartOption('响应丢失原因', this.clientLostResponseMetrics, trafficMap);
-    this.chartFailedResponseOption = this.createChartOption('响应无效原因', this.clientFailedResponseMetrics, trafficMap);
+    this.chartFunnelOption.set(this.createChartOption('流量漏斗', this.clientFunnelMetrics, trafficMap));
+    this.chartFailedRequestOption.set(this.createChartOption('请求失败原因', this.clientFailedRequestMetrics, trafficMap));
+    this.chartLostResponseOption.set(this.createChartOption('响应丢失原因', this.clientLostResponseMetrics, trafficMap));
+    this.chartFailedResponseOption.set(this.createChartOption('响应无效原因', this.clientFailedResponseMetrics, trafficMap));
   }
 
   private createChartOption(
@@ -241,11 +238,12 @@ export class ChartTrafficComponent {
     metrics: TrafficMetricDefinition[],
     trafficMap: Map<string, TrafficPoint>,
   ) {
-    const header = ['指标', ...this.timestamps.map(timestamp => this.formatDate(timestamp))];
+    const timestamps = this.timestamps();
+    const header = ['指标', ...timestamps.map(timestamp => this.formatDate(timestamp))];
     const dataRows = metrics.map(definition => {
       const row: (string | number)[] = [definition.label];
 
-      this.timestamps.forEach(timestamp => {
+      timestamps.forEach(timestamp => {
         const point = trafficMap.get(this.formatDate(timestamp)) ?? this.createEmptyPoint();
         row.push(point[definition.key]);
       });
@@ -346,14 +344,14 @@ export class ChartTrafficComponent {
 
   private getSelectedPortPerformance(port: number) {
     if (port === 0) {
-      return this.performanceData;
+      return this.performanceData();
     }
 
     if (this.clientPort()) {
-      return this.performanceData.filter(item => item.vendorPort === port);
+      return this.performanceData().filter(item => item.vendorPort === port);
     }
 
-    return this.performanceData.filter(item => item.clientPort === port);
+    return this.performanceData().filter(item => item.clientPort === port);
   }
 
   private getClientRequestCount(performance: PerformancePartner) {
@@ -428,7 +426,7 @@ export class ChartTrafficComponent {
   }
 
   private prepareTimestampList() {
-    this.timestamps = [];
+    const timestamps: Date[] = [];
 
     for (let t = this.end.getTime(); t >= this.start.getTime();) {
       const date = new Date(t);
@@ -437,10 +435,10 @@ export class ChartTrafficComponent {
       date.setMinutes(0);
       date.setHours(0);
 
-      this.timestamps.push(date);
+      timestamps.push(date);
       t = date.getTime() - 86400000;
     }
 
-    this.timestamps.reverse();
+    this.timestamps.set(timestamps.reverse());
   }
 }

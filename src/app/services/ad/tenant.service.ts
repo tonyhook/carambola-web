@@ -1,4 +1,4 @@
-import { effect, Injectable, signal, WritableSignal, inject } from '@angular/core';
+import { effect, inject, Injectable, signal, WritableSignal } from '@angular/core';
 import { forkJoin } from 'rxjs';
 
 import { PartnerType, ROLE_TENANT_DOWNSTREAM_MANAGER_DIRECT, ROLE_TENANT_DOWNSTREAM_MANAGER_PROGRAMMATIC, ROLE_TENANT_MANAGER, ROLE_TENANT_OBSERVER, ROLE_TENANT_OPERATOR, Tenant, TenantAPI, Vendor } from '../../core';

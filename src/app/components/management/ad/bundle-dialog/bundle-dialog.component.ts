@@ -1,6 +1,5 @@
-import { AfterViewInit, Component, effect, signal, WritableSignal, inject, viewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, effect, inject, signal, viewChild, WritableSignal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
@@ -8,10 +7,11 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
+import { ActivatedRoute } from '@angular/router';
 import { forkJoin } from 'rxjs';
 
-import { TenantService } from '../../../../services';
 import { Client, ClientAPI, ClientMedia, ClientMediaAPI, ClientPort, ClientPortAPI, PartnerType, PerformanceAPI, PerformancePartner, PerformancePlaceholder, PerformanceView, Query, TrafficControl, TrafficControlAPI, TrafficControlIndicator, TrafficControlPeriod, Vendor, VendorAPI, VendorMedia, VendorMediaAPI, VendorPort, VendorPortAPI } from '../../../../core';
+import { TenantService } from '../../../../services';
 import { AdEntityComponent } from '../../../../shared';
 
 export interface BundleDialogData {
@@ -24,6 +24,7 @@ export interface BundleDialogData {
 
 @Component({
   selector: 'carambola-bundle-dialog',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
     MatButtonModule,
@@ -52,9 +53,9 @@ export class BundleDialogComponent implements AfterViewInit {
   private route = inject(ActivatedRoute);
   dialogRef = inject<MatDialogRef<BundleDialogComponent>>(MatDialogRef);
 
-  displayedColumns = ['client', 'vendor', 'bundle', 'request', 'response', 'gfr', 'gfrv', 'impression', 'click', 'er', 'ctr', 'rv', 'actions'];
-  dataSource = new MatTableDataSource<PerformanceView>([]);
+  displayedColumns = signal(['client', 'vendor', 'bundle', 'request', 'response', 'gfr', 'gfrv', 'impression', 'click', 'er', 'ctr', 'rv', 'actions']);
   readonly sort = viewChild(MatSort);
+  dataSource = signal(this.createDataSource([]));
 
   clients: Client[] = [];
   clientMedias: ClientMedia[] = [];
@@ -78,9 +79,9 @@ export class BundleDialogComponent implements AfterViewInit {
   performanceViewMap: Map<string, PerformanceView> = new Map<string, PerformanceView>();
 
   trafficControlData: TrafficControl[] = [];
-  trafficControlMap: Map<string, TrafficControl> = new Map<string, TrafficControl>();
+  trafficControlMap = signal(new Map<string, TrafficControl>());
 
-  fetching = true;
+  fetching = signal(true);
   focus = false;
   dialogData: BundleDialogData;
 
@@ -159,9 +160,9 @@ export class BundleDialogComponent implements AfterViewInit {
         this.vendorPortMap = new Map(this.vendorPorts.map(vp => [vp.id, vp]));
 
         if (this.direction() === 'client') {
-          this.displayedColumns = ['client', 'vendor', 'bundle', 'request-valid', 'response', 'response-valid', 'gfr', 'gfrv', 'impression', 'click', 'er', 'ctr', 'rv', 'actions'];
+          this.displayedColumns.set(['client', 'vendor', 'bundle', 'request-valid', 'response', 'response-valid', 'gfr', 'gfrv', 'impression', 'click', 'er', 'ctr', 'rv', 'actions']);
         } else {
-          this.displayedColumns = ['client', 'vendor', 'bundle', 'request', 'request-valid', 'response', 'gfr', 'gfrv', 'impression', 'click', 'er', 'ctr', 'rv', 'actions'];
+          this.displayedColumns.set(['client', 'vendor', 'bundle', 'request', 'request-valid', 'response', 'gfr', 'gfrv', 'impression', 'click', 'er', 'ctr', 'rv', 'actions']);
         }
 
         forkJoin([
@@ -188,11 +189,9 @@ export class BundleDialogComponent implements AfterViewInit {
           this.performanceData = results[0];
           this.trafficControlData = results[1];
 
-          this.fetching = false;
+          this.fetching.set(false);
 
           this.updatePerformanceView();
-
-          this.fetching = false;
         });
       });
     });
@@ -235,12 +234,13 @@ export class BundleDialogComponent implements AfterViewInit {
     this.performanceViewData.length = 0;
     this.performanceViewMap.clear();
 
-    this.trafficControlMap.clear();
+    const trafficControlMap = new Map<string, TrafficControl>();
     for (const trafficControl of this.trafficControlData) {
       if (trafficControl.bundle) {
-        this.trafficControlMap.set(trafficControl.clientPort + '|' + trafficControl.vendorPort + '|' + trafficControl.bundle, trafficControl);
+        trafficControlMap.set(trafficControl.clientPort + '|' + trafficControl.vendorPort + '|' + trafficControl.bundle, trafficControl);
       }
     }
+    this.trafficControlMap.set(trafficControlMap);
 
     for (const performance of this.performanceData) {
       let key = '';
@@ -330,13 +330,18 @@ export class BundleDialogComponent implements AfterViewInit {
       performanceView.outcomeDownstream += performance.outcomeDownstream;
     }
 
-    this.dataSource.data = this.performanceViewData.sort((a, b) => {
+    const data = this.performanceViewData.sort((a, b) => {
       const keya = a.clientPort + '|' + a.vendorPort;
       const keyb = b.clientPort + '|' + b.vendorPort;
       return keya > keyb ? -1 : 1;
     });
-    this.dataSource.sort = this.sort() ?? null;
-    this.dataSource.sortingDataAccessor = (item, property) => {
+    this.dataSource.set(this.createDataSource(data));
+  }
+
+  private createDataSource(data: PerformanceView[]): MatTableDataSource<PerformanceView> {
+    const dataSource = new MatTableDataSource(data);
+    dataSource.sort = this.sort() ?? null;
+    dataSource.sortingDataAccessor = (item, property) => {
       switch (property) {
         case 'request-valid': return item.requestv ?? -1;
         case 'response-valid': return item.responsev ?? -1;
@@ -357,38 +362,45 @@ export class BundleDialogComponent implements AfterViewInit {
         }
       }
     };
-    this.dataSource.filterPredicate = function (item, filter) {
+    dataSource.filterPredicate = function (item, filter) {
       if (item.bundle) {
         return item.bundle.toLowerCase().includes(filter);
       } else {
         return false;
       }
     };
+    return dataSource;
   }
 
   applyFilter(event: KeyboardEvent) {
     let filterValue = (event.target as HTMLInputElement).value;
     filterValue = filterValue.trim();
     filterValue = filterValue.toLowerCase();
-    this.dataSource.filter = filterValue;
+    this.dataSource().filter = filterValue;
   }
 
   removeQps(clientPort: number, vendorPort: number, bundle: string) {
-    const trafficControl = this.trafficControlMap.get(clientPort + '|' + vendorPort + '|' + bundle);
+    const key = clientPort + '|' + vendorPort + '|' + bundle;
+    const trafficControl = this.trafficControlMap().get(key);
     if (trafficControl && trafficControl.id) {
       this.trafficControlAPI.removeTrafficControl(trafficControl.id).subscribe(() => {
-        this.trafficControlMap.delete(clientPort + '|' + vendorPort + '|' + bundle);
+        const trafficControlMap = new Map(this.trafficControlMap());
+        trafficControlMap.delete(key);
+        this.trafficControlMap.set(trafficControlMap);
       });
     }
   }
 
   updateQps(clientPort: number, vendorPort: number, bundle: string, qps: number) {
-    const trafficControl = this.trafficControlMap.get(clientPort + '|' + vendorPort + '|' + bundle);
+    const key = clientPort + '|' + vendorPort + '|' + bundle;
+    const trafficControl = this.trafficControlMap().get(key);
     if (trafficControl && trafficControl.id) {
       trafficControl.limitation = qps;
 
       this.trafficControlAPI.updateTrafficControl(trafficControl.id, trafficControl).subscribe(() => {
-        this.trafficControlMap.set(clientPort + '|' + vendorPort + '|' + bundle, trafficControl);
+        const trafficControlMap = new Map(this.trafficControlMap());
+        trafficControlMap.set(key, trafficControl);
+        this.trafficControlMap.set(trafficControlMap);
       });
     } else {
       const trafficControl: TrafficControl = {
@@ -402,13 +414,15 @@ export class BundleDialogComponent implements AfterViewInit {
       };
 
       this.trafficControlAPI.addTrafficControl(trafficControl).subscribe(trafficControl => {
-        this.trafficControlMap.set(clientPort + '|' + vendorPort + '|' + bundle, trafficControl);
+        const trafficControlMap = new Map(this.trafficControlMap());
+        trafficControlMap.set(key, trafficControl);
+        this.trafficControlMap.set(trafficControlMap);
       });
     }
   }
 
   getQps(clientPort: number, vendorPort: number, bundle: string) {
-    const trafficControl = this.trafficControlMap.get(clientPort + '|' + vendorPort + '|' + bundle);
+    const trafficControl = this.trafficControlMap().get(clientPort + '|' + vendorPort + '|' + bundle);
     if (trafficControl && trafficControl.id) {
       return trafficControl.limitation;
     } else {
@@ -418,8 +432,8 @@ export class BundleDialogComponent implements AfterViewInit {
 
   setQps(event: Event, clientPort: number, vendorPort: number, bundle: string) {
     if (event instanceof KeyboardEvent && event.key === 'Enter' || event instanceof FocusEvent && this.focus) {
-      if (this.trafficControlMap.has(clientPort + '|' + vendorPort + '|' + bundle)) {
-        const trafficControl = this.trafficControlMap.get(clientPort + '|' + vendorPort + '|' + bundle);
+      if (this.trafficControlMap().has(clientPort + '|' + vendorPort + '|' + bundle)) {
+        const trafficControl = this.trafficControlMap().get(clientPort + '|' + vendorPort + '|' + bundle);
         if (trafficControl && (event.target as HTMLInputElement).value.length > 0 && +(event.target as HTMLInputElement).value === trafficControl.limitation) {
           (event.target as HTMLInputElement).blur();
           return;

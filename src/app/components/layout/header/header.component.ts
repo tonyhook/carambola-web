@@ -1,10 +1,10 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { Router, RouterModule } from '@angular/router';
-import { Title } from '@angular/platform-browser';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatToolbarModule } from '@angular/material/toolbar';
+import { Title } from '@angular/platform-browser';
+import { Router, RouterModule } from '@angular/router';
 
 import { OpenApplicationAPI, Tenant } from '../../../core';
 import { AuthService, DrawerService, TenantService } from '../../../services';
@@ -29,11 +29,11 @@ export class HeaderComponent implements OnInit {
   tenantService = inject(TenantService);
   private applicationAPI = inject(OpenApplicationAPI);
 
-  name = '';
+  name = signal('');
 
   ngOnInit() {
     this.applicationAPI.getSite().subscribe((site) => {
-      this.name = site.name;
+      this.name.set(site.name);
       this.title.setTitle(site.name);
     });
   }

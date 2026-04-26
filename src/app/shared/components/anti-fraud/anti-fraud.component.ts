@@ -1,6 +1,7 @@
-import { Component, input, OnInit, inject } from '@angular/core';
+import { Component, inject, input, OnInit, signal } from '@angular/core';
 
 import { AntiFraud, AntiFraudPeriod, AntiFraudRuleAPI } from '../../../core';
+
 @Component({
   selector: 'carambola-anti-fraud',
   imports: [],
@@ -13,26 +14,26 @@ export class AntiFraudComponent implements OnInit {
   AntiFraudPeriod = AntiFraudPeriod;
 
   antiFraud = input.required<AntiFraud>();
-  antiFraudDescription = '';
+  antiFraudDescription = signal('');
 
   ngOnInit() {
     this.antiFraudRuleAPI.getAntiFraudRule(this.antiFraud().rule).subscribe(antiFraudRule => {
-      this.antiFraudDescription = antiFraudRule.detail;
+      let antiFraudDescription = antiFraudRule.detail;
       switch (this.antiFraud().period) {
         case AntiFraudPeriod.AF_PERIOD_SECOND:
-          this.antiFraudDescription = this.antiFraudDescription.replace('#PERIOD#', '每秒');
+          antiFraudDescription = antiFraudDescription.replace('#PERIOD#', '每秒');
           break;
         case AntiFraudPeriod.AF_PERIOD_MINUTE:
-          this.antiFraudDescription = this.antiFraudDescription.replace('#PERIOD#', '每分钟');
+          antiFraudDescription = antiFraudDescription.replace('#PERIOD#', '每分钟');
           break;
         case AntiFraudPeriod.AF_PERIOD_HOUR:
-          this.antiFraudDescription = this.antiFraudDescription.replace('#PERIOD#', '每小时');
+          antiFraudDescription = antiFraudDescription.replace('#PERIOD#', '每小时');
           break;
         case AntiFraudPeriod.AF_PERIOD_DAY:
-          this.antiFraudDescription = this.antiFraudDescription.replace('#PERIOD#', '每天');
+          antiFraudDescription = antiFraudDescription.replace('#PERIOD#', '每天');
           break;
       }
-      this.antiFraudDescription = this.antiFraudDescription.replace('#LIMITATION#', String(this.antiFraud().limitation));
+      this.antiFraudDescription.set(antiFraudDescription.replace('#LIMITATION#', String(this.antiFraud().limitation)));
     });
   }
 

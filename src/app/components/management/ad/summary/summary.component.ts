@@ -1,8 +1,8 @@
-import { AfterViewInit, Component, DoCheck, effect, ElementRef, HostListener, KeyValueDiffer, KeyValueDiffers, OnInit, signal, WritableSignal, inject, viewChild } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { AfterViewInit, ChangeDetectionStrategy, Component, DoCheck, effect, ElementRef, HostListener, inject, KeyValueDiffer, KeyValueDiffers, OnInit, signal, viewChild, WritableSignal } from '@angular/core';
 import { animate, state, style, transition, trigger } from '@angular/animations';
+import { CdkMenuModule } from '@angular/cdk/menu';
+import { CommonModule } from '@angular/common';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleChange, MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatCardModule } from '@angular/material/card';
@@ -18,7 +18,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { CdkMenuModule } from '@angular/cdk/menu';
+import { ActivatedRoute } from '@angular/router';
 import { asyncScheduler, catchError, debounceTime, forkJoin, scheduled, Subject, switchMap } from 'rxjs';
 
 import { BillAPI, BillStatus, BillView, Client, ClientAPI, ClientMedia, ClientMediaAPI, ClientPort, ClientPortAPI, ConnectionAPI, Medium, PartnerType, PerformanceAPI, PerformancePartner, PerformancePlaceholder, PerformanceView, Query, Sign, TimedPairedVendorPortMap, Vendor, VendorAPI, VendorMedia, VendorMediaAPI, VendorPort, VendorPortAPI } from '../../../../core';
@@ -47,6 +47,7 @@ interface SummaryRangeControls {
 
 @Component({
   selector: 'carambola-summary',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -103,7 +104,7 @@ export class SummaryComponent implements OnInit, AfterViewInit, DoCheck {
   PartnerType = PartnerType;
   BillStatus = BillStatus;
 
-  displayedColumns: string[] = [];
+  displayedColumns = signal<string[]>([]);
   displayedColumnsWidth = 0;
   scrollLeft = 0;
   scrollRight = 0;
@@ -239,7 +240,7 @@ export class SummaryComponent implements OnInit, AfterViewInit, DoCheck {
   readonly table = viewChild<ElementRef>('table');
 
   dataRequest$ = new Subject<[Query<PerformancePlaceholder>, Query<PerformancePlaceholder>]>();
-  dataSource = new MatTableDataSource<PerformanceView>([]);
+  dataSource = signal(this.createDataSource([]));
 
   constructor() {
     this.formGroupColumn = this.formBuilder.group({
@@ -271,7 +272,7 @@ export class SummaryComponent implements OnInit, AfterViewInit, DoCheck {
         return;
       }
 
-      this.dataSource.data = [];
+      this.dataSource.set(this.createDataSource([]));
       this.performanceViewTotal = {
         time: '',
         start: new Date(),
@@ -972,17 +973,17 @@ export class SummaryComponent implements OnInit, AfterViewInit, DoCheck {
   }
 
   prepareDisplayColumns() {
-    this.displayedColumns = ['time'];
+    let displayedColumns = ['time'];
     this.displayedColumnsWidth = 120;
     if (this.summaryAggregateUpstream === 'client' || this.summaryAggregateUpstream === 'clientport') {
-      this.displayedColumns = this.displayedColumns.concat(['upstream']);
+      displayedColumns = displayedColumns.concat(['upstream']);
       this.displayedColumnsWidth += 250;
     }
     if (this.summaryAggregateDownstream === 'vendor' || this.summaryAggregateDownstream === 'vendorport') {
-      this.displayedColumns = this.displayedColumns.concat(['downstream']);
+      displayedColumns = displayedColumns.concat(['downstream']);
       this.displayedColumnsWidth += 250;
     }
-    this.displayedColumns = [...this.displayedColumns, ...this.selectedColumns];
+    this.displayedColumns.set([...displayedColumns, ...this.selectedColumns]);
     this.displayedColumnsWidth = this.displayedColumnsWidth + this.selectedColumns.length * 120 + 80;
 
     this.onResize();
@@ -1873,59 +1874,66 @@ export class SummaryComponent implements OnInit, AfterViewInit, DoCheck {
         this.performanceViewMap.set(time + '|', performanceView);
       }
 
-      this.dataSource.data = this.performanceViewData.sort((a, b) => {
+      const data = this.performanceViewData.sort((a, b) => {
         const keya = a.time + '|' + a.clientPort + '|' + a.vendorPort;
         const keyb = b.time + '|' + b.clientPort + '|' + b.vendorPort;
         return keya > keyb ? -1 : 1;
       });
-      this.dataSource.sort = this.sort() ?? null;
-      this.dataSource.paginator = this.paginator() ?? null;
-      if (this.mode() === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
-        this.dataSource.sortingDataAccessor = (item, property) => {
-          switch (property) {
-            case 'gfr': return item.requestv ? (1.0 * (item.response ?? 0) / item.requestv) : -1;
-            case 'gfrv': return item.requestv ? (1.0 * (item.responsev ?? 0) / item.requestv) : -1;
-            case 'er': return item.response ? (1.0 * (item.impression ?? 0) / item.response) : -1;
-            case 'ctr': return item.impression ? (1.0 * (item.click ?? 0) / item.impression) : -1;
-            case 'rv': return item.requestv ? (1.0 * (item.income ?? 0) / item.requestv / 10) : -1;
-            case 'cpm': return item.impression ? (1.0 * (item.income ?? 0) / 100 / item.impression) : -1;
-            case 'upstream': return this.clientPortMap.get(item.clientPort)?.name ?? '';
-            case 'downstream': return this.vendorPortMap.get(item.vendorPort)?.name ?? '';
-            default: {
-              const value = item[property as keyof typeof item];
-              if (typeof value === 'number') {
-                return value;
-              } else {
-                return value ? value.toString() : '';
-              }
-            }
-          }
-        };
-      }
-      if (this.mode() === PartnerType.PARTNER_TYPE_DIRECT) {
-        this.dataSource.sortingDataAccessor = (item, property) => {
-          switch (property) {
-            case 'gfr': return this.getMediumData(item)?.request ? (1.0 * (this.getMediumData(item)?.response ?? 0) / this.getMediumData(item)!.request!) : -1;
-            case 'gfrv': return this.getMediumData(item)?.request ? (1.0 * (this.getMediumData(item)?.response ?? 0) / this.getMediumData(item)!.request!) : -1;
-            case 'er': return this.getMediumData(item)?.response ? (1.0 * (this.getMediumData(item)?.impression ?? 0) / this.getMediumData(item)!.response!) : -1;
-            case 'ctr': return this.getMediumData(item)?.impression ? (1.0 * (this.getMediumData(item)?.click ?? 0) / this.getMediumData(item)!.impression!) : -1;
-            case 'rv': return this.getMediumData(item)?.request ? (1.0 * (this.getMediumData(item)?.cost ?? 0) / this.getMediumData(item)!.request! / 10) : -1;
-            case 'cpm': return this.getMediumData(item)?.impression ? (1.0 * (this.getMediumData(item)?.cost ?? 0) / 100 / this.getMediumData(item)!.impression!) : -1;
-            case 'upstream': return this.clientPortMap.get(item.clientPort)?.name ?? '';
-            case 'downstream': return this.vendorPortMap.get(item.vendorPort)?.name ?? '';
-            default: {
-              const mediumData = this.getMediumData(item);
-              const value = mediumData ? mediumData[property as keyof BillView] : undefined;
-              if (typeof value === 'number') {
-                return value;
-              } else {
-                return value ? value.toString() : '';
-              }
-            }
-          }
-        };
-      }
+
+      this.dataSource.set(this.createDataSource(data));
     });
+  }
+
+  private createDataSource(data: PerformanceView[]): MatTableDataSource<PerformanceView> {
+    const dataSource = new MatTableDataSource(data);
+    dataSource.sort = this.sort() ?? null;
+    dataSource.paginator = this.paginator() ?? null;
+    if (this.mode() === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
+      dataSource.sortingDataAccessor = (item, property) => {
+        switch (property) {
+          case 'gfr': return item.requestv ? (1.0 * (item.response ?? 0) / item.requestv) : -1;
+          case 'gfrv': return item.requestv ? (1.0 * (item.responsev ?? 0) / item.requestv) : -1;
+          case 'er': return item.response ? (1.0 * (item.impression ?? 0) / item.response) : -1;
+          case 'ctr': return item.impression ? (1.0 * (item.click ?? 0) / item.impression) : -1;
+          case 'rv': return item.requestv ? (1.0 * (item.income ?? 0) / item.requestv / 10) : -1;
+          case 'cpm': return item.impression ? (1.0 * (item.income ?? 0) / 100 / item.impression) : -1;
+          case 'upstream': return this.clientPortMap.get(item.clientPort)?.name ?? '';
+          case 'downstream': return this.vendorPortMap.get(item.vendorPort)?.name ?? '';
+          default: {
+            const value = item[property as keyof typeof item];
+            if (typeof value === 'number') {
+              return value;
+            } else {
+              return value ? value.toString() : '';
+            }
+          }
+        }
+      };
+    }
+    if (this.mode() === PartnerType.PARTNER_TYPE_DIRECT) {
+      dataSource.sortingDataAccessor = (item, property) => {
+          switch (property) {
+          case 'gfr': return this.getMediumData(item)?.request ? (1.0 * (this.getMediumData(item)?.response ?? 0) / this.getMediumData(item)!.request!) : -1;
+          case 'gfrv': return this.getMediumData(item)?.request ? (1.0 * (this.getMediumData(item)?.response ?? 0) / this.getMediumData(item)!.request!) : -1;
+          case 'er': return this.getMediumData(item)?.response ? (1.0 * (this.getMediumData(item)?.impression ?? 0) / this.getMediumData(item)!.response!) : -1;
+          case 'ctr': return this.getMediumData(item)?.impression ? (1.0 * (this.getMediumData(item)?.click ?? 0) / this.getMediumData(item)!.impression!) : -1;
+          case 'rv': return this.getMediumData(item)?.request ? (1.0 * (this.getMediumData(item)?.cost ?? 0) / this.getMediumData(item)!.request! / 10) : -1;
+          case 'cpm': return this.getMediumData(item)?.impression ? (1.0 * (this.getMediumData(item)?.cost ?? 0) / 100 / this.getMediumData(item)!.impression!) : -1;
+          case 'upstream': return this.clientPortMap.get(item.clientPort)?.name ?? '';
+          case 'downstream': return this.vendorPortMap.get(item.vendorPort)?.name ?? '';
+          default: {
+            const mediumData = this.getMediumData(item);
+            const value = mediumData ? mediumData[property as keyof BillView] : undefined;
+            if (typeof value === 'number') {
+              return value;
+            } else {
+              return value ? value.toString() : '';
+            }
+          }
+        }
+      };
+    }
+    return dataSource;
   }
 
   getMediumData(row: PerformanceView): BillView | null {

@@ -1,4 +1,4 @@
-import { Component, effect, input, OnInit, output, signal, WritableSignal, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, input, OnInit, output, signal, WritableSignal } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -19,6 +19,7 @@ type UserFormGroup = FormGroup<{
 
 @Component({
   selector: 'carambola-user-form',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
     MatButtonModule,
@@ -70,14 +71,20 @@ export class UserFormComponent implements OnInit {
       const roles = this.roles();
 
       const userRoleSet = new Set<Role>();
-      if (user) {
-        if (user.roles) {
-          user.roles.forEach(role => {
-            userRoleSet.add(roles.find(r => r.id === role.id)!);
-          });
-        }
+      if (!user) {
         this.userRoleSet.set(userRoleSet);
+        return;
       }
+
+      if (user.roles) {
+        user.roles.forEach(role => {
+          const matchedRole = roles.find(r => r.id === role.id);
+          if (matchedRole) {
+            userRoleSet.add(matchedRole);
+          }
+        });
+      }
+      this.userRoleSet.set(userRoleSet);
     });
   }
 
@@ -169,9 +176,21 @@ export class UserFormComponent implements OnInit {
     if (user) {
       if (event.checked) {
         user.roles.push(role);
+        this.userRoleSet.update(roles => {
+          const nextRoles = new Set(roles);
+          nextRoles.add(role);
+          return nextRoles;
+        });
       } else {
         const index = user.roles.findIndex(r => r.id === role.id);
-        user.roles.splice(index, 1);
+        if (index >= 0) {
+          user.roles.splice(index, 1);
+        }
+        this.userRoleSet.update(roles => {
+          const nextRoles = new Set(roles);
+          nextRoles.delete(role);
+          return nextRoles;
+        });
       }
 
       this.userAPI.updateUser(user.id!, user).subscribe();
