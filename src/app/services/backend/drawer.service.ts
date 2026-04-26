@@ -1,6 +1,6 @@
-import { Injectable, OnDestroy, signal, inject } from '@angular/core';
-import { MatDrawerMode } from '@angular/material/sidenav';
+import { inject, Injectable, OnDestroy, signal } from '@angular/core';
 import { BreakpointObserver, Breakpoints, BreakpointState } from '@angular/cdk/layout';
+import { MatDrawerMode } from '@angular/material/sidenav';
 import { Event, NavigationEnd, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 

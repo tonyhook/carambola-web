@@ -1,6 +1,5 @@
-import { Component, OnDestroy, OnInit, signal, WritableSignal, inject } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, signal, WritableSignal } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDividerModule } from '@angular/material/divider';
@@ -9,10 +8,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTabsModule } from '@angular/material/tabs';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { Menu, MenuAPI } from '../../../../core';
 import { MenuService } from '../../../../services';
-import { ItemChangeEvent, ItemDeleteEvent, ItemNewEvent, ItemSelectEvent, TreeViewComponent, PermissionComponent } from '../../../../shared';
+import { ItemChangeEvent, ItemDeleteEvent, ItemNewEvent, ItemSelectEvent, PermissionComponent, TreeViewComponent } from '../../../../shared';
 
 type MenuFormGroup = FormGroup<{
   name: FormControl<string>;
@@ -115,19 +115,24 @@ export class MenuManagerComponent implements OnInit, OnDestroy {
     const menu = menus.find(menu => menu.id === event.id);
 
     if (typeof menu !== 'undefined' && menu.id) {
+      const menuId = menu.id;
+      const nextMenu = {...menu};
       if (event.type === 'sequence') {
         if (event.newValue !== null) {
-          menu.sequence = event.newValue;
+          nextMenu.sequence = event.newValue;
         } else {
-          menu.sequence = 0;
+          nextMenu.sequence = 0;
         }
       }
       if (event.type === 'parent') {
-        menu.parentId = event.newValue;
+        nextMenu.parentId = event.newValue;
       }
 
-      this.menus.update(menus => [...menus]);
-      this.scheduleMenuUpdate(menu.id);
+      this.menus.update(menus => menus.map(menu => menu.id === menuId ? {...nextMenu} : menu));
+      if (this.menu()?.id === menuId) {
+        this.menu.set({...nextMenu});
+      }
+      this.scheduleMenuUpdate(menuId);
     }
   }
 
@@ -250,12 +255,17 @@ export class MenuManagerComponent implements OnInit, OnDestroy {
     const menu = this.menu();
 
     if (menu && menu.id) {
-      menu.name = this.formGroup.controls.name.value;
-      menu.icon = this.formGroup.controls.icon.value;
-      menu.link = this.formGroup.controls.link.value;
-      menu.disabled = this.formGroup.controls.disabled.value;
-      this.menus.update(menus => [...menus]);
-      this.scheduleMenuUpdate(menu.id);
+      const menuId = menu.id;
+      const nextMenu = {
+        ...menu,
+        name: this.formGroup.controls.name.value,
+        icon: this.formGroup.controls.icon.value,
+        link: this.formGroup.controls.link.value,
+        disabled: this.formGroup.controls.disabled.value,
+      };
+      this.menu.set({...nextMenu});
+      this.menus.update(menus => menus.map(menu => menu.id === menuId ? {...nextMenu} : menu));
+      this.scheduleMenuUpdate(menuId);
     }
   }
 

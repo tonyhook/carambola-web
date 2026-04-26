@@ -1,7 +1,6 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
-
+import { Component, inject, OnInit } from '@angular/core';
 import { MatIconRegistry } from '@angular/material/icon';
+import { RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'carambola-root',

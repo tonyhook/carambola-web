@@ -1,6 +1,5 @@
-import { AfterViewInit, Component, OnInit, inject, viewChild } from '@angular/core';
+import { AfterViewInit, Component, inject, OnInit, viewChild } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { Subject, switchMap } from 'rxjs';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -13,6 +12,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatTabsModule } from '@angular/material/tabs';
+import { Subject, switchMap } from 'rxjs';
 
 import { Query, Role, RoleAPI } from '../../../../core';
 import { IsNewPipe } from '../../../../shared';

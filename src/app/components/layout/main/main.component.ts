@@ -1,10 +1,9 @@
 import { Component, inject } from '@angular/core';
-import { RouterModule } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSidenavModule } from '@angular/material/sidenav';
+import { RouterModule } from '@angular/router';
 
 import { DrawerService } from '../../../services';
-
 import { MenuComponent } from '../menu/menu.component';
 
 @Component({

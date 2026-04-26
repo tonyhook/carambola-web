@@ -1,4 +1,4 @@
-import { Component, effect, input, OnInit, output, signal, WritableSignal, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, input, OnInit, output, signal, WritableSignal } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -19,6 +19,7 @@ type UserFormGroup = FormGroup<{
 
 @Component({
   selector: 'carambola-user-form',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
     MatButtonModule,
@@ -72,14 +73,20 @@ export class UserFormComponent implements OnInit {
       const roles = this.roles();
 
       const userRoleSet = new Set<Role>();
-      if (user) {
-        if (user.roles) {
-          user.roles.forEach(role => {
-            userRoleSet.add(roles.find(r => r.id === role.id)!);
-          });
-        }
+      if (!user) {
         this.userRoleSet.set(userRoleSet);
+        return;
       }
+
+      if (user.roles) {
+        user.roles.forEach(role => {
+          const matchedRole = roles.find(r => r.id === role.id);
+          if (matchedRole) {
+            userRoleSet.add(matchedRole);
+          }
+        });
+      }
+      this.userRoleSet.set(userRoleSet);
     });
   }
 
