@@ -1,4 +1,4 @@
-import { Component, effect, input, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, input, OnInit, signal } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -9,8 +9,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
 
-import { Permission, Role, PermissionAPI, RoleAPI, ManagedResource, UserAPI } from '../../../core';
-
+import { ManagedResource, Permission, PermissionAPI, Role, RoleAPI, UserAPI } from '../../../core';
 import { OperationComponent } from '../operation/operation.component';
 
 type PermissionInheritedFormGroup = FormGroup<{
@@ -24,6 +23,7 @@ type PermissionEditorFormGroup = FormGroup<{
 
 @Component({
   selector: 'carambola-permission',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
     MatButtonModule,
@@ -45,24 +45,24 @@ export class PermissionComponent implements OnInit {
   private userAPI = inject(UserAPI);
   private snackBar = inject(MatSnackBar);
 
-  roles: Role[] = [];
-  roleNameMap: Map<number, string> = new Map<number, string>();
+  roles = signal<Role[]>([]);
+  roleNameMap = signal(new Map<number, string>());
   displayedColumns: string[] = ['roleId', 'permission'];
 
-  itemPermissions: Permission[] = [];
-  inheritedPermissions: Permission[] = [];
-  itemPermissionMap: Map<number, Permission> = new Map<number, Permission>();
-  inheritedPermissionMap: Map<number, Permission> = new Map<number, Permission>();
-  itemPermissionRoleIds: number[] = [];
+  itemPermissions = signal<Permission[]>([]);
+  inheritedPermissions = signal<Permission[]>([]);
+  itemPermissionMap = signal(new Map<number, Permission>());
+  inheritedPermissionMap = signal(new Map<number, Permission>());
+  itemPermissionRoleIds = signal<number[]>([]);
 
   formGroup: PermissionInheritedFormGroup;
   permissionFormGroup: PermissionEditorFormGroup;
 
-  inherited = false;
-  inheritedPermissionId = 0;
-  ownerName = '';
-  savingInherited = false;
-  savingPermissionRoleIds: Set<number> = new Set<number>();
+  inherited = signal(false);
+  inheritedPermissionId = signal(0);
+  ownerName = signal('');
+  savingInherited = signal(false);
+  savingPermissionRoleIds = signal(new Set<number>());
 
   item = input<ManagedResource | null>(null);
   itemType = input<string>('');
@@ -92,82 +92,77 @@ export class PermissionComponent implements OnInit {
       permission: this.formBuilder.nonNullable.control('', Validators.required),
     });
 
-    effect(() => {
+    effect((onCleanup) => {
       const item = this.item();
       const itemType = this.itemType();
+      let active = true;
 
-      this.ownerName = '';
-      this.inherited = false;
-      this.inheritedPermissionId = 0;
-      this.itemPermissions = [];
-      this.inheritedPermissions = [];
-      this.itemPermissionRoleIds = [];
-      this.itemPermissionMap.clear();
-      this.inheritedPermissionMap.clear();
+      this.ownerName.set('');
+      this.inherited.set(false);
+      this.inheritedPermissionId.set(0);
+      this.itemPermissions.set([]);
+      this.inheritedPermissions.set([]);
+      this.itemPermissionRoleIds.set([]);
+      this.itemPermissionMap.set(new Map());
+      this.inheritedPermissionMap.set(new Map());
 
       if (item && item.id && itemType) {
+        const itemId = item.id;
+
         if (item.ownerId !== undefined && item.ownerId !== null) {
           const ownerId = item.ownerId;
 
           this.userAPI.getUser(ownerId).subscribe(user => {
-            if (this.item()?.ownerId === ownerId) {
-              this.ownerName = user.username;
+            if (active && this.item()?.ownerId === ownerId) {
+              this.ownerName.set(user.username);
             }
           });
         }
 
-        this.permissionAPI.getItemPermissionList(itemType, item.id).subscribe(data => {
-          this.itemPermissions = [...data];
+        this.permissionAPI.getItemPermissionList(itemType, itemId).subscribe(data => {
+          if (!active || this.item()?.id !== itemId || this.itemType() !== itemType) {
+            return;
+          }
+
+          const itemPermissions = [...data];
+          let inherited = false;
+          let inheritedPermissionId = 0;
           let inheritedPermissionIndex = -1;
-          this.itemPermissions.forEach((permission, index) => {
+          itemPermissions.forEach((permission, index) => {
             if (permission.permission === null && permission.id) {
-              this.inherited = true;
-              this.inheritedPermissionId = permission.id;
+              inherited = true;
+              inheritedPermissionId = permission.id;
               inheritedPermissionIndex = index;
             }
           });
-          if (this.inherited) {
-            this.itemPermissions.splice(inheritedPermissionIndex, 1);
-            this.permissionAPI.getInheritedPermissionList(itemType, item.id!).subscribe(data => {
-              this.inheritedPermissions = data;
 
-              for (const permission of this.itemPermissions) {
-                this.itemPermissionMap.set(permission.roleId!, permission);
-              }
-              for (const permission of this.inheritedPermissions) {
-                this.inheritedPermissionMap.set(permission.roleId!, permission);
+          this.inherited.set(inherited);
+          this.inheritedPermissionId.set(inheritedPermissionId);
+          if (inherited) {
+            itemPermissions.splice(inheritedPermissionIndex, 1);
+          }
+          this.itemPermissions.set(itemPermissions);
+
+          if (inherited) {
+            this.permissionAPI.getInheritedPermissionList(itemType, itemId).subscribe(data => {
+              if (!active || this.item()?.id !== itemId || this.itemType() !== itemType) {
+                return;
               }
 
-              this.itemPermissionRoleIds = [...this.itemPermissionMap.keys(), ...this.inheritedPermissionMap.keys()];
-              this.itemPermissionRoleIds = Array.from(new Set(this.itemPermissionRoleIds)).sort((a, b) => {
-                if (a < b) {
-                  return -1;
-                } else if (a > b) {
-                  return 1;
-                }
-                return 0;
-              });
+              this.inheritedPermissions.set(data);
+              this.itemPermissionMap.set(new Map(itemPermissions.map(permission => [permission.roleId!, permission])));
+              this.inheritedPermissionMap.set(new Map(data.map(permission => [permission.roleId!, permission])));
+              this.updatePermissionRoleIds();
             });
           } else {
-            this.inheritedPermissions = [];
-
-            for (const permission of this.itemPermissions) {
-              this.itemPermissionMap.set(permission.roleId!, permission);
-            }
-
-            this.itemPermissionRoleIds = [...this.itemPermissionMap.keys()];
-            this.itemPermissionRoleIds = Array.from(new Set(this.itemPermissionRoleIds)).sort((a, b) => {
-              if (a < b) {
-                return -1;
-              } else if (a > b) {
-                return 1;
-              }
-              return 0;
-            });
+            this.inheritedPermissions.set([]);
+            this.itemPermissionMap.set(new Map(itemPermissions.map(permission => [permission.roleId!, permission])));
+            this.inheritedPermissionMap.set(new Map());
+            this.updatePermissionRoleIds();
           }
 
           this.formGroup.patchValue({
-            inherited: this.inherited,
+            inherited,
           });
 
           this.permissionFormGroup.patchValue({
@@ -176,18 +171,22 @@ export class PermissionComponent implements OnInit {
           });
         });
       }
+
+      onCleanup(() => {
+        active = false;
+      });
     });
   }
 
   ngOnInit() {
     this.roleAPI.getRoleList().subscribe(data => {
-      this.roles = data;
-      this.roleNameMap = new Map<number, string>(data.map(role => [role.id!, role.name]));
+      this.roles.set(data);
+      this.roleNameMap.set(new Map<number, string>(data.map(role => [role.id!, role.name])));
     });
   }
 
   getRoleName(roleId: number): string {
-    return this.roleNameMap.get(roleId) ?? String(roleId);
+    return this.roleNameMap().get(roleId) ?? String(roleId);
   }
 
   toggleInherited(event: MatCheckboxChange) {
@@ -206,62 +205,41 @@ export class PermissionComponent implements OnInit {
         roleId: null,
         permission: null,
       }
-      this.savingInherited = true;
+      this.savingInherited.set(true);
       this.permissionAPI.addPermission(permission).subscribe({
         next: data => {
-          this.inherited = true;
-          this.inheritedPermissionId = data.id!;
+          this.inherited.set(true);
+          this.inheritedPermissionId.set(data.id!);
           this.formGroup.controls.inherited.setValue(true, {emitEvent: false});
-          this.savingInherited = false;
+          this.savingInherited.set(false);
 
           this.permissionAPI.getInheritedPermissionList(itemType, item.id!).subscribe(data => {
-            this.inheritedPermissions = data;
-
-            for (const permission of this.inheritedPermissions) {
-              this.inheritedPermissionMap.set(permission.roleId!, permission);
-            }
-
-            this.itemPermissionRoleIds = [...this.itemPermissionMap.keys(), ...this.inheritedPermissionMap.keys()];
-            this.itemPermissionRoleIds = Array.from(new Set(this.itemPermissionRoleIds)).sort((a, b) => {
-              if (a < b) {
-                return -1;
-              } else if (a > b) {
-                return 1;
-              }
-              return 0;
-            });
+            this.inheritedPermissions.set(data);
+            this.inheritedPermissionMap.set(new Map(data.map(permission => [permission.roleId!, permission])));
+            this.updatePermissionRoleIds();
           });
         },
         error: () => {
-          this.savingInherited = false;
+          this.savingInherited.set(false);
           this.snackBar.open('Permission update failed', 'OK', {
             duration: 3000,
           });
         },
       });
     } else {
-      this.savingInherited = true;
-      this.permissionAPI.removePermission(this.inheritedPermissionId).subscribe({
+      this.savingInherited.set(true);
+      this.permissionAPI.removePermission(this.inheritedPermissionId()).subscribe({
         next: () => {
-          this.inherited = false;
-          this.inheritedPermissionId = 0;
-          this.inheritedPermissions = [];
-          this.inheritedPermissionMap.clear();
+          this.inherited.set(false);
+          this.inheritedPermissionId.set(0);
+          this.inheritedPermissions.set([]);
+          this.inheritedPermissionMap.set(new Map());
           this.formGroup.controls.inherited.setValue(false, {emitEvent: false});
-          this.savingInherited = false;
-
-          this.itemPermissionRoleIds = [...this.itemPermissionMap.keys()];
-          this.itemPermissionRoleIds = Array.from(new Set(this.itemPermissionRoleIds)).sort((a, b) => {
-            if (a < b) {
-              return -1;
-            } else if (a > b) {
-              return 1;
-            }
-            return 0;
-          });
+          this.savingInherited.set(false);
+          this.updatePermissionRoleIds();
         },
         error: () => {
-          this.savingInherited = false;
+          this.savingInherited.set(false);
           this.snackBar.open('Permission update failed', 'OK', {
             duration: 3000,
           });
@@ -272,7 +250,8 @@ export class PermissionComponent implements OnInit {
 
   togglePermission(event: string | null, role: number) {
     let permissionIndex = -1;
-    this.itemPermissions.forEach((permission, index) => {
+    const itemPermissions = this.itemPermissions();
+    itemPermissions.forEach((permission, index) => {
       if (permission.roleId === role) {
         permissionIndex = index;
       }
@@ -280,11 +259,18 @@ export class PermissionComponent implements OnInit {
 
     if (event && event.length > 0) {
       if (permissionIndex >= 0) {
-        const permission = this.itemPermissions[permissionIndex];
+        const nextPermission = {...itemPermissions[permissionIndex], permission: event};
         this.setPermissionSaving(role, true);
-        this.permissionAPI.updatePermission(permission.id!, {...permission, permission: event}).subscribe({
+        this.permissionAPI.updatePermission(nextPermission.id!, nextPermission).subscribe({
           next: () => {
-            permission.permission = event;
+            const nextItemPermissions = [...this.itemPermissions()];
+            nextItemPermissions[permissionIndex] = nextPermission;
+            this.itemPermissions.set(nextItemPermissions);
+            this.itemPermissionMap.update(itemPermissionMap => {
+              const nextItemPermissionMap = new Map(itemPermissionMap);
+              nextItemPermissionMap.set(role, nextPermission);
+              return nextItemPermissionMap;
+            });
             this.setPermissionSaving(role, false);
           },
           error: () => {
@@ -305,18 +291,14 @@ export class PermissionComponent implements OnInit {
         this.setPermissionSaving(role, true);
         this.permissionAPI.addPermission(permission).subscribe({
           next: data => {
-            this.itemPermissions.push(data);
-            this.itemPermissionMap.set(role, data);
-            this.setPermissionSaving(role, false);
-            this.itemPermissionRoleIds = [...this.itemPermissionMap.keys(), ...this.inheritedPermissionMap.keys()];
-            this.itemPermissionRoleIds = Array.from(new Set(this.itemPermissionRoleIds)).sort((a, b) => {
-              if (a < b) {
-                return -1;
-              } else if (a > b) {
-                return 1;
-              }
-              return 0;
+            this.itemPermissions.update(itemPermissions => [...itemPermissions, data]);
+            this.itemPermissionMap.update(itemPermissionMap => {
+              const nextItemPermissionMap = new Map(itemPermissionMap);
+              nextItemPermissionMap.set(role, data);
+              return nextItemPermissionMap;
             });
+            this.setPermissionSaving(role, false);
+            this.updatePermissionRoleIds();
           },
           error: () => {
             this.setPermissionSaving(role, false);
@@ -327,21 +309,21 @@ export class PermissionComponent implements OnInit {
         });
       }
     } else {
+      if (permissionIndex < 0) {
+        return;
+      }
+
       this.setPermissionSaving(role, true);
-      this.permissionAPI.removePermission(this.itemPermissions[permissionIndex].id!).subscribe({
+      this.permissionAPI.removePermission(itemPermissions[permissionIndex].id!).subscribe({
         next: () => {
-          this.itemPermissions.splice(permissionIndex, 1);
-          this.itemPermissionMap.delete(role);
-          this.setPermissionSaving(role, false);
-          this.itemPermissionRoleIds = [...this.itemPermissionMap.keys(), ...this.inheritedPermissionMap.keys()];
-          this.itemPermissionRoleIds = Array.from(new Set(this.itemPermissionRoleIds)).sort((a, b) => {
-            if (a < b) {
-              return -1;
-            } else if (a > b) {
-              return 1;
-            }
-            return 0;
+          this.itemPermissions.update(itemPermissions => itemPermissions.filter((_, index) => index !== permissionIndex));
+          this.itemPermissionMap.update(itemPermissionMap => {
+            const nextItemPermissionMap = new Map(itemPermissionMap);
+            nextItemPermissionMap.delete(role);
+            return nextItemPermissionMap;
           });
+          this.setPermissionSaving(role, false);
+          this.updatePermissionRoleIds();
         },
         error: () => {
           this.setPermissionSaving(role, false);
@@ -354,7 +336,7 @@ export class PermissionComponent implements OnInit {
   }
 
   isPermissionSaving(role: number) {
-    return this.savingPermissionRoleIds.has(role);
+    return this.savingPermissionRoleIds().has(role);
   }
 
   preparePermission(event: string | null) {
@@ -378,17 +360,14 @@ export class PermissionComponent implements OnInit {
         permission: this.permissionFormGroup.controls.permission.value,
       }
       this.permissionAPI.addPermission(permission).subscribe(data => {
-        this.itemPermissions.push(data);
-        this.itemPermissionMap.set(this.permissionFormGroup.controls.roleid.value, data);
-        this.itemPermissionRoleIds = [...this.itemPermissionMap.keys(), ...this.inheritedPermissionMap.keys()];
-        this.itemPermissionRoleIds = Array.from(new Set(this.itemPermissionRoleIds)).sort((a, b) => {
-          if (a < b) {
-            return -1;
-          } else if (a > b) {
-            return 1;
-          }
-          return 0;
+        const roleId = this.permissionFormGroup.controls.roleid.value;
+        this.itemPermissions.update(itemPermissions => [...itemPermissions, data]);
+        this.itemPermissionMap.update(itemPermissionMap => {
+          const nextItemPermissionMap = new Map(itemPermissionMap);
+          nextItemPermissionMap.set(roleId, data);
+          return nextItemPermissionMap;
         });
+        this.updatePermissionRoleIds();
       });
     }
   }
@@ -401,12 +380,34 @@ export class PermissionComponent implements OnInit {
     return Object.getOwnPropertyDescriptor(this.item(), name)?.value;
   }
 
+  private updatePermissionRoleIds() {
+    this.itemPermissionRoleIds.set(this.sortRoleIds([
+      ...this.itemPermissionMap().keys(),
+      ...this.inheritedPermissionMap().keys(),
+    ]));
+  }
+
   private setPermissionSaving(role: number, saving: boolean) {
-    if (saving) {
-      this.savingPermissionRoleIds.add(role);
-    } else {
-      this.savingPermissionRoleIds.delete(role);
-    }
+    this.savingPermissionRoleIds.update(roleIds => {
+      const nextRoleIds = new Set(roleIds);
+      if (saving) {
+        nextRoleIds.add(role);
+      } else {
+        nextRoleIds.delete(role);
+      }
+      return nextRoleIds;
+    });
+  }
+
+  private sortRoleIds(roleIds: number[]): number[] {
+    return Array.from(new Set(roleIds)).sort((a, b) => {
+      if (a < b) {
+        return -1;
+      } else if (a > b) {
+        return 1;
+      }
+      return 0;
+    });
   }
 
 }
