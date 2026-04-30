@@ -352,11 +352,14 @@ export class ClientPortManagerComponent implements OnInit, AfterViewInit {
   }
 
   query() {
-    if (this.selectedPlatforms.length > 0) {
-      this.filterClientMedia.set(this.allClientMedia().filter(clientMedia => this.selectedPlatforms.indexOf(clientMedia.platform) >= 0));
-    } else {
-      this.filterClientMedia.set(this.allClientMedia());
+    let clientMedias = this.allClientMedia();
+    if (this.selectedClients.length > 0) {
+      clientMedias = clientMedias.filter(clientMedia => this.selectedClients.map(client => client.id).indexOf(clientMedia.client.id) >= 0);
     }
+    if (this.selectedPlatforms.length > 0) {
+      clientMedias = clientMedias.filter(clientMedia => this.selectedPlatforms.indexOf(clientMedia.platform) >= 0);
+    }
+    this.filterClientMedia.set(clientMedias);
 
     this.formQuery = {
       filter: {

@@ -116,6 +116,8 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
 
   clients: Client[] = [];
   vendors: Vendor[] = [];
+  allClientMedias: ClientMedia[] = [];
+  allVendorMedias: VendorMedia[] = [];
   clientMedias: ClientMedia[] = [];
   vendorMedias: VendorMedia[] = [];
   clientPorts: ClientPort[] = [];
@@ -345,10 +347,12 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
         }),
       ]).subscribe(results => {
         this.clients = results[0].filter(client => !client.deleted);
-        this.clientMedias = results[1].filter(clientMedia => !clientMedia.deleted);
+        this.allClientMedias = results[1].filter(clientMedia => !clientMedia.deleted);
+        this.clientMedias = this.allClientMedias;
         this.clientPorts = results[2].filter(clientPort => !clientPort.deleted);
         this.vendors = results[3].filter(vendor => !vendor.deleted);
-        this.vendorMedias = results[4].filter(vendorMedia => !vendorMedia.deleted);
+        this.allVendorMedias = results[4].filter(vendorMedia => !vendorMedia.deleted);
+        this.vendorMedias = this.allVendorMedias;
         this.vendorPorts = results[5].filter(vendorPort => !vendorPort.deleted);
 
         this.clientMap = new Map(this.clients.map(c => [c.id, c]));
@@ -651,6 +655,24 @@ export class PerformanceComponent implements OnInit, AfterViewInit, DoCheck {
   }
 
   query() {
+    let clientMedias = this.allClientMedias;
+    if (this.selectedClients.length > 0) {
+      clientMedias = clientMedias.filter(clientMedia => this.selectedClients.map(client => client.id).indexOf(clientMedia.client.id) >= 0);
+    }
+    if (this.selectedPlatforms.length > 0) {
+      clientMedias = clientMedias.filter(clientMedia => this.selectedPlatforms.indexOf(clientMedia.platform) >= 0);
+    }
+    this.clientMedias = clientMedias;
+
+    let vendorMedias = this.allVendorMedias;
+    if (this.selectedVendors.length > 0) {
+      vendorMedias = vendorMedias.filter(vendorMedia => this.selectedVendors.map(vendor => vendor.id).indexOf(vendorMedia.vendor.id) >= 0);
+    }
+    if (this.selectedPlatforms.length > 0) {
+      vendorMedias = vendorMedias.filter(vendorMedia => this.selectedPlatforms.indexOf(vendorMedia.platform) >= 0);
+    }
+    this.vendorMedias = vendorMedias;
+
     this.formQuery = {
       filter: {
         clientMode: [String(this.mode())],

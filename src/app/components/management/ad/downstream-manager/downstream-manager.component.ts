@@ -87,6 +87,7 @@ export class DownstreamManagerComponent implements OnInit, AfterViewInit, DoChec
   tableWidth = 0;
 
   vendors: Vendor[] = [];
+  allVendorMedias: VendorMedia[] = [];
   vendorMedias: VendorMedia[] = [];
   vendorPorts: VendorPort[] = [];
 
@@ -221,7 +222,8 @@ export class DownstreamManagerComponent implements OnInit, AfterViewInit, DoChec
         }),
       ]).subscribe(results => {
         this.vendors = results[0].filter(vendor => !vendor.deleted);
-        this.vendorMedias = results[1].filter(vendorMedia => !vendorMedia.deleted);
+        this.allVendorMedias = results[1].filter(vendorMedia => !vendorMedia.deleted);
+        this.vendorMedias = this.allVendorMedias;
         this.vendorPorts = results[2].filter(vendorPort => !vendorPort.deleted);
 
         this.vendorMap = new Map(this.vendors.map(v => [v.id, v]));
@@ -386,6 +388,12 @@ export class DownstreamManagerComponent implements OnInit, AfterViewInit, DoChec
   }
 
   query() {
+    if (this.selectedVendors.length > 0) {
+      this.vendorMedias = this.allVendorMedias.filter(vendorMedia => this.selectedVendors.map(vendor => vendor.id).indexOf(vendorMedia.vendor.id) >= 0);
+    } else {
+      this.vendorMedias = this.allVendorMedias;
+    }
+
     this.formQuery = {
       filter: {
         clientMode: [String(this.mode())],

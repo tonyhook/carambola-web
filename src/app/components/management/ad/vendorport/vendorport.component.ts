@@ -352,11 +352,14 @@ export class VendorPortManagerComponent implements OnInit, AfterViewInit {
   }
 
   query() {
-    if (this.selectedPlatforms.length > 0) {
-      this.filterVendorMedia.set(this.allVendorMedia().filter(vendorMedia => this.selectedPlatforms.indexOf(vendorMedia.platform) >= 0));
-    } else {
-      this.filterVendorMedia.set(this.allVendorMedia());
+    let vendorMedias = this.allVendorMedia();
+    if (this.selectedVendors.length > 0) {
+      vendorMedias = vendorMedias.filter(vendorMedia => this.selectedVendors.map(vendor => vendor.id).indexOf(vendorMedia.vendor.id) >= 0);
     }
+    if (this.selectedPlatforms.length > 0) {
+      vendorMedias = vendorMedias.filter(vendorMedia => this.selectedPlatforms.indexOf(vendorMedia.platform) >= 0);
+    }
+    this.filterVendorMedia.set(vendorMedias);
 
     this.formQuery = {
       filter: {

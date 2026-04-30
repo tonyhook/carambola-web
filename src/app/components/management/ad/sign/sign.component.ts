@@ -117,6 +117,7 @@ export class SignComponent implements OnInit, AfterViewInit, DoCheck {
   clients: Client[] = [];
   vendors: Vendor[] = [];
   clientMedias: ClientMedia[] = [];
+  allVendorMedias: VendorMedia[] = [];
   vendorMedias: VendorMedia[] = [];
   clientPorts: ClientPort[] = [];
   vendorPorts: VendorPort[] = [];
@@ -302,7 +303,8 @@ export class SignComponent implements OnInit, AfterViewInit, DoCheck {
         this.clientMedias = results[1].filter(clientMedia => !clientMedia.deleted);
         this.clientPorts = results[2].filter(clientPort => !clientPort.deleted);
         this.vendors = results[3].filter(vendor => !vendor.deleted);
-        this.vendorMedias = results[4].filter(vendorMedia => !vendorMedia.deleted);
+        this.allVendorMedias = results[4].filter(vendorMedia => !vendorMedia.deleted);
+        this.vendorMedias = this.allVendorMedias;
         this.vendorPorts = results[5].filter(vendorPort => !vendorPort.deleted);
 
         this.clientMap = new Map(this.clients.map(c => [c.id, c]));
@@ -539,6 +541,12 @@ export class SignComponent implements OnInit, AfterViewInit, DoCheck {
   }
 
   query() {
+    if (this.selectedVendors.length > 0) {
+      this.vendorMedias = this.allVendorMedias.filter(vendorMedia => this.selectedVendors.map(vendor => vendor.id).indexOf(vendorMedia.vendor.id) >= 0);
+    } else {
+      this.vendorMedias = this.allVendorMedias;
+    }
+
     this.formQuery = {
       filter: {
         clientMode: [String(this.mode())],
