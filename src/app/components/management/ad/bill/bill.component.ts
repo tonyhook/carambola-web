@@ -117,6 +117,7 @@ export class BillComponent implements OnInit, AfterViewInit, DoCheck {
 
   clients: Client[] = [];
   vendors: Vendor[] = [];
+  allClientMedias: ClientMedia[] = [];
   clientMedias: ClientMedia[] = [];
   vendorMedias: VendorMedia[] = [];
   clientPorts: ClientPort[] = [];
@@ -298,7 +299,8 @@ export class BillComponent implements OnInit, AfterViewInit, DoCheck {
         }),
       ]).subscribe(results => {
         this.clients = results[0].filter(client => !client.deleted);
-        this.clientMedias = results[1].filter(clientMedia => !clientMedia.deleted);
+        this.allClientMedias = results[1].filter(clientMedia => !clientMedia.deleted);
+        this.clientMedias = this.allClientMedias;
         this.clientPorts = results[2].filter(clientPort => !clientPort.deleted);
         this.vendors = results[3].filter(vendor => !vendor.deleted);
         this.vendorMedias = results[4].filter(vendorMedia => !vendorMedia.deleted);
@@ -624,6 +626,12 @@ export class BillComponent implements OnInit, AfterViewInit, DoCheck {
   }
 
   query() {
+    if (this.selectedClients.length > 0) {
+      this.clientMedias = this.allClientMedias.filter(clientMedia => this.selectedClients.map(client => client.id).indexOf(clientMedia.client.id) >= 0);
+    } else {
+      this.clientMedias = this.allClientMedias;
+    }
+
     this.formQuery = {
       filter: {
         clientMode: [String(this.mode())],

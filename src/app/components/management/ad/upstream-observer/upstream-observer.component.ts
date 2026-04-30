@@ -81,6 +81,7 @@ export class UpstreamObserverComponent implements OnInit, AfterViewInit, DoCheck
   tableWidth = 0;
 
   clients: Client[] = [];
+  allClientMedias: ClientMedia[] = [];
   clientMedias: ClientMedia[] = [];
   clientPorts: ClientPort[] = [];
 
@@ -216,7 +217,8 @@ export class UpstreamObserverComponent implements OnInit, AfterViewInit, DoCheck
         }),
       ]).subscribe(results => {
         this.clients = results[0].filter(client => !client.deleted);
-        this.clientMedias = results[1].filter(clientMedia => !clientMedia.deleted);
+        this.allClientMedias = results[1].filter(clientMedia => !clientMedia.deleted);
+        this.clientMedias = this.allClientMedias;
         this.clientPorts = results[2].filter(clientPort => !clientPort.deleted);
 
         this.clientMap = new Map(this.clients.map(c => [c.id, c]));
@@ -381,6 +383,12 @@ export class UpstreamObserverComponent implements OnInit, AfterViewInit, DoCheck
   }
 
   query() {
+    if (this.selectedClients.length > 0) {
+      this.clientMedias = this.allClientMedias.filter(clientMedia => this.selectedClients.map(client => client.id).indexOf(clientMedia.client.id) >= 0);
+    } else {
+      this.clientMedias = this.allClientMedias;
+    }
+
     this.formQuery = {
       filter: {
         clientMode: [String(this.mode())],
