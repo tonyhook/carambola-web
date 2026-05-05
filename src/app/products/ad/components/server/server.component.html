@@ -76,6 +76,9 @@
         <button mat-stroked-button (click)="service(row, 'server', 'reboot')">
           <mat-icon>restart_alt</mat-icon>重启
         </button>
+        <button mat-stroked-button (click)="service(row, 'server', 'maintain')">
+          <mat-icon>build</mat-icon>维护
+        </button>
       </mat-cell>
     </ng-container>
     <ng-container matColumnDef="servingAction">
