@@ -26,7 +26,7 @@
                 [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
                 (matChipInputTokenEnd)="add($event, ctrlManager, managerUsers)" />
               <mat-autocomplete #autoManager="matAutocomplete" (optionSelected)="select($event, inputManager, ctrlManager, managerUsers)">
-                @for (user of filteredManager | async; track user.username) {
+                @for (user of filteredManager(); track user.username) {
                   <mat-option [value]="user.username">
                     {{ user.username }}
                   </mat-option>
@@ -51,7 +51,7 @@
                 [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
                 (matChipInputTokenEnd)="add($event, ctrlOperator, operatorUsers)" />
               <mat-autocomplete #autoOperator="matAutocomplete" (optionSelected)="select($event, inputOperator, ctrlOperator, operatorUsers)">
-                @for (user of filteredOperator | async; track user.username) {
+                @for (user of filteredOperator(); track user.username) {
                   <mat-option [value]="user.username">
                     {{ user.username }}
                   </mat-option>
@@ -76,7 +76,7 @@
                 [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
                 (matChipInputTokenEnd)="add($event, ctrlObserver, observerUsers)" />
               <mat-autocomplete #autoObserver="matAutocomplete" (optionSelected)="select($event, inputObserver, ctrlObserver, observerUsers)">
-                @for (user of filteredObserver | async; track user.username) {
+                @for (user of filteredObserver(); track user.username) {
                   <mat-option [value]="user.username">
                     {{ user.username }}
                   </mat-option>
