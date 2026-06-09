@@ -9,12 +9,8 @@ import { LogoutComponent } from './components/layout/logout/logout.component';
 import { MainComponent } from './components/layout/main/main.component';
 import { PendingComponent } from './components/layout/pending/pending.component';
 
-import { MeComponent } from './components/layout/me/me.component';
-import { MenuManagerComponent } from './components/management/backend/menu/menu.component';
-import { AuthorityManagerComponent } from './components/management/security/authority/authority.component';
-import { RoleManagerComponent } from './components/management/security/role/role.component';
-import { UserManagerComponent } from './components/management/security/user/user.component';
-import { LogManagerComponent } from './components/management/audit/log/log.component';
+import { baseManagementRoutes } from './app.routes.base';
+import { productManagementRoutes } from './app.routes.product';
 
 export const routes: Routes = [
   {
@@ -26,34 +22,8 @@ export const routes: Routes = [
         component: MainComponent,
         canActivate: [ AuthGuard ],
         children: [
-          {
-            path: 'me',
-            component: MeComponent,
-          },
-          {
-            path: 'backend/menu',
-            component: MenuManagerComponent,
-          },
-          {
-            path: 'backend/menu/:id',
-            component: MenuManagerComponent,
-          },
-          {
-            path: 'security/authority',
-            component: AuthorityManagerComponent,
-          },
-          {
-            path: 'security/role',
-            component: RoleManagerComponent,
-          },
-          {
-            path: 'security/user',
-            component: UserManagerComponent,
-          },
-          {
-            path: 'audit/log',
-            component: LogManagerComponent,
-          },
+          ...baseManagementRoutes,
+          ...productManagementRoutes,
         ],
       },
       {
