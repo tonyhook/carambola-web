@@ -145,28 +145,19 @@
         </mat-footer-cell>
       </ng-container>
       <ng-container matColumnDef="time" [sticky]="true">
-        <mat-header-cell [ngClass]="{
-            'time': billAggregateUpstream !== 'all',
-            'partner':billAggregateUpstream === 'all',
-          }" *matHeaderCellDef mat-sort-header>
+        <mat-header-cell [class.time]="billAggregateUpstream !== 'all'" [class.partner]="billAggregateUpstream === 'all'" *matHeaderCellDef mat-sort-header>
           时间
         </mat-header-cell>
-        <mat-cell [ngClass]="{
-            'time': billAggregateUpstream !== 'all',
-            'partner': billAggregateUpstream === 'all',
-          }" *matCellDef="let row" [matTooltip]="billAggregateUpstream === 'all' ? '结算进度：' + row.closed + '/' + row.total : ''">
+        <mat-cell [class.time]="billAggregateUpstream !== 'all'" [class.partner]="billAggregateUpstream === 'all'" *matCellDef="let row" [matTooltip]="billAggregateUpstream === 'all' ? '结算进度：' + row.closed + '/' + row.total : ''">
           {{ row.time }}
           @if (billAggregateUpstream === 'all') {
             <div class="progress">
-              <div class="progress-bar" [ngStyle]="{'width': row.closed / row.total * 100 + '%'}">
+              <div class="progress-bar" [style.width]="row.closed / row.total * 100 + '%'">
               </div>
             </div>
           }
         </mat-cell>
-        <mat-footer-cell [ngClass]="{
-            'time': billAggregateUpstream !== 'all',
-            'partner': billAggregateUpstream === 'all',
-          }" *matFooterCellDef>
+        <mat-footer-cell [class.time]="billAggregateUpstream !== 'all'" [class.partner]="billAggregateUpstream === 'all'" *matFooterCellDef>
           合计
         </mat-footer-cell>
       </ng-container>
@@ -188,7 +179,7 @@
           }
           @if (billAggregateUpstream !== 'all') {
             <div class="progress">
-              <div class="progress-bar" [ngStyle]="{'width': row.closed / row.total * 100 + '%'}">
+              <div class="progress-bar" [style.width]="row.closed / row.total * 100 + '%'">
               </div>
             </div>
           }
@@ -422,19 +413,15 @@
       </ng-container>
 
       <ng-container matColumnDef="expandedDetail">
-        <mat-cell class="extended-cell" [ngStyle]="{'flex': '1 0 ' + displayedColumnsWidth + 'px', 'min-width': displayedColumnsWidth + 'px'}" *matCellDef="let row" [attr.colspan]="displayedColumns.length">
-          <div class="extended-table-container" [ngStyle]="{'flex': '1 0 ' + displayedColumnsWidth + 'px', 'min-width': displayedColumnsWidth + 'px'}" [@detailExpand]="row === expandedRow && !loading ? 'expanded' : 'collapsed'">
+        <mat-cell class="extended-cell" [style.flex]="'1 0 ' + displayedColumnsWidth + 'px'" [style.min-width]="displayedColumnsWidth + 'px'" *matCellDef="let row" [attr.colspan]="displayedColumns.length">
+          <div class="extended-table-container" [style.flex]="'1 0 ' + displayedColumnsWidth + 'px'" [style.min-width]="displayedColumnsWidth + 'px'" [@detailExpand]="row === expandedRow && !loading ? 'expanded' : 'collapsed'">
             <mat-table [dataSource]="dataSourceSub">
               <ng-container matColumnDef="expand">
-                <mat-cell class="placeholder expand" *matCellDef="let rowSub" [ngStyle]="{'left': scrollLeft + 'px'}">
+                <mat-cell class="placeholder expand" *matCellDef="let rowSub" [style.left]="scrollLeft + 'px'">
                 </mat-cell>
               </ng-container>
               <ng-container matColumnDef="time">
-                <mat-cell [ngStyle]="{'left': scrollLeft + 'px'}" [ngClass]="{
-                    'placeholder': true,
-                    'time': billAggregateUpstream !== 'all',
-                    'partner': billAggregateUpstream === 'all',
-                  }" *matCellDef="let rowSub">
+                <mat-cell [style.left]="scrollLeft + 'px'" class="placeholder" [class.time]="billAggregateUpstream !== 'all'" [class.partner]="billAggregateUpstream === 'all'" *matCellDef="let rowSub">
                   @if (billAggregateUpstream === 'all') {
                     @if (rowSub.time === '上游成本') {
                       <button mat-button>上游成本</button>
@@ -463,7 +450,7 @@
                 </mat-cell>
               </ng-container>
               <ng-container matColumnDef="partner">
-                <mat-cell class="placeholder partner" [ngStyle]="{'left': scrollLeft + 'px'}" *matCellDef="let rowSub">
+                <mat-cell class="placeholder partner" [style.left]="scrollLeft + 'px'" *matCellDef="let rowSub">
                   @if (billAggregateUpstream !== 'all') {
                     @if (rowSub.time === '上游成本') {
                       <button mat-button>上游成本</button>
@@ -542,20 +529,20 @@
                 </mat-cell>
               </ng-container>
               <ng-container matColumnDef="actions">
-                <mat-cell class="placeholder actions" [ngStyle]="{'right': scrollRight + 'px'}" *matCellDef="let rowSub;">
+                <mat-cell class="placeholder actions" [style.right]="scrollRight + 'px'" *matCellDef="let rowSub;">
                 </mat-cell>
               </ng-container>
 
-              <mat-row *matRowDef="let rowSub; columns: displayedColumns" class="sub-row" [ngStyle]="{'min-width': displayedColumnsWidth + 'px'}" (mouseenter)="mouseenter(rowSub)" (mouseleave)="mouseleave()"></mat-row>
+              <mat-row *matRowDef="let rowSub; columns: displayedColumns" class="sub-row" [style.min-width]="displayedColumnsWidth + 'px'" (mouseenter)="mouseenter(rowSub)" (mouseleave)="mouseleave()"></mat-row>
             </mat-table>
           </div>
         </mat-cell>
       </ng-container>
 
-      <mat-header-row *matHeaderRowDef="displayedColumns; sticky: true" [ngStyle]="{'min-width': displayedColumnsWidth + 'px'}"></mat-header-row>
-      <mat-row *matRowDef="let row; columns: displayedColumns" class="element-row expandable" [ngStyle]="{'min-width': displayedColumnsWidth + 'px'}" [class.expanded-row]="expandedRow === row" (mouseenter)="mouseenter(row)" (mouseleave)="mouseleave()"></mat-row>
-      <mat-row *matRowDef="let row; columns: ['expandedDetail']" class="detail-row" [ngStyle]="{'min-width': displayedColumnsWidth + 'px'}" [class.expanded-row]="(row === expandedRow) && !loading"></mat-row>
-      <mat-footer-row *matFooterRowDef="displayedColumns; sticky: true" [ngStyle]="{'min-width': displayedColumnsWidth + 'px'}"></mat-footer-row>
+      <mat-header-row *matHeaderRowDef="displayedColumns; sticky: true" [style.min-width]="displayedColumnsWidth + 'px'"></mat-header-row>
+      <mat-row *matRowDef="let row; columns: displayedColumns" class="element-row expandable" [style.min-width]="displayedColumnsWidth + 'px'" [class.expanded-row]="expandedRow === row" (mouseenter)="mouseenter(row)" (mouseleave)="mouseleave()"></mat-row>
+      <mat-row *matRowDef="let row; columns: ['expandedDetail']" class="detail-row" [style.min-width]="displayedColumnsWidth + 'px'" [class.expanded-row]="(row === expandedRow) && !loading"></mat-row>
+      <mat-footer-row *matFooterRowDef="displayedColumns; sticky: true" [style.min-width]="displayedColumnsWidth + 'px'"></mat-footer-row>
     </mat-table>
   </div>
 </div>

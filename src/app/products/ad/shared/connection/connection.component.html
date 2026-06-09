@@ -18,9 +18,9 @@
   }
 
   @if (mode() === 'client' || mode() === 'vendor') {
-    <mat-card class="port" [ngClass]="{'enabled': connection && connection.enabled, 'disabled': connection && !connection.enabled}">
+    <mat-card class="port" [class.enabled]="!!connection && connection.enabled" [class.disabled]="!!connection && !connection.enabled">
       <mat-card-content>
-        <div class="port-property-row" [ngClass]="{'main': mode() === 'vendor'}" (click)="pair('client')" (keyup.enter)="pair('client')" tabindex="0">
+        <div class="port-property-row" [class.main]="mode() === 'vendor'" (click)="pair('client')" (keyup.enter)="pair('client')" tabindex="0">
           {{ clientPortFull?.name }}
         </div>
         <div class="port-property-row sub">
@@ -30,7 +30,7 @@
           {{ clientPortFull?.client?.name }} | {{ clientPortFull?.clientMedia?.name }}
         </div>
         <mat-divider></mat-divider>
-        <div class="port-property-row" [ngClass]="{'main': mode() === 'client'}" (click)="pair('vendor')" (keyup.enter)="pair('vendor')" tabindex="1">
+        <div class="port-property-row" [class.main]="mode() === 'client'" (click)="pair('vendor')" (keyup.enter)="pair('vendor')" tabindex="1">
           {{ vendorPortFull?.name }}
         </div>
         <div class="port-property-row sub">
