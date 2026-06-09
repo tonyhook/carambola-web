@@ -67,6 +67,59 @@
                   "with": "src/environments/environment.development.ts"
                 }
               ]
+            },
+            "ad": {
+              "assets": [
+                {
+                  "glob": "**/*",
+                  "input": "public"
+                },
+                {
+                  "glob": "**/*",
+                  "input": "src/app/products/ad/assets",
+                  "output": "assets/ad"
+                }
+              ],
+              "fileReplacements": [
+                {
+                  "replace": "src/app/app.routes.product.ts",
+                  "with": "src/app/products/ad/app.routes.product.ts"
+                },
+                {
+                  "replace": "src/app/app.providers.product.ts",
+                  "with": "src/app/products/ad/app.providers.product.ts"
+                }
+              ]
+            },
+            "ad-development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "assets": [
+                {
+                  "glob": "**/*",
+                  "input": "public"
+                },
+                {
+                  "glob": "**/*",
+                  "input": "src/app/products/ad/assets",
+                  "output": "assets/ad"
+                }
+              ],
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.development.ts"
+                },
+                {
+                  "replace": "src/app/app.routes.product.ts",
+                  "with": "src/app/products/ad/app.routes.product.ts"
+                },
+                {
+                  "replace": "src/app/app.providers.product.ts",
+                  "with": "src/app/products/ad/app.providers.product.ts"
+                }
+              ]
             }
           },
           "defaultConfiguration": "production"
@@ -79,6 +132,9 @@
             },
             "development": {
               "buildTarget": "web:build:development"
+            },
+            "ad": {
+              "buildTarget": "web:build:ad-development"
             }
           },
           "defaultConfiguration": "development"
