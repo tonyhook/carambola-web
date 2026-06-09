@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 
 import { TenantManagerComponent } from './tenant.component';
 
@@ -10,7 +10,7 @@ describe('TenantManagerComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [ TenantManagerComponent ],
-      providers: [ provideHttpClient() ],
+      providers: [ provideHttpClientTesting() ],
     })
     .compileComponents();
 
