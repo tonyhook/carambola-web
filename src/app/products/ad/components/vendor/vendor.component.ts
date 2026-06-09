@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, effect, OnInit, signal, ViewChild, WritableSignal, inject } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
@@ -16,6 +16,10 @@ import { PartnerType, Vendor, VendorAPI } from '../..';
 import { TenantService } from '../..';
 import { AdEntityComponent } from '../..';
 import { VendorDialogComponent, VendorDialogData } from '../vendor-dialog/vendor-dialog.component';
+
+interface VendorQueryControls {
+  search: FormControl<string>;
+}
 
 @Component({
   selector: 'carambola-vendor-manager',
@@ -36,7 +40,7 @@ import { VendorDialogComponent, VendorDialogData } from '../vendor-dialog/vendor
   styleUrls: ['./vendor.component.scss'],
 })
 export class VendorManagerComponent implements OnInit, AfterViewInit {
-  private formBuilder = inject(UntypedFormBuilder);
+  private formBuilder = inject(FormBuilder);
   private dialog = inject(MatDialog);
   private vendorAPI = inject(VendorAPI);
   private tenantService = inject(TenantService);
@@ -49,7 +53,7 @@ export class VendorManagerComponent implements OnInit, AfterViewInit {
   hoverRow: Vendor | null = null;
 
   mode: WritableSignal<PartnerType> = signal(PartnerType.PARTNER_TYPE_UNKNOWN);
-  formGroupQuery: UntypedFormGroup;
+  formGroupQuery: FormGroup<VendorQueryControls>;
   formQuery: AdQuery<Vendor> = {
     filter: {},
     searchKey: ['name'],
@@ -64,7 +68,7 @@ export class VendorManagerComponent implements OnInit, AfterViewInit {
 
   constructor() {
     this.formGroupQuery = this.formBuilder.group({
-      'search': ['', null],
+      search: this.formBuilder.nonNullable.control(''),
     });
 
     effect(() => {
@@ -80,6 +84,10 @@ export class VendorManagerComponent implements OnInit, AfterViewInit {
 
       this.query();
     });
+  }
+
+  get searchValue(): string {
+    return this.formGroupQuery.controls.search.value;
   }
 
   ngOnInit() {
@@ -115,7 +123,7 @@ export class VendorManagerComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit() {
     this.route.queryParams.subscribe(params => {
-      this.formGroupQuery.controls['search'].setValue('');
+      this.formGroupQuery.controls.search.setValue('');
       this.dataSource.data = [];
 
       if (params['directMode']) {
@@ -140,13 +148,13 @@ export class VendorManagerComponent implements OnInit, AfterViewInit {
         mode: [String(this.mode())],
       },
       searchKey: ['name'],
-      searchValue: this.formGroupQuery.value.search,
+      searchValue: this.searchValue,
     };
 
     this.dataRequest$.next(this.formQuery);
   }
 
-  clear(event: Event, field: string, value: string | unknown[]) {
+  clear(event: Event, field: keyof VendorQueryControls, value: string) {
     event.stopPropagation();
     this.formGroupQuery.patchValue({[field]: value});
     this.query();

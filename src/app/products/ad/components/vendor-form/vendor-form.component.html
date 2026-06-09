@@ -12,8 +12,8 @@
               <mat-label>下游管理员</mat-label>
               @if (!readonly) {
                 <mat-chip-grid #chipGridDownstream formControlName="downstream">
-                  @for (user of formGroup.value.downstream; track user.username) {
-                    <mat-chip-row [value]="user" (removed)="remove(user, ctrlDownstream, formGroup.value.downstream)">
+                  @for (user of downstreamUsers; track user.username) {
+                    <mat-chip-row [value]="user" (removed)="remove(user, ctrlDownstream, downstreamUsers)">
                       {{ user.username }}
                       <button matChipRemove>
                         <mat-icon>cancel</mat-icon>
@@ -24,8 +24,8 @@
                 <input placeholder="增加用户" #inputDownstream matInput [formControl]="ctrlDownstream"
                   [matChipInputFor]="chipGridDownstream" [matAutocomplete]="autoDownstream"
                   [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
-                  (matChipInputTokenEnd)="add($event, ctrlDownstream, formGroup.value.downstream)" />
-                <mat-autocomplete #autoDownstream="matAutocomplete" (optionSelected)="select($event, inputDownstream, ctrlDownstream, formGroup.value.downstream)">
+                  (matChipInputTokenEnd)="add($event, ctrlDownstream, downstreamUsers)" />
+                <mat-autocomplete #autoDownstream="matAutocomplete" (optionSelected)="select($event, inputDownstream, ctrlDownstream, downstreamUsers)">
                   @for (user of filteredDownstream | async; track user.username) {
                     <mat-option [value]="user.username">
                       {{ user.username }}
@@ -34,7 +34,7 @@
                 </mat-autocomplete>
               } @else {
                 <mat-chip-grid #chipGridDownstream formControlName="downstream" [disabled]="true">
-                  @for (user of formGroup.value.downstream; track user.username) {
+                  @for (user of downstreamUsers; track user.username) {
                     <mat-chip-row [value]="user">
                       {{ user.username }}
                     </mat-chip-row>
