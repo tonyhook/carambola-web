@@ -1,4 +1,4 @@
-import { Component, ElementRef, ViewChild, inject } from '@angular/core';
+import { Component, ElementRef, inject, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -154,7 +154,7 @@ export class SignDialogComponent {
     total: 0,
   };
 
-  @ViewChild('table', {static: false}) table: ElementRef | null = null;
+  readonly table = viewChild<ElementRef>('table');
   dataSource = new MatTableDataSource<BillView>([]);
 
   constructor() {
