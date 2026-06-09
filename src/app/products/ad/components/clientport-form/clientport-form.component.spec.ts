@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 
 import { ClientPortFormComponent } from './clientport-form.component';
 
@@ -10,7 +10,7 @@ describe('ClientPortFormComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [ ClientPortFormComponent ],
-      providers: [ provideHttpClient() ],
+      providers: [ provideHttpClientTesting() ],
     })
     .compileComponents();
 
