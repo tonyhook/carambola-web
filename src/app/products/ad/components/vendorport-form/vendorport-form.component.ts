@@ -1,4 +1,5 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, effect, inject, input, output, signal, WritableSignal } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, DestroyRef, effect, inject, input, output, signal, WritableSignal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
@@ -61,6 +62,7 @@ interface VendorPortFormControls {
   styleUrls: ['./vendorport-form.component.scss'],
 })
 export class VendorPortFormComponent implements AfterViewInit {
+  private destroyRef = inject(DestroyRef);
   private formBuilder = inject(FormBuilder);
   private snackBar = inject(MatSnackBar);
   private tenantService = inject(TenantService);
@@ -236,7 +238,7 @@ export class VendorPortFormComponent implements AfterViewInit {
   }
 
   ngAfterViewInit() {
-    this.formGroup.valueChanges.subscribe(data => {
+    this.formGroup.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(data => {
       const vendor = data.vendor;
 
       if (vendor && vendor.id !== null && vendor.id !== this.formVendorId()) {
@@ -253,7 +255,7 @@ export class VendorPortFormComponent implements AfterViewInit {
       this.syncAutoName();
     });
 
-    this.formGroup.controls.name.valueChanges.subscribe(name => {
+    this.formGroup.controls.name.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(name => {
       if (this.syncingAutoName || !this.autoNameManaged) {
         return;
       }
