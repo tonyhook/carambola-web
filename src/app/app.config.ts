@@ -5,6 +5,7 @@ import { provideAnimationsAsync } from '@angular/platform-browser/animations/asy
 import { MatPaginatorIntl } from '@angular/material/paginator';
 
 import { routes } from './app.routes';
+import { productProviders } from './app.providers.product';
 import { provideCarambolaDateAdapter } from './shared';
 import { CarambolaMatPaginatorIntl, HttpErrorInterceptor } from './shared';
 
@@ -17,6 +18,7 @@ export const appConfig: ApplicationConfig = {
     ),
     provideAnimationsAsync(),
     provideCarambolaDateAdapter(),
+    ...productProviders,
     {
       provide: HTTP_INTERCEPTORS,
       useClass: HttpErrorInterceptor,

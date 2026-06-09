@@ -20,6 +20,11 @@
         登录
       </button>
     } @else {
+      @for (extension of headerExtensions; track $index) {
+        @if (extension.toolbarComponent) {
+          <ng-container *ngComponentOutlet="extension.toolbarComponent" />
+        }
+      }
       <button mat-button routerLink="/admin/me">
         {{ authService.credential()!.username }}
       </button>
@@ -29,14 +34,14 @@
       </button>
     }
   </div>
-  <button class="header-sm" mat-icon-button [mat-menu-trigger-for]="menu">
+  <button class="header-sm" mat-icon-button [mat-menu-trigger-for]="mainMenu">
     <mat-icon>menu</mat-icon>
   </button>
-  <button class="header-xs" mat-icon-button [mat-menu-trigger-for]="menu">
+  <button class="header-xs" mat-icon-button [mat-menu-trigger-for]="mainMenu">
     <mat-icon>menu</mat-icon>
   </button>
 </mat-toolbar>
-<mat-menu x-position="before" #menu="matMenu">
+<mat-menu x-position="before" #mainMenu="matMenu">
   <button mat-menu-item routerLink="/admin">
     <mat-icon>home</mat-icon>
     首页
@@ -47,6 +52,11 @@
       登录
     </button>
   } @else {
+    @for (extension of headerExtensions; track $index) {
+      @if (extension.menuComponent) {
+        <ng-container *ngComponentOutlet="extension.menuComponent" />
+      }
+    }
     <button mat-menu-item routerLink="/admin/me">
       <mat-icon>id_card</mat-icon>
       {{ authService.credential()!.username }}
