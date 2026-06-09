@@ -16,7 +16,7 @@ describe('FilteredSelectVendorMediaComponent', () => {
 
     fixture = TestBed.createComponent(FilteredSelectVendorMediaComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges();
+    await fixture.whenStable();
   });
 
   it('should create', () => {
