@@ -1,8 +1,8 @@
-import { AfterViewInit, Component, DoCheck, effect, ElementRef, HostListener, KeyValueDiffer, KeyValueDiffers, OnInit, signal, WritableSignal, inject, viewChild } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { AfterViewInit, ChangeDetectionStrategy, Component, DoCheck, effect, ElementRef, HostListener, inject, KeyValueDiffer, KeyValueDiffers, OnInit, signal, viewChild, WritableSignal } from '@angular/core';
 import { animate, state, style, transition, trigger } from '@angular/animations';
+import { CdkMenuModule } from '@angular/cdk/menu';
+import { CommonModule } from '@angular/common';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleChange, MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatCardModule } from '@angular/material/card';
@@ -18,7 +18,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { CdkMenuModule } from '@angular/cdk/menu';
+import { ActivatedRoute } from '@angular/router';
 import { asyncScheduler, catchError, debounceTime, forkJoin, scheduled, Subject, switchMap } from 'rxjs';
 
 import { AdQuery } from '../..';
@@ -49,6 +49,7 @@ interface BillRangeControls {
 
 @Component({
   selector: 'carambola-bill',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -103,7 +104,7 @@ export class BillComponent implements OnInit, AfterViewInit, DoCheck {
   PartnerType = PartnerType;
   BillViewStatus = BillViewStatus;
 
-  displayedColumns: string[] = [];
+  displayedColumns = signal<string[]>([]);
   displayedColumnsWidth = 0;
   scrollLeft = 0;
   scrollRight = 0;
@@ -111,7 +112,7 @@ export class BillComponent implements OnInit, AfterViewInit, DoCheck {
   candidateColumns: Map<string, string> = new Map<string, string>();
   hoverRow: BillView | null = null;
   expandedRow: BillView | null = null;
-  loading = false;
+  loading = signal(false);
   formGroupColumn: FormGroup<BillColumnControls>;
 
   clients: Client[] = [];
@@ -192,9 +193,9 @@ export class BillComponent implements OnInit, AfterViewInit, DoCheck {
   readonly table = viewChild<ElementRef>('table');
 
   dataRequest$ = new Subject<AdQuery<PerformancePlaceholder>>();
-  dataSource = new MatTableDataSource<BillView>([]);
+  dataSource = signal(this.createDataSource([]));
   dataRequestSub$ = new Subject<AdQuery<PerformancePlaceholder>>();
-  dataSourceSub = new MatTableDataSource<BillView>([]);
+  dataSourceSub = signal(new MatTableDataSource<BillView>([]));
 
   constructor() {
     this.formGroupColumn = this.formBuilder.group({
@@ -231,7 +232,7 @@ export class BillComponent implements OnInit, AfterViewInit, DoCheck {
         return;
       }
 
-      this.dataSource.data = [];
+      this.dataSource.set(this.createDataSource([]));
       this.billViewTotal = {
         time: '',
         start: new Date(),
@@ -536,7 +537,7 @@ export class BillComponent implements OnInit, AfterViewInit, DoCheck {
       }),
     ).subscribe(result => {
       this.mediumData = result;
-      this.loading = false;
+      this.loading.set(false);
       this.updateBillViewSub();
     });
 
@@ -601,8 +602,8 @@ export class BillComponent implements OnInit, AfterViewInit, DoCheck {
 
     this.billViewDataSub.length = 0;
     this.billViewMapSub.clear();
-    this.dataSourceSub.data = [];
-    this.loading = true;
+    this.dataSourceSub.set(new MatTableDataSource<BillView>([]));
+    this.loading.set(true);
 
     this.formQuerySub = {
       filter: {
@@ -784,14 +785,14 @@ export class BillComponent implements OnInit, AfterViewInit, DoCheck {
   }
 
   prepareDisplayColumns() {
-    this.displayedColumns = ['expand', 'time'];
+    const displayedColumns = ['expand', 'time'];
     this.displayedColumnsWidth = 80 + 250;
     if (this.billAggregateUpstream === 'client' || this.billAggregateUpstream === 'clientport') {
-      this.displayedColumns.push('partner');
+      displayedColumns.push('partner');
       // time column is 120px when partner column exists
       this.displayedColumnsWidth = this.displayedColumnsWidth - 250 + 120 + 250;
     }
-    this.displayedColumns = [...this.displayedColumns, ...this.selectedColumns, 'actions'];
+    this.displayedColumns.set([...displayedColumns, ...this.selectedColumns, 'actions']);
     this.displayedColumnsWidth = this.displayedColumnsWidth + this.selectedColumns.length * 120 + 80;
 
     this.onResize();
@@ -1247,14 +1248,20 @@ export class BillComponent implements OnInit, AfterViewInit, DoCheck {
       }
     }
 
-    this.dataSource.data = this.billViewData.sort((a, b) => {
+    const data = this.billViewData.sort((a, b) => {
       const keya = a.time + '|' + a.clientPort + '|' + a.vendorPort;
       const keyb = b.time + '|' + b.clientPort + '|' + b.vendorPort;
       return keya > keyb ? -1 : 1;
     });
-    this.dataSource.sort = this.sort() ?? null;
-    this.dataSource.paginator = this.paginator() ?? null;
-    this.dataSource.sortingDataAccessor = (item, property) => {
+
+    this.dataSource.set(this.createDataSource(data));
+  }
+
+  private createDataSource(data: BillView[]): MatTableDataSource<BillView> {
+    const dataSource = new MatTableDataSource(data);
+    dataSource.sort = this.sort() ?? null;
+    dataSource.paginator = this.paginator() ?? null;
+    dataSource.sortingDataAccessor = (item, property) => {
       switch (property) {
         case 'gfr': return item.request ? (1.0 * (item.response ?? 0) / item.request) : -1;
         case 'er': return item.response ? (1.0 * (item.impression ?? 0) / item.response) : -1;
@@ -1275,6 +1282,7 @@ export class BillComponent implements OnInit, AfterViewInit, DoCheck {
         }
       }
     };
+    return dataSource;
   }
 
   updateBillViewSub() {
@@ -1424,7 +1432,7 @@ export class BillComponent implements OnInit, AfterViewInit, DoCheck {
       this.billViewDataSub = [...this.billViewDataSub, billViewDataRebate];
     }
     this.billViewDataSub = [...this.billViewDataSub, billViewDataProfit];
-    this.dataSourceSub.data = this.billViewDataSub;
+    this.dataSourceSub.set(new MatTableDataSource(this.billViewDataSub));
   }
 
   updatebBillViewDataSelectedStatus() {

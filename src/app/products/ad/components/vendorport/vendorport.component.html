@@ -3,7 +3,7 @@
     <div class="full-width-input flex">
       <mat-form-field subscriptSizing="dynamic">
         <mat-label>流量主</mat-label>
-        <carambola-filtered-select-vendor formControlName="vendor" [multiple]="true" [options]="filterVendor" />
+        <carambola-filtered-select-vendor formControlName="vendor" [multiple]="true" [options]="filterVendor()" />
         @if (selectedVendors.length > 0) {
           <button type="button" matSuffix mat-icon-button (click)="clear($event, 'vendor', [])">
             <mat-icon>clear</mat-icon>
@@ -12,7 +12,7 @@
       </mat-form-field>
       <mat-form-field subscriptSizing="dynamic">
         <mat-label>下游媒体</mat-label>
-        <carambola-filtered-select-vendormedia formControlName="vendorMedia" [multiple]="true" [options]="filterVendorMedia" />
+        <carambola-filtered-select-vendormedia formControlName="vendorMedia" [multiple]="true" [options]="filterVendorMedia()" />
         @if (selectedVendorMedias.length > 0) {
           <button type="button" matSuffix mat-icon-button (click)="clear($event, 'vendorMedia', [])">
             <mat-icon>clear</mat-icon>
@@ -61,8 +61,8 @@
       <mat-form-field subscriptSizing="dynamic">
         <mat-label>广告位模式</mat-label>
         <mat-select multiple panelWidth="" formControlName="mode">
-          @for (key of filterMode.keys(); track key) {
-            <mat-option [value]="key">{{ filterMode.get(key) }}</mat-option>
+          @for (key of filterMode().keys(); track key) {
+            <mat-option [value]="key">{{ filterMode().get(key) }}</mat-option>
           }
         </mat-select>
         @if (selectedModes.length > 0) {
@@ -98,7 +98,7 @@
     </div>
   </form>
 
-  <mat-table matSort [dataSource]="dataSource">
+  <mat-table matSort [dataSource]="dataSource()">
     <ng-container matColumnDef="vendor">
       <mat-header-cell *matHeaderCellDef mat-sort-header>
         流量主
