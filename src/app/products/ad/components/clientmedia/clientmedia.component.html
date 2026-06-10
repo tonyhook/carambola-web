@@ -1,0 +1,90 @@
+<div class="container">
+  <form class="form-in-tab" [formGroup]="formGroupQuery">
+    <div class="full-width-input flex">
+      <mat-form-field subscriptSizing="dynamic">
+        <mat-label>广告主</mat-label>
+        <carambola-filtered-select-client formControlName="client" [multiple]="true" [options]="filterClient" />
+        @if (formGroupQuery.value.client && formGroupQuery.value.client.length > 0) {
+          <button type="button" matSuffix mat-icon-button (click)="clear($event, 'client', [])">
+            <mat-icon>clear</mat-icon>
+          </button>
+        }
+      </mat-form-field>
+      <mat-form-field subscriptSizing="dynamic">
+        <mat-label>平台</mat-label>
+        <mat-select multiple panelWidth="" formControlName="platform">
+          @for (key of filterPlatform.keys(); track key) {
+            <mat-option [value]="key">{{ filterPlatform.get(key) }}</mat-option>
+          }
+        </mat-select>
+        @if (formGroupQuery.value.platform.length > 0) {
+          <button type="button" matSuffix mat-icon-button (click)="clear($event, 'platform', [])">
+            <mat-icon>clear</mat-icon>
+          </button>
+        }
+      </mat-form-field>
+      <mat-form-field subscriptSizing="dynamic">
+        <mat-label>上游媒体名称，包名</mat-label>
+        <input placeholder="搜索" matInput formControlName="search" />
+        @if (formGroupQuery.value.search.length > 0) {
+          <button type="button" matSuffix mat-icon-button (click)="clear($event, 'search', '')">
+            <mat-icon>clear</mat-icon>
+          </button>
+        }
+      </mat-form-field>
+      <button type="button" class="form-button" mat-stroked-button (click)="query()">搜索</button>
+      <button type="button" class="form-button new" mat-stroked-button (click)="newClientMedia(0)">新建</button>
+    </div>
+  </form>
+
+  <mat-table matSort [dataSource]="dataSource">
+    <ng-container matColumnDef="client">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>
+        广告主
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <carambola-ad-entity type="client" mode="brief" [client]="row.client" />
+      </mat-cell>
+    </ng-container>
+    <ng-container matColumnDef="name">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>
+        媒体名称
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <carambola-ad-entity type="clientMedia" mode="brief" [clientMedia]="row" />
+      </mat-cell>
+    </ng-container>
+    <ng-container matColumnDef="appversion">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>
+        版本号
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">{{ row.appversion }}</mat-cell>
+    </ng-container>
+    <ng-container matColumnDef="applink">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>
+        下载链接
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">{{ row.applink }}</mat-cell>
+    </ng-container>
+    <ng-container matColumnDef="actions">
+      <mat-header-cell *matHeaderCellDef class="actions"></mat-header-cell>
+      <mat-cell *matCellDef="let row;" class="actions">
+        @if (hoverRow === row) {
+          @if (canCreatePort()) {
+            <button mat-icon-button matTooltip="去创建上游广告位" matTooltipShowDelay="500" (click)="createPort(row, $event)">
+              <mat-icon>launch</mat-icon>
+            </button>
+          }
+          <button mat-icon-button (click)="modifyClientMedia(row)">
+            <mat-icon>settings</mat-icon>
+          </button>
+        }
+      </mat-cell>
+    </ng-container>
+
+    <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+    <mat-row *matRowDef="let row; columns: displayedColumns" (mouseenter)="mouseenter(row)" (mouseleave)="mouseleave()"></mat-row>
+  </mat-table>
+
+  <mat-paginator [hidePageSize]="'false'" [pageSize]="50" [pageSizeOptions]="[10, 30, 50]" [showFirstLastButtons]="'true'"></mat-paginator>
+</div>

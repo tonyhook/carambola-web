@@ -1,0 +1,61 @@
+<ng-container>
+  <mat-card class="card-in-container">
+    <mat-card-content>
+      <mat-tab-group class="tab-in-card">
+        <mat-tab label="下游媒体属性">
+          <form class="form-in-tab" [formGroup]="formGroup">
+            <mat-form-field class="full-width-input" subscriptSizing="dynamic">
+              <mat-label>流量主</mat-label>
+              <carambola-filtered-select-vendor formControlName="vendor" required [multiple]="false" [options]="managedVendors()" />
+            </mat-form-field>
+            <mat-form-field class="full-width-input" subscriptSizing="dynamic">
+              <mat-label>媒体名称</mat-label>
+              <input placeholder="媒体名称" matInput formControlName="name" />
+            </mat-form-field>
+            <div class="full-width-input flex">
+              <mat-button-toggle-group formControlName="platform">
+                <mat-button-toggle [value]="'Android'">Android</mat-button-toggle>
+                <mat-button-toggle [value]="'iOS'">iOS</mat-button-toggle>
+                <mat-button-toggle [value]="'WAP'">WAP</mat-button-toggle>
+              </mat-button-toggle-group>
+            </div>
+            <div class="full-width-input wrapper">
+              <mat-form-field class="half-width-input" subscriptSizing="dynamic">
+                <mat-label>包名</mat-label>
+                <input placeholder="包名" matInput formControlName="apppackage" />
+              </mat-form-field>
+              <mat-form-field class="half-width-input" subscriptSizing="dynamic">
+                <mat-label>版本号</mat-label>
+                <input placeholder="版本号" matInput formControlName="appversion" />
+              </mat-form-field>
+            </div>
+            <mat-form-field class="full-width-input" subscriptSizing="dynamic">
+              <mat-label>链接</mat-label>
+              <input placeholder="链接" matInput formControlName="applink" />
+            </mat-form-field>
+            <mat-form-field class="full-width-input" subscriptSizing="dynamic">
+              <mat-label>备注</mat-label>
+              <textarea matInput placeholder="备注" formControlName="remark"></textarea>
+            </mat-form-field>
+
+            <div class="full-width-input flex">
+              @if (vendorMedia() === null) {
+                <button type="button" class="form-button" mat-stroked-button (click)="addVendorMedia()">创建</button>
+                <button type="button" class="form-button cancel" mat-stroked-button (click)="cancelVendorMedia()">取消</button>
+              }
+              @if (vendorMedia() !== null) {
+                @if (!readonly) {
+                  <button type="button" class="form-button" mat-stroked-button (click)="updateVendorMedia()">修改</button>
+                }
+                <button type="button" class="form-button cancel" mat-stroked-button (click)="cancelVendorMedia()">取消</button>
+                @if (!readonly) {
+                  <button type="button" class="form-button delete" mat-stroked-button (click)="removeVendorMedia()">删除</button>
+                }
+              }
+            </div>
+          </form>
+        </mat-tab>
+      </mat-tab-group>
+    </mat-card-content>
+  </mat-card>
+</ng-container>

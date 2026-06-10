@@ -1,0 +1,14 @@
+@if (tenantService.tenant()) {
+  <button mat-menu-item [matMenuTriggerFor]="tenantMenu">
+    <mat-icon>groups</mat-icon>
+    {{ tenantService.tenant()!.name }}
+  </button>
+  <mat-menu #tenantMenu="matMenu">
+    @for (tenant of tenantService.tenants(); track tenant.name) {
+      <button mat-menu-item (click)="switchTenant(tenant)">
+        <mat-icon>groups</mat-icon>
+        {{ tenant.name }}
+      </button>
+    }
+  </mat-menu>
+}
