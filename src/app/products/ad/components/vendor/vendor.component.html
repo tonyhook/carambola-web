@@ -17,7 +17,7 @@
     </div>
   </form>
 
-  <mat-table matSort [dataSource]="dataSource">
+  <mat-table matSort [dataSource]="dataSource()">
     <ng-container matColumnDef="name">
       <mat-header-cell *matHeaderCellDef mat-sort-header>
         流量主

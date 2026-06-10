@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
@@ -9,7 +9,6 @@ import { Connection, PerformancePlaceholder } from '../../../products/ad';
 
 export type TimedPairedClientPortMap = Record<number, Record<number, number[]>>;
 export type TimedPairedVendorPortMap = Record<number, Record<number, number[]>>;
-
 @Injectable({
   providedIn: 'root',
 })

@@ -1,7 +1,7 @@
-import { AfterViewInit, Component, DoCheck, effect, ElementRef, HostListener, KeyValueDiffer, KeyValueDiffers, OnInit, signal, WritableSignal, inject, viewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, DoCheck, effect, ElementRef, HostListener, inject, KeyValueDiffer, KeyValueDiffers, OnInit, signal, viewChild, WritableSignal } from '@angular/core';
+import { CdkMenuModule } from '@angular/cdk/menu';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleChange, MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -13,7 +13,7 @@ import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { CdkMenuModule } from '@angular/cdk/menu';
+import { ActivatedRoute } from '@angular/router';
 import { asyncScheduler, catchError, debounceTime, forkJoin, scheduled, Subject, switchMap } from 'rxjs';
 
 import { AdQuery } from '../..';
@@ -36,6 +36,7 @@ interface UpstreamObserverRangeControls {
 
 @Component({
   selector: 'carambola-upstream-observer',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -72,7 +73,7 @@ export class UpstreamObserverComponent implements OnInit, AfterViewInit, DoCheck
 
   PartnerType = PartnerType;
 
-  displayedColumns: string[] = [];
+  displayedColumns = signal<string[]>([]);
   displayedColumnsWidth = 0;
   scrollLeft = 0;
   scrollRight = 0;
@@ -135,7 +136,7 @@ export class UpstreamObserverComponent implements OnInit, AfterViewInit, DoCheck
   readonly table = viewChild<ElementRef>('table');
 
   dataRequest$ = new Subject<AdQuery<PerformancePlaceholder>>();
-  dataSource = new MatTableDataSource<BillView>([]);
+  dataSource = signal(this.createDataSource([]));
 
   constructor() {
     this.formGroupQuery = this.formBuilder.group({
@@ -169,7 +170,7 @@ export class UpstreamObserverComponent implements OnInit, AfterViewInit, DoCheck
         return;
       }
 
-      this.dataSource.data = [];
+      this.dataSource.set(this.createDataSource([]));
       this.billViewTotal = {
         time: '',
         start: new Date(),
@@ -493,14 +494,14 @@ export class UpstreamObserverComponent implements OnInit, AfterViewInit, DoCheck
   }
 
   prepareDisplayColumns() {
-    this.displayedColumns = ['time'];
+    const displayedColumns = ['time'];
     this.displayedColumnsWidth = 120;
     if (this.billAggregateUpstream === 'client' || this.billAggregateUpstream === 'clientport') {
-      this.displayedColumns.push('partner');
+      displayedColumns.push('partner');
       // time column is 120px when partner column exists
       this.displayedColumnsWidth = this.displayedColumnsWidth + 250;
     }
-    this.displayedColumns = [...this.displayedColumns, 'cost', 'impression', 'click', 'request', 'response'];
+    this.displayedColumns.set([...displayedColumns, 'cost', 'impression', 'click', 'request', 'response']);
     this.displayedColumnsWidth = this.displayedColumnsWidth + 5 * 120;
 
     this.onResize();
@@ -626,14 +627,20 @@ export class UpstreamObserverComponent implements OnInit, AfterViewInit, DoCheck
       }
     }
 
-    this.dataSource.data = this.billViewData.sort((a, b) => {
+    const data = this.billViewData.sort((a, b) => {
       const keya = a.time + '|' + a.clientPort + '|' + a.vendorPort;
       const keyb = b.time + '|' + b.clientPort + '|' + b.vendorPort;
       return keya > keyb ? -1 : 1;
     });
-    this.dataSource.sort = this.sort() ?? null;
-    this.dataSource.paginator = this.paginator() ?? null;
-    this.dataSource.sortingDataAccessor = (item, property) => {
+
+    this.dataSource.set(this.createDataSource(data));
+  }
+
+  private createDataSource(data: BillView[]): MatTableDataSource<BillView> {
+    const dataSource = new MatTableDataSource(data);
+    dataSource.sort = this.sort() ?? null;
+    dataSource.paginator = this.paginator() ?? null;
+    dataSource.sortingDataAccessor = (item, property) => {
       switch (property) {
         case 'ctr': return item.impression ? (1.0 * (item.click ?? 0) / item.impression) : -1;
         case 'cpm': return item.impression ? (1.0 * (item.cost ?? 0) / 100 / item.impression) : -1;
@@ -649,6 +656,7 @@ export class UpstreamObserverComponent implements OnInit, AfterViewInit, DoCheck
         }
       }
     };
+    return dataSource;
   }
 
   onTableScroll(event: Event) {

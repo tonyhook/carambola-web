@@ -1,6 +1,5 @@
-import { AfterViewInit, Component, effect, OnInit, signal, WritableSignal, inject, viewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, effect, inject, OnInit, signal, viewChild, WritableSignal } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -10,6 +9,7 @@ import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
+import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, debounceTime, of, Subject, switchMap } from 'rxjs';
 
 import { AdQuery } from '../..';
@@ -26,6 +26,7 @@ interface ClientMediaQueryControls {
 
 @Component({
   selector: 'carambola-clientmedia-manager',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
     MatButtonModule,
@@ -58,7 +59,7 @@ export class ClientMediaManagerComponent implements OnInit, AfterViewInit {
 
   mode: WritableSignal<PartnerType> = signal(PartnerType.PARTNER_TYPE_UNKNOWN);
   formGroupQuery: FormGroup<ClientMediaQueryControls>;
-  filterClient: Client[] = [];
+  filterClient = signal<Client[]>([]);
   filterPlatform: Map<string, string>;
   formQuery: AdQuery<ClientMedia> = {
     filter: {},
@@ -70,7 +71,7 @@ export class ClientMediaManagerComponent implements OnInit, AfterViewInit {
   readonly paginator = viewChild(MatPaginator);
 
   dataRequest$ = new Subject<AdQuery<ClientMedia>>();
-  dataSource = new MatTableDataSource<ClientMedia>([]);
+  dataSource = signal(this.createDataSource([]));
 
   constructor() {
     this.formGroupQuery = this.formBuilder.group({
@@ -104,7 +105,7 @@ export class ClientMediaManagerComponent implements OnInit, AfterViewInit {
         searchValue: '',
       }).subscribe(clients => {
         clients = clients.filter(client => !client.deleted);
-        this.filterClient = clients;
+        this.filterClient.set(clients);
       });
 
       this.query();
@@ -134,7 +135,7 @@ export class ClientMediaManagerComponent implements OnInit, AfterViewInit {
         )
       ),
     ).subscribe(clientMedias => {
-      this.dataSource.data = clientMedias.filter(clientMedia => !clientMedia.deleted).sort((a, b) => {
+      const data = clientMedias.filter(clientMedia => !clientMedia.deleted).sort((a, b) => {
         const keya = a.updateTime ? new Date(a.updateTime) : new Date(0);
         const keyb = b.updateTime ? new Date(b.updateTime) : new Date(0);
         if (keya < keyb) {
@@ -145,8 +146,8 @@ export class ClientMediaManagerComponent implements OnInit, AfterViewInit {
           return 0;
         }
       });
-      this.dataSource.sort = this.sort() ?? null;
-      this.dataSource.paginator = this.paginator() ?? null;
+
+      this.dataSource.set(this.createDataSource(data));
     });
   }
 
@@ -155,7 +156,7 @@ export class ClientMediaManagerComponent implements OnInit, AfterViewInit {
       this.formGroupQuery.controls.client.setValue([]);
       this.formGroupQuery.controls.platform.setValue([]);
       this.formGroupQuery.controls.search.setValue('');
-      this.dataSource.data = [];
+      this.dataSource.set(this.createDataSource([]));
 
       if (params['directMode']) {
         this.mode.set(params['directMode'] === 'true' ? PartnerType.PARTNER_TYPE_DIRECT : PartnerType.PARTNER_TYPE_PROGRAMMATIC);
@@ -182,6 +183,13 @@ export class ClientMediaManagerComponent implements OnInit, AfterViewInit {
 
   mouseleave() {
     this.hoverRow = null;
+  }
+
+  private createDataSource(data: ClientMedia[]): MatTableDataSource<ClientMedia> {
+    const dataSource = new MatTableDataSource(data);
+    dataSource.sort = this.sort() ?? null;
+    dataSource.paginator = this.paginator() ?? null;
+    return dataSource;
   }
 
   query() {

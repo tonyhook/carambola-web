@@ -125,7 +125,7 @@
   <mat-paginator [hidePageSize]="'false'" [pageSize]="50" [pageSizeOptions]="[10, 30, 50]" [showFirstLastButtons]="'true'"></mat-paginator>
 
   <div class="table-container" (scroll)="onTableScroll($event)" (scrollEnd)="onTableScroll($event)" #table>
-    <mat-table matSort multiTemplateDataRows [dataSource]="dataSource">
+    <mat-table matSort multiTemplateDataRows [dataSource]="dataSource()">
       <ng-container matColumnDef="expand" [sticky]="true">
         <mat-header-cell class="expand" *matHeaderCellDef mat-sort-header>
         </mat-header-cell>
@@ -413,9 +413,9 @@
       </ng-container>
 
       <ng-container matColumnDef="expandedDetail">
-        <mat-cell class="extended-cell" [style.flex]="'1 0 ' + displayedColumnsWidth + 'px'" [style.min-width]="displayedColumnsWidth + 'px'" *matCellDef="let row" [attr.colspan]="displayedColumns.length">
-          <div class="extended-table-container" [style.flex]="'1 0 ' + displayedColumnsWidth + 'px'" [style.min-width]="displayedColumnsWidth + 'px'" [@detailExpand]="row === expandedRow && !loading ? 'expanded' : 'collapsed'">
-            <mat-table [dataSource]="dataSourceSub">
+        <mat-cell class="extended-cell" [style.flex]="'1 0 ' + displayedColumnsWidth + 'px'" [style.min-width]="displayedColumnsWidth + 'px'" *matCellDef="let row" [attr.colspan]="displayedColumns().length">
+          <div class="extended-table-container" [style.flex]="'1 0 ' + displayedColumnsWidth + 'px'" [style.min-width]="displayedColumnsWidth + 'px'" [@detailExpand]="row === expandedRow && !loading() ? 'expanded' : 'collapsed'">
+            <mat-table [dataSource]="dataSourceSub()">
               <ng-container matColumnDef="expand">
                 <mat-cell class="placeholder expand" *matCellDef="let rowSub" [style.left]="scrollLeft + 'px'">
                 </mat-cell>
@@ -533,16 +533,16 @@
                 </mat-cell>
               </ng-container>
 
-              <mat-row *matRowDef="let rowSub; columns: displayedColumns" class="sub-row" [style.min-width]="displayedColumnsWidth + 'px'" (mouseenter)="mouseenter(rowSub)" (mouseleave)="mouseleave()"></mat-row>
+              <mat-row *matRowDef="let rowSub; columns: displayedColumns()" class="sub-row" [style.min-width]="displayedColumnsWidth + 'px'" (mouseenter)="mouseenter(rowSub)" (mouseleave)="mouseleave()"></mat-row>
             </mat-table>
           </div>
         </mat-cell>
       </ng-container>
 
-      <mat-header-row *matHeaderRowDef="displayedColumns; sticky: true" [style.min-width]="displayedColumnsWidth + 'px'"></mat-header-row>
-      <mat-row *matRowDef="let row; columns: displayedColumns" class="element-row expandable" [style.min-width]="displayedColumnsWidth + 'px'" [class.expanded-row]="expandedRow === row" (mouseenter)="mouseenter(row)" (mouseleave)="mouseleave()"></mat-row>
-      <mat-row *matRowDef="let row; columns: ['expandedDetail']" class="detail-row" [style.min-width]="displayedColumnsWidth + 'px'" [class.expanded-row]="(row === expandedRow) && !loading"></mat-row>
-      <mat-footer-row *matFooterRowDef="displayedColumns; sticky: true" [style.min-width]="displayedColumnsWidth + 'px'"></mat-footer-row>
+      <mat-header-row *matHeaderRowDef="displayedColumns(); sticky: true" [style.min-width]="displayedColumnsWidth + 'px'"></mat-header-row>
+      <mat-row *matRowDef="let row; columns: displayedColumns()" class="element-row expandable" [style.min-width]="displayedColumnsWidth + 'px'" [class.expanded-row]="expandedRow === row" (mouseenter)="mouseenter(row)" (mouseleave)="mouseleave()"></mat-row>
+      <mat-row *matRowDef="let row; columns: ['expandedDetail']" class="detail-row" [style.min-width]="displayedColumnsWidth + 'px'" [class.expanded-row]="(row === expandedRow) && !loading()"></mat-row>
+      <mat-footer-row *matFooterRowDef="displayedColumns(); sticky: true" [style.min-width]="displayedColumnsWidth + 'px'"></mat-footer-row>
     </mat-table>
   </div>
 </div>

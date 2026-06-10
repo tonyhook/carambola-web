@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, effect, input, output, signal, WritableSignal, inject } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, effect, inject, input, output, signal, WritableSignal } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
@@ -34,6 +34,7 @@ interface VendorPortFormControls {
 
 @Component({
   selector: 'carambola-vendorport-form',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FormsModule,
     ReactiveFormsModule,
@@ -92,9 +93,9 @@ export class VendorPortFormComponent implements AfterViewInit {
   vendorPort = input<VendorPort | null>(null);
   changed = output<boolean>();
 
-  vendorPortFull: VendorPort | null = null;
-  connections: Connection[] = [];
-  selectedIndex = 0;
+  vendorPortFull = signal<VendorPort | null>(null);
+  connections = signal<Connection[]>([]);
+  selectedIndex = signal(0);
 
   constructor() {
     this.formGroup = this.formBuilder.group({
@@ -127,7 +128,7 @@ export class VendorPortFormComponent implements AfterViewInit {
 
                 this.formVendorId.set(vendor.id!);
                 this.managedVendorMedias.set(vendorMedias.filter(vendorMedia => vendorMedia.vendor.id === vendor.id));
-                this.connections = [];
+                this.connections.set([]);
 
                 this.formGroup.setControl('vendor', this.createVendorControl(vendor), {emitEvent: false});
                 this.formGroup.setControl('vendorMedia', this.createVendorMediaControl(vendorMedia), {emitEvent: false});
@@ -147,7 +148,7 @@ export class VendorPortFormComponent implements AfterViewInit {
           } else {
             this.initialized = true;
 
-            this.connections = [];
+            this.connections.set([]);
 
             this.formGroup.setControl('vendor', this.createVendorControl(null, false), {emitEvent: false});
             this.formGroup.setControl('vendorMedia', this.createVendorMediaControl(null, true), {emitEvent: false});
@@ -165,7 +166,7 @@ export class VendorPortFormComponent implements AfterViewInit {
           }
         } else {
           this.vendorPortAPI.getVendorPort(this.vendorPort()!.id!).subscribe(vendorPort => {
-            this.vendorPortFull = vendorPort;
+            this.vendorPortFull.set(vendorPort);
 
             const vendor = vendors.find(vendor => vendor.id === vendorPort.vendor.id) ?? null;
             const vendorMedia = vendorMedias.find(vendorMedia => vendorMedia.id === vendorPort.vendorMedia.id) ?? null;
@@ -178,8 +179,8 @@ export class VendorPortFormComponent implements AfterViewInit {
 
               this.formVendorId.set(vendor.id!);
               this.managedVendorMedias.set(vendorMedias.filter(vendorMedia => vendorMedia.vendor.id === vendor.id));
-              this.connections = vendorPort.connection.filter(connection => !connection.deleted).filter(connection => !connection.clientPort.deleted);
-              this.selectedIndex = tab === 'property' ? 0 : tab === 'connection' ? 1 : tab === 'deeplink' ? 2 : tab === 'traffic' ? 3 : 4;
+              this.connections.set(vendorPort.connection.filter(connection => !connection.deleted).filter(connection => !connection.clientPort.deleted));
+              this.selectedIndex.set(tab === 'property' ? 0 : tab === 'connection' ? 1 : tab === 'deeplink' ? 2 : tab === 'traffic' ? 3 : 4);
 
               this.formGroup.setControl('vendor', this.createVendorControl(vendor), {emitEvent: false});
               this.formGroup.setControl('vendorMedia', this.createVendorMediaControl(vendorMedia), {emitEvent: false});
@@ -425,7 +426,7 @@ export class VendorPortFormComponent implements AfterViewInit {
 
   connectionChanged() {
     this.vendorPortAPI.getVendorPort(this.vendorPort()!.id!).subscribe(vendorPort => {
-      this.connections = vendorPort.connection.filter(connection => !connection.deleted).filter(connection => !connection.clientPort.deleted);
+      this.connections.set(vendorPort.connection.filter(connection => !connection.deleted).filter(connection => !connection.clientPort.deleted));
     });
   }
 
