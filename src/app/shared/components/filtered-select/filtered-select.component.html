@@ -1,0 +1,25 @@
+<mat-form-field class="full-width-input" subscriptSizing="dynamic">
+  <mat-label>{{ label() }}</mat-label>
+  <form [formGroup]="formGroup">
+    <mat-select formControlName="value" placeholder="filter" (blur)="onTouched()" #select>
+      <mat-select-trigger>
+        <span>{{ select.value }}</span>
+      </mat-select-trigger>
+      <mat-option>
+        <ngx-mat-select-search formControlName="filter"
+          placeholderLabel="input filter"
+          noEntriesFoundLabel="no entries found">
+          <mat-icon ngxMatSelectSearchClear>delete</mat-icon>
+        </ngx-mat-select-search>
+      </mat-option>
+      @if (!required) {
+        <mat-option [value]="null">Any</mat-option>
+      }
+      @for (candidate of filteredCandidate$ | async; track candidate) {
+        <mat-option [value]="candidate">
+          <span>{{ candidate }}</span>
+        </mat-option>
+      }
+    </mat-select>
+  </form>
+</mat-form-field>
