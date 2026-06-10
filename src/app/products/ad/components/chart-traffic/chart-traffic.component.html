@@ -1,26 +1,26 @@
 <div class="port-list">
-  <div class="port all" [class.selected]="selectedPortId === 0" (click)="selectPort(0)" (keyup.enter)="selectPort(0)" tabindex="0" role="button">
+  <div class="port all" [class.selected]="selectedPortId() === 0" (click)="selectPort(0)" (keyup.enter)="selectPort(0)" tabindex="0" role="button">
     全部
   </div>
   @if (clientPort()) {
-    @for (vendorPort of vendorPortList; track vendorPort) {
-      <div class="port" [class.selected]="selectedPortId === vendorPort.id" (click)="selectPort(vendorPort.id!)" (keyup.enter)="selectPort(vendorPort.id!)" tabindex="0" role="button">
+    @for (vendorPort of vendorPortList(); track vendorPort) {
+      <div class="port" [class.selected]="selectedPortId() === vendorPort.id" (click)="selectPort(vendorPort.id!)" (keyup.enter)="selectPort(vendorPort.id!)" tabindex="0" role="button">
         <carambola-ad-entity type="vendorPort" mode="full" [vendorPort]="vendorPort"></carambola-ad-entity>
       </div>
     }
   }
   @if (vendorPort()) {
-    @for (clientPort of clientPortList; track clientPort) {
-      <div class="port" [class.selected]="selectedPortId === clientPort.id" (click)="selectPort(clientPort.id!)" (keyup.enter)="selectPort(clientPort.id!)" tabindex="0" role="button">
+    @for (clientPort of clientPortList(); track clientPort) {
+      <div class="port" [class.selected]="selectedPortId() === clientPort.id" (click)="selectPort(clientPort.id!)" (keyup.enter)="selectPort(clientPort.id!)" tabindex="0" role="button">
         <carambola-ad-entity type="clientPort" mode="full" [clientPort]="clientPort"></carambola-ad-entity>
       </div>
     }
   }
 </div>
 
-<div echarts [options]="chartFunnelOption" [loading]="!dataReady" [autoResize]="true" (chartInit)="onChartFunnelInit($event)" class="chart"></div>
-<div echarts [options]="chartFailedRequestOption" [loading]="!dataReady" [autoResize]="true" (chartInit)="onChartFailedRequestInit($event)" class="chart"></div>
-<div echarts [options]="chartLostResponseOption" [loading]="!dataReady" [autoResize]="true" (chartInit)="onChartLostResponseInit($event)" class="chart"></div>
+<div echarts [options]="chartFunnelOption()" [loading]="!dataReady()" [autoResize]="true" (chartInit)="onChartFunnelInit($event)" class="chart"></div>
+<div echarts [options]="chartFailedRequestOption()" [loading]="!dataReady()" [autoResize]="true" (chartInit)="onChartFailedRequestInit($event)" class="chart"></div>
+<div echarts [options]="chartLostResponseOption()" [loading]="!dataReady()" [autoResize]="true" (chartInit)="onChartLostResponseInit($event)" class="chart"></div>
 @if (clientPort()) {
-  <div echarts [options]="chartFailedResponseOption" [loading]="!dataReady" [autoResize]="true" (chartInit)="onChartFailedResponseInit($event)" class="chart"></div>
+  <div echarts [options]="chartFailedResponseOption()" [loading]="!dataReady()" [autoResize]="true" (chartInit)="onChartFailedResponseInit($event)" class="chart"></div>
 }

@@ -18,28 +18,28 @@
   }
 
   @if (mode() === 'client' || mode() === 'vendor') {
-    <mat-card class="port" [class.enabled]="!!connection && connection.enabled" [class.disabled]="!!connection && !connection.enabled">
+    <mat-card class="port" [class.enabled]="!!connection() && connection()!.enabled" [class.disabled]="!!connection() && !connection()!.enabled">
       <mat-card-content>
         <div class="port-property-row" [class.main]="mode() === 'vendor'" (click)="pair('client')" (keyup.enter)="pair('client')" tabindex="0">
-          {{ clientPortFull?.name }}
+          {{ clientPortFull()?.name }}
         </div>
         <div class="port-property-row sub">
-          {{ clientPortFull?.tagId!.split('|')[0] }}
+          {{ clientPortFull()?.tagId!.split('|')[0] }}
         </div>
         <div class="port-property-row sub">
-          {{ clientPortFull?.client?.name }} | {{ clientPortFull?.clientMedia?.name }}
+          {{ clientPortFull()?.client?.name }} | {{ clientPortFull()?.clientMedia?.name }}
         </div>
         <mat-divider></mat-divider>
         <div class="port-property-row" [class.main]="mode() === 'client'" (click)="pair('vendor')" (keyup.enter)="pair('vendor')" tabindex="1">
-          {{ vendorPortFull?.name }}
+          {{ vendorPortFull()?.name }}
         </div>
         <div class="port-property-row sub">
-          {{ vendorPortFull?.tagId }}
+          {{ vendorPortFull()?.tagId }}
         </div>
         <div class="port-property-row sub">
-          {{ vendorPortFull?.vendor?.name }} | {{ vendorPortFull?.vendorMedia?.name }}
+          {{ vendorPortFull()?.vendor?.name }} | {{ vendorPortFull()?.vendorMedia?.name }}
         </div>
-        @if (connection) {
+        @if (connection(); as connection) {
           <mat-divider></mat-divider>
           <div class="port-property-row">
             有效期：{{ connection.validFrom | date: 'yy-MM-dd' }} - {{ connection.validTo | date: 'yy-MM-dd' }}
@@ -58,20 +58,20 @@
           </div>
         }
         <div class="port-action-wrapper">
-          @if (!readonly() && connection && !connection.enabled) {
+          @if (!readonly() && connection() && !connection()!.enabled) {
             <button type="button" class="port-action" mat-icon-button (click)="remove()"><mat-icon>delete</mat-icon></button>
           }
-          @if (!readonly() && connection && connection.enabled) {
+          @if (!readonly() && connection() && connection()!.enabled) {
             <button type="button" class="port-action" mat-icon-button (click)="pause()"><mat-icon>pause</mat-icon></button>
           }
-          @if (!readonly() && connection && !connection.enabled) {
+          @if (!readonly() && connection() && !connection()!.enabled) {
             <button type="button" class="port-action" mat-icon-button (click)="resume()"><mat-icon>play_arrow</mat-icon></button>
           }
 
-          @if (!readonly() && connection) {
+          @if (!readonly() && connection()) {
             <button type="button" class="port-action" mat-icon-button (click)="popup()"><mat-icon>settings</mat-icon></button>
           }
-          @if (readonly() && connection) {
+          @if (readonly() && connection()) {
             <button type="button" class="port-action" mat-icon-button (click)="popup()"><mat-icon>visibility</mat-icon></button>
           }
         </div>
