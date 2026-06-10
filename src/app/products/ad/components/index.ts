@@ -21,3 +21,7 @@ export * from './vendorport-dialog/vendorport-dialog.component';
 export * from './vendorport-form/vendorport-form.component';
 export * from './performance/performance.component';
 export * from './bundle-dialog/bundle-dialog.component';
+export * from './bill/bill.component';
+export * from './bill-dialog/bill-dialog.component';
+export * from './sign/sign.component';
+export * from './sign-dialog/sign-dialog.component';

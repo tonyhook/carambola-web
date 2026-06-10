@@ -1,0 +1,43 @@
+<mat-card>
+  <mat-card-header>
+    <div class="bill-header">
+      <carambola-ad-entity type="client" mode="brief" [client]="client"></carambola-ad-entity>
+      <carambola-ad-entity type="clientPort" mode="brief" [clientPort]="clientPort"></carambola-ad-entity>
+      <button type="button" class="form-button" mat-button>日期：{{ date | date: 'yyyy-MM-dd' }}</button>
+    </div>
+  </mat-card-header>
+  <mat-card-content>
+    <form class="form-in-tab" [formGroup]="formGroup">
+      <div class="full-width-input wrapper">
+      <mat-form-field class="half-width-input" subscriptSizing="dynamic">
+        <mat-label>请求</mat-label>
+        <input type="number" placeholder="请求" matInput formControlName="request" />
+      </mat-form-field>
+      <mat-form-field class="half-width-input" subscriptSizing="dynamic">
+        <mat-label>响应</mat-label>
+        <input type="number" placeholder="响应" matInput formControlName="response" />
+      </mat-form-field>
+      </div>
+      <div class="full-width-input wrapper">
+        <mat-form-field class="half-width-input" subscriptSizing="dynamic">
+          <mat-label>展现</mat-label>
+          <input type="number" placeholder="展现" matInput formControlName="impression" />
+        </mat-form-field>
+        <mat-form-field class="half-width-input" subscriptSizing="dynamic">
+          <mat-label>点击</mat-label>
+          <input type="number" placeholder="点击" matInput formControlName="click" />
+        </mat-form-field>
+      </div>
+      <div class="full-width-input wrapper">
+        <mat-form-field class="full-width-input" subscriptSizing="dynamic">
+          <mat-label>预期收益</mat-label>
+          <input type="number" placeholder="预期收益" matInput formControlName="cost" />
+        </mat-form-field>
+      </div>
+      <div class="full-width-input flex">
+        <button type="button" class="form-button confirm" mat-stroked-button (click)="confirm()">确定</button>
+        <button type="button" class="form-button cancel" mat-stroked-button (click)="cancel()">取消</button>
+      </div>
+    </form>
+  </mat-card-content>
+</mat-card>
