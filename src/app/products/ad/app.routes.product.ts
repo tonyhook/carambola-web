@@ -8,6 +8,8 @@ import { VendorManagerComponent } from '@app/products/ad/components/vendor/vendo
 import { VendorMediaManagerComponent } from '@app/products/ad/components/vendormedia/vendormedia.component';
 import { VendorPortManagerComponent } from '@app/products/ad/components/vendorport/vendorport.component';
 import { PerformanceComponent } from '@app/products/ad/components/performance/performance.component';
+import { BillComponent } from '@app/products/ad/components/bill/bill.component';
+import { SignComponent } from '@app/products/ad/components/sign/sign.component';
 
 export const adManagementRoutes: Routes = [
   {
@@ -41,6 +43,14 @@ export const adManagementRoutes: Routes = [
   {
     path: 'ad/performance',
     component: PerformanceComponent,
+  },
+  {
+    path: 'ad/bill',
+    component: BillComponent,
+  },
+  {
+    path: 'ad/sign',
+    component: SignComponent,
   },
 ];
 
