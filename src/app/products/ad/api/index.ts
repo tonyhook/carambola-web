@@ -7,4 +7,5 @@ export * from './vendor.api';
 export * from './vendormedia.api';
 export * from './vendorport.api';
 export * from './performance.api';
+export * from './bill.api';
 export * from './traffic-control.api';
