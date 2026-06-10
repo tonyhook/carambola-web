@@ -1,0 +1,137 @@
+<div class="container">
+  <form class="form-in-tab" [formGroup]="formGroupQuery">
+    <div class="full-width-input flex">
+      <mat-form-field subscriptSizing="dynamic">
+        <mat-label>广告主</mat-label>
+        <carambola-filtered-select-client formControlName="client" [multiple]="true" [options]="filterClient" />
+        @if (formGroupQuery.value.client && formGroupQuery.value.client.length > 0) {
+          <button type="button" matSuffix mat-icon-button (click)="clear($event, 'client', [])">
+            <mat-icon>clear</mat-icon>
+          </button>
+        }
+      </mat-form-field>
+      <mat-form-field subscriptSizing="dynamic">
+        <mat-label>上游媒体</mat-label>
+        <carambola-filtered-select-clientmedia formControlName="clientMedia" [multiple]="true" [options]="filterClientMedia" />
+        @if (formGroupQuery.value.clientMedia && formGroupQuery.value.clientMedia.length > 0) {
+          <button type="button" matSuffix mat-icon-button (click)="clear($event, 'clientMedia', [])">
+            <mat-icon>clear</mat-icon>
+          </button>
+        }
+      </mat-form-field>
+      <mat-form-field subscriptSizing="dynamic">
+        <mat-label>广告形式</mat-label>
+        <mat-select multiple panelWidth="" formControlName="format">
+          @for (key of filterFormat.keys(); track key) {
+            <mat-option [value]="key">{{ filterFormat.get(key) }}</mat-option>
+          }
+        </mat-select>
+        @if (formGroupQuery.value.format.length > 0) {
+          <button type="button" matSuffix mat-icon-button (click)="clear($event, 'format', [])">
+            <mat-icon>clear</mat-icon>
+          </button>
+        }
+      </mat-form-field>
+      <mat-form-field subscriptSizing="dynamic">
+        <mat-label>广告位模式</mat-label>
+        <mat-select multiple panelWidth="" formControlName="mode">
+          @for (key of filterMode.keys(); track key) {
+            <mat-option [value]="key">{{ filterMode.get(key) }}</mat-option>
+          }
+        </mat-select>
+        @if (formGroupQuery.value.mode.length > 0) {
+          <button type="button" matSuffix mat-icon-button (click)="clear($event, 'mode', [])">
+            <mat-icon>clear</mat-icon>
+          </button>
+        }
+      </mat-form-field>
+      <mat-form-field subscriptSizing="dynamic">
+        <mat-label>端口状态</mat-label>
+        <mat-select multiple panelWidth="" formControlName="status">
+          @for (key of filterStatus.keys(); track key) {
+            <mat-option [value]="key">{{ filterStatus.get(key) }}</mat-option>
+          }
+        </mat-select>
+        @if (formGroupQuery.value.status.length > 0) {
+          <button type="button" matSuffix mat-icon-button (click)="clear($event, 'status', [])">
+            <mat-icon>clear</mat-icon>
+          </button>
+        }
+      </mat-form-field>
+      <mat-form-field subscriptSizing="dynamic">
+        <mat-label>上游广告位名称，ID</mat-label>
+        <input placeholder="搜索" matInput formControlName="search" />
+        @if (formGroupQuery.value.search.length > 0) {
+          <button type="button" matSuffix mat-icon-button (click)="clear($event, 'search', '')">
+            <mat-icon>clear</mat-icon>
+          </button>
+        }
+      </mat-form-field>
+      <button type="button" class="form-button" mat-stroked-button (click)="query()">搜索</button>
+      <button type="button" class="form-button new" mat-stroked-button (click)="newClientPort(0)">新建</button>
+    </div>
+  </form>
+
+  <mat-table matSort [dataSource]="dataSource">
+    <ng-container matColumnDef="client">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>
+        广告主
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <carambola-ad-entity type="client" mode="brief" [client]="row.client" />
+      </mat-cell>
+    </ng-container>
+    <ng-container matColumnDef="clientMedia">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>
+        媒体名称
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <carambola-ad-entity type="clientMedia" mode="brief" [clientMedia]="row.clientMedia" />
+      </mat-cell>
+    </ng-container>
+    <ng-container matColumnDef="name">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>
+        广告位名称
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <carambola-ad-entity type="clientPort" mode="brief" [clientPort]="row" />
+      </mat-cell>
+    </ng-container>
+    <ng-container matColumnDef="format">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>广告形式</mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        {{ row.format === 'banner' ? '横幅' :
+          row.format === 'interstitial' ? '插屏' :
+          row.format === 'splash' ? '开屏' :
+          row.format === 'feeds' ? '信息流' :
+          row.format === 'video' ? '视频' : '未知' }}
+      </mat-cell>
+    </ng-container>
+    <ng-container matColumnDef="connection">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>
+        状态
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">{{ getConnectionStatus(row) ? '启用' : '未启用' }}</mat-cell>
+    </ng-container>
+    <ng-container matColumnDef="actions">
+      <mat-header-cell *matHeaderCellDef class="actions"></mat-header-cell>
+      <mat-cell *matCellDef="let row;" class="actions">
+        @if (hoverRow === row) {
+          @if (canViewConnection()) {
+            <button mat-icon-button (click)="modifyClientPort(row, 'connection')">
+              <mat-icon>cable</mat-icon>
+            </button>
+          }
+          <button mat-icon-button (click)="modifyClientPort(row, 'property')">
+            <mat-icon>settings</mat-icon>
+          </button>
+        }
+      </mat-cell>
+    </ng-container>
+
+    <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+    <mat-row *matRowDef="let row; columns: displayedColumns" (mouseenter)="mouseenter(row)" (mouseleave)="mouseleave()"></mat-row>
+  </mat-table>
+
+  <mat-paginator [hidePageSize]="'false'" [pageSize]="50" [pageSizeOptions]="[10, 30, 50]" [showFirstLastButtons]="'true'"></mat-paginator>
+</div>

@@ -1,0 +1,35 @@
+<div class="filtered-select-vendor-container" [formGroup]="formGroup" (focusin)="onFocusIn()" (focusout)="onFocusOut($event)">
+  <mat-select formControlName="selection" placeholder="筛选" [multiple]="multiple()" (openedChange)="onOpenedChange($event)" #selection>
+    <mat-select-trigger>
+      @if (multiple()) {
+        @if ((selection.value?.length || 0) > 0) {
+          <span>
+            {{ selection.value?.[0].name || '' }}
+          </span>
+        }
+        @if ((selection.value?.length || 0) > 1) {
+          <span class="additional-selection">
+            (+{{(selection.value?.length || 0) - 1}})
+          </span>
+        }
+      } @else {
+        <carambola-ad-entity type="vendor" mode="tiny" [vendor]="selection.value" />
+      }
+    </mat-select-trigger>
+    <mat-option>
+      <ngx-mat-select-search formControlName="filter" class="filter-input"
+        placeholderLabel="请输入筛选条件"
+        noEntriesFoundLabel="没有符合条件的选项">
+        <mat-icon ngxMatSelectSearchClear>delete</mat-icon>
+      </ngx-mat-select-search>
+    </mat-option>
+    @if (!required && !multiple()) {
+      <mat-option [value]="null">任意</mat-option>
+    }
+    @for (candidate of filteredCandidate$ | async; track candidate) {
+      <mat-option [value]="candidate">
+        <carambola-ad-entity type="vendor" mode="brief" [vendor]="candidate" />
+      </mat-option>
+    }
+  </mat-select>
+</div>
