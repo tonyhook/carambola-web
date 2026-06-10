@@ -1,0 +1,241 @@
+<div class="entity-container">
+  <div class="entity-properties">
+    @if (type() === 'client') {
+      <div class="entity-property" [matBadge]="client()?.createTime | isNew" matBadgeSize="medium" matBadgeOverlap="false">
+        <div class="name">{{ client()?.name }}</div>
+        @if (mode() === 'tiny') {
+          @if (debug()) {
+            <div class="sub">[{{ client()?.id }}]</div>
+          }
+          <div class="sub">{{ client()?.code }}</div>
+        }
+      </div>
+      @if (mode() === 'brief') {
+        @if (client()?.mode === PartnerType.PARTNER_TYPE_DIRECT) {
+          <div class="entity-property">
+            @if (debug()) {
+              <div class="sub">[{{ client()?.id }}]</div>
+            }
+            <div class="sub">--</div>
+          </div>
+        }
+        @if (client()?.mode === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
+          <div class="entity-property">
+            @if (debug()) {
+              <div class="sub">[{{ client()?.id }}]</div>
+            }
+            <div class="sub">{{ client()?.code }}</div>
+          </div>
+        }
+      }
+    }
+    @if (type() === 'clientMedia') {
+      <div class="entity-property" [matBadge]="clientMedia()?.createTime | isNew" matBadgeSize="medium" matBadgeOverlap="false">
+        <div class="name">{{ clientMedia()?.name }}</div>
+        @if (mode() === 'tiny') {
+          @if (clientMedia()?.apppackage && clientMedia()?.apppackage?.length) {
+            @if (debug()) {
+              <div class="sub">[{{ clientMedia()?.id }}]</div>
+            }
+            <div class="sub">{{ clientMedia()?.apppackage }}</div>
+          }
+        }
+      </div>
+      @if (mode() === 'brief') {
+        @if (clientMedia()?.apppackage && clientMedia()?.apppackage?.length) {
+          <div class="entity-property">
+            @if (debug()) {
+              <div class="sub">[{{ clientMedia()?.id }}]</div>
+            }
+            <div class="sub">{{ clientMedia()?.apppackage }}</div>
+          </div>
+        } @else {
+          <div class="entity-property">
+            @if (debug()) {
+              <div class="sub">[{{ clientMedia()?.id }}]</div>
+            }
+            <div class="sub">--</div>
+          </div>
+        }
+      }
+    }
+    @if (type() === 'clientPort') {
+      <div class="entity-property" [matBadge]="clientPort()?.createTime | isNew" matBadgeSize="medium" matBadgeOverlap="false">
+        <div class="name">{{ clientPort()?.name }}</div>
+        @if (mode() === 'tiny') {
+          @if (debug()) {
+            <div class="sub">[{{ clientPort()?.id }}]</div>
+          }
+          <div class="sub">{{ clientPort()?.tagId!.split('|')[0] }}</div>
+        }
+      </div>
+      @if (mode() === 'brief') {
+        <div class="entity-property">
+          @if (debug()) {
+            <div class="sub">[{{ clientPort()?.id }}]</div>
+          }
+          <div class="sub">{{ clientPort()?.tagId!.split('|')[0] }}</div>
+        </div>
+      }
+    }
+    @if (type() === 'vendor') {
+      <div class="entity-property" [matBadge]="vendor()?.createTime | isNew" matBadgeSize="medium" matBadgeOverlap="false">
+        <div class="name">{{ vendor()?.name }}</div>
+        @if (mode() === 'tiny') {
+          @if (debug()) {
+            <div class="sub">[{{ vendor()?.id }}]</div>
+          }
+        }
+      </div>
+      @if (mode() === 'brief') {
+        <div class="entity-property">
+          @if (debug()) {
+            <div class="sub">[{{ vendor()?.id }}]</div>
+          }
+          <div class="sub">--</div>
+        </div>
+      }
+    }
+    @if (type() === 'vendorMedia') {
+      <div class="entity-property" [matBadge]="vendorMedia()?.createTime | isNew" matBadgeSize="medium" matBadgeOverlap="false">
+        <div class="name">{{ vendorMedia()?.name }}</div>
+        @if (mode() === 'tiny') {
+          @if (debug()) {
+            <div class="sub">[{{ vendorMedia()?.id }}]</div>
+          }
+          @if (vendorMedia()?.apppackage && vendorMedia()?.apppackage?.length) {
+            <div class="sub">{{ vendorMedia()?.apppackage }}</div>
+          }
+        }
+      </div>
+      @if (mode() === 'brief') {
+        @if (vendorMedia()?.apppackage && vendorMedia()?.apppackage?.length) {
+          <div class="entity-property">
+            @if (debug()) {
+              <div class="sub">[{{ vendorMedia()?.id }}]</div>
+            }
+            <div class="sub">{{ vendorMedia()?.apppackage }}</div>
+          </div>
+        } @else {
+          <div class="entity-property">
+            @if (debug()) {
+              <div class="sub">[{{ vendorMedia()?.id }}]</div>
+            }
+            <span class="sub">--</span>
+          </div>
+        }
+      }
+    }
+    @if (type() === 'vendorPort') {
+      <div class="entity-property" [matBadge]="vendorPort()?.createTime | isNew" matBadgeSize="medium" matBadgeOverlap="false">
+        <div class="name">{{ vendorPort()?.name }}</div>
+        @if (mode() === 'tiny') {
+          @if (debug()) {
+            <div class="sub">[{{ vendorPort()?.id }}]</div>
+          }
+          <div class="sub">{{ vendorPort()?.tagId }}</div>
+        }
+      </div>
+      @if (mode() === 'brief') {
+        <div class="entity-property">
+          @if (debug()) {
+            <div class="sub">[{{ vendorPort()?.id }}]</div>
+          }
+          <div class="sub">{{ vendorPort()?.tagId }}</div>
+        </div>
+      }
+    }
+  </div>
+  @if (type() === 'client') {
+    @if (client()?.mode === PartnerType.PARTNER_TYPE_DIRECT) {
+      <div class="entity-icon icon-partner-direct">
+        直
+      </div>
+    }
+    @if (client()?.mode === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
+      <div class="entity-icon icon-partner-programmatic">
+        平
+      </div>
+    }
+  }
+  @if (type() === 'clientMedia') {
+    @if (clientMedia()?.platform === 'iOS') {
+      <div class="entity-icon icon-media-ios">
+        I
+      </div>
+    }
+    @if (clientMedia()?.platform === 'Android') {
+      <div class="entity-icon icon-media-android">
+        A
+      </div>
+    }
+    @if (clientMedia()?.platform === 'WAP') {
+      <div class="entity-icon icon-media-wap">
+        W
+      </div>
+    }
+  }
+  @if (type() === 'clientPort') {
+    @if (clientPort()?.mode === PortType.PORT_TYPE_DIRECT) {
+      <div class="entity-icon icon-port-direct">
+        直
+      </div>
+    }
+    @if (clientPort()?.mode === PortType.PORT_TYPE_BIDDING) {
+      <div class="entity-icon icon-port-bidding">
+        竞
+      </div>
+    }
+    @if (clientPort()?.mode === PortType.PORT_TYPE_SHARE) {
+      <div class="entity-icon icon-port-share">
+        分
+      </div>
+    }
+  }
+  @if (type() === 'vendor') {
+    @if (vendor()?.mode === PartnerType.PARTNER_TYPE_DIRECT) {
+      <div class="entity-icon icon-partner-direct">
+        直
+      </div>
+    }
+    @if (vendor()?.mode === PartnerType.PARTNER_TYPE_PROGRAMMATIC) {
+      <div class="entity-icon icon-partner-programmatic">
+        平
+      </div>
+    }
+  }
+  @if (type() === 'vendorMedia') {
+    @if (vendorMedia()?.platform === 'iOS') {
+      <div class="entity-icon icon-media-ios">
+        I
+      </div>
+    }
+    @if (vendorMedia()?.platform === 'Android') {
+      <div class="entity-icon icon-media-android">
+        A
+      </div>
+    }
+    @if (vendorMedia()?.platform === 'WAP') {
+      <div class="entity-icon icon-media-wap">
+        W
+      </div>
+    }
+  }
+  @if (type() === 'vendorPort') {
+    @if (vendorPort()?.mode === PortType.PORT_TYPE_DIRECT) {
+      <div class="entity-icon icon-port-direct">
+        直
+      </div>
+    }
+    @if (vendorPort()?.mode === PortType.PORT_TYPE_BIDDING) {
+      <div class="entity-icon icon-port-bidding">
+        竞
+      </div>
+    }
+    @if (vendorPort()?.mode === PortType.PORT_TYPE_SHARE) {
+      <div class="entity-icon icon-port-share">
+        分
+      </div>
+    }
+  }
+</div>
