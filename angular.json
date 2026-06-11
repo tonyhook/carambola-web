@@ -119,6 +119,49 @@
                   "with": "src/app/products/ad/app.providers.product.ts"
                 }
               ]
+            },
+            "perf": {
+              "assets": [
+                {
+                  "glob": "**/*",
+                  "input": "public"
+                }
+              ],
+              "fileReplacements": [
+                {
+                  "replace": "src/app/app.routes.product.ts",
+                  "with": "src/app/products/perf/app.routes.product.ts"
+                },
+                {
+                  "replace": "src/app/app.providers.product.ts",
+                  "with": "src/app/products/perf/app.providers.product.ts"
+                }
+              ]
+            },
+            "perf-development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "assets": [
+                {
+                  "glob": "**/*",
+                  "input": "public"
+                }
+              ],
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.development.ts"
+                },
+                {
+                  "replace": "src/app/app.routes.product.ts",
+                  "with": "src/app/products/perf/app.routes.product.ts"
+                },
+                {
+                  "replace": "src/app/app.providers.product.ts",
+                  "with": "src/app/products/perf/app.providers.product.ts"
+                }
+              ]
             }
           },
           "defaultConfiguration": "production"
@@ -137,6 +180,9 @@
             },
             "ad": {
               "buildTarget": "web:build:ad-development"
+            },
+            "perf": {
+              "buildTarget": "web:build:perf-development"
             }
           },
           "defaultConfiguration": "development"
