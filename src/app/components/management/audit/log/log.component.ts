@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, DoCheck, KeyValueDiffer, KeyValueDiffers, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, DoCheck, KeyValueDiffer, KeyValueDiffers, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -30,6 +30,9 @@ import { Log, LogAPI, PaginatedDataSource, Query, Sort } from '../../../../core'
   styleUrls: ['./log.component.scss'],
 })
 export class LogManagerComponent implements AfterViewInit, DoCheck {
+  private readonly differs = inject(KeyValueDiffers);
+  private logAPI = inject(LogAPI);
+
   displayedColumns: string[] = ['createTime', 'level', 'username', 'requestMethod', 'requestResourceType', 'requestResourceId', 'responseCode'];
   initialSort: Sort<Log> = {property: 'createTime', order: 'asc'};
   initialQuery: Partial<Query<Log>> = {};
@@ -48,10 +51,7 @@ export class LogManagerComponent implements AfterViewInit, DoCheck {
     this.initialSize,
   );
 
-  constructor(
-    private readonly differs: KeyValueDiffers,
-    private logAPI: LogAPI,
-  ) {
+  constructor() {
     this.clear = new UntypedFormGroup({
       clear: new UntypedFormControl()
     });

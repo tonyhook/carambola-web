@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, signal, WritableSignal } from '@angular/core';
+import { Component, OnDestroy, OnInit, signal, WritableSignal, inject } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -32,20 +32,19 @@ import { ItemChangeEvent, ItemDeleteEvent, ItemNewEvent, ItemSelectEvent, TreeVi
   styleUrls: ['./menu.component.scss'],
 })
 export class MenuManagerComponent implements OnInit, OnDestroy {
+  private formBuilder = inject(UntypedFormBuilder);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private menuService = inject(MenuService);
+  private menuAPI = inject(MenuAPI);
+  private snackBar = inject(MatSnackBar);
   private pendingMenuUpdateTimers = new Map<number, ReturnType<typeof setTimeout>>();
 
   menus: WritableSignal<Menu[]> = signal([]);
   menu: WritableSignal<Menu | null> = signal(null);
   formGroup: UntypedFormGroup;
 
-  constructor(
-    private formBuilder: UntypedFormBuilder,
-    private route: ActivatedRoute,
-    private router: Router,
-    private menuService: MenuService,
-    private menuAPI: MenuAPI,
-    private snackBar: MatSnackBar,
-  ) {
+  constructor() {
     this.formGroup = this.formBuilder.group({});
   }
 

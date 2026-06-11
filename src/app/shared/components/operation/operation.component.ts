@@ -1,4 +1,4 @@
-import { Component, effect, input, output } from '@angular/core';
+import { Component, effect, input, output, inject } from '@angular/core';
 import { UntypedFormGroup, UntypedFormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 
@@ -12,6 +12,8 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
   styleUrls: ['./operation.component.scss'],
 })
 export class OperationComponent {
+  private formBuilder = inject(UntypedFormBuilder);
+
   formGroup: UntypedFormGroup;
 
   permission = input<string | null>('');
@@ -20,9 +22,7 @@ export class OperationComponent {
   disabled = input(false);
   confirmChange = input(false);
 
-  constructor(
-    private formBuilder: UntypedFormBuilder,
-  ) {
+  constructor() {
     this.formGroup = this.formBuilder.group({
       'create': [{value: false, disabled: false}, null],
       'read':   [{value: false, disabled: false}, null],

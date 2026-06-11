@@ -1,4 +1,4 @@
-import { Pipe, PipeTransform } from '@angular/core';
+import { Pipe, PipeTransform, inject } from '@angular/core';
 
 import { switchMap } from 'rxjs/operators';
 import { of } from 'rxjs';
@@ -9,10 +9,7 @@ import { RoleAPI } from '../../core';
   name: 'getRoleName',
 })
 export class GetRoleNamePipe implements PipeTransform {
-
-  constructor(
-    private roleAPI: RoleAPI,
-  ) { }
+  private roleAPI = inject(RoleAPI);
 
   transform(roleId: number) {
     return this.roleAPI.getRole(roleId).pipe(

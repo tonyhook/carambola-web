@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { booleanAttribute, Component, DestroyRef, effect, Input, input, OnDestroy, signal, ViewChild } from '@angular/core';
+import { booleanAttribute, Component, DestroyRef, effect, Input, input, OnDestroy, signal, ViewChild, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ControlValueAccessor, NG_VALIDATORS, NG_VALUE_ACCESSOR, ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, ValidationErrors, Validator, Validators } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -32,6 +32,9 @@ import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
   ],
 })
 export class FilteredSelectComponent implements OnDestroy, ControlValueAccessor, Validator {
+  private formBuilder = inject(UntypedFormBuilder);
+  private destroyRef = inject(DestroyRef);
+
   _onChange: (arg0: string | null) => void = () => {return};
   _onTouched: () => void = () => {return};
   _onValidatorChange: () => void = () => {return};
@@ -58,10 +61,7 @@ export class FilteredSelectComponent implements OnDestroy, ControlValueAccessor,
 
   formGroup: UntypedFormGroup;
 
-  constructor(
-    private formBuilder: UntypedFormBuilder,
-    private destroyRef: DestroyRef,
-  ) {
+  constructor() {
     this.formGroup = this.formBuilder.group({
       'value': [null, this.required ? Validators.required : null],
       'filter': [null, null],
