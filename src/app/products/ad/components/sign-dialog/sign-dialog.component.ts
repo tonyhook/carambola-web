@@ -1,4 +1,4 @@
-import { Component, ElementRef, Inject, ViewChild } from '@angular/core';
+import { Component, ElementRef, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -39,6 +39,14 @@ export interface SignDialogData {
   styleUrls: ['./sign-dialog.component.scss'],
 })
 export class SignDialogComponent {
+  private formBuilder = inject(UntypedFormBuilder);
+  private clientAPI = inject(ClientAPI);
+  private clientPortAPI = inject(ClientPortAPI);
+  private vendorAPI = inject(VendorAPI);
+  private vendorPortAPI = inject(VendorPortAPI);
+  dialogRef = inject<MatDialogRef<SignDialogComponent>>(MatDialogRef);
+  data = inject<SignDialogData>(MAT_DIALOG_DATA);
+
   PartnerType = PartnerType;
 
   displayedColumns: string[] = [];
@@ -135,15 +143,9 @@ export class SignDialogComponent {
   @ViewChild('table', {static: false}) table: ElementRef | null = null;
   dataSource = new MatTableDataSource<BillView>([]);
 
-  constructor(
-    private formBuilder: UntypedFormBuilder,
-    private clientAPI: ClientAPI,
-    private clientPortAPI: ClientPortAPI,
-    private vendorAPI: VendorAPI,
-    private vendorPortAPI: VendorPortAPI,
-    public dialogRef: MatDialogRef<SignDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: SignDialogData,
-  ) {
+  constructor() {
+    const data = this.data;
+
     this.vendor = data.vendor;
     this.vendorPort = data.vendorPort;
     this.date = data.date;

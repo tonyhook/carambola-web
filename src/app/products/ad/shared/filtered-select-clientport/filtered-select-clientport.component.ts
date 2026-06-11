@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { booleanAttribute, Component, effect, ElementRef, input, model, OnDestroy, signal, untracked, viewChild, ViewChild, Input } from '@angular/core';
+import { booleanAttribute, Component, effect, ElementRef, input, model, OnDestroy, signal, untracked, viewChild, ViewChild, Input, inject } from '@angular/core';
 import { ControlValueAccessor, NgControl, ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
@@ -33,6 +33,10 @@ import { AdEntityComponent } from '../ad-entity/ad-entity.component';
   ],
 })
 export class FilteredSelectClientPortComponent implements OnDestroy, ControlValueAccessor, MatFormFieldControl<ClientPort | ClientPort[]> {
+  private formBuilder = inject(UntypedFormBuilder);
+  ngControl = inject(NgControl);
+  private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
+
   // This is the start of MatFormFieldControl properties.
 
   // internal status
@@ -130,11 +134,7 @@ export class FilteredSelectClientPortComponent implements OnDestroy, ControlValu
 
   changedByInternal = false;
 
-  constructor(
-    private formBuilder: UntypedFormBuilder,
-    public ngControl: NgControl,
-    private readonly elementRef: ElementRef<HTMLElement>,
-  ) {
+  constructor() {
     this.ngControl.valueAccessor = this;
     this.formGroup = this.formBuilder.group({
       'selection': [this.multiple() ? [] : null, this.required ? Validators.required : null],

@@ -1,4 +1,4 @@
-import { Component, effect, EventEmitter, input, Output } from '@angular/core';
+import { Component, effect, EventEmitter, input, Output, inject } from '@angular/core';
 import { CommonModule, formatDate } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -27,6 +27,13 @@ import { Router } from '@angular/router';
   styleUrls: ['./connection.component.scss'],
 })
 export class ConnectionComponent {
+  private clientPortAPI = inject(ClientPortAPI);
+  private vendorPortAPI = inject(VendorPortAPI);
+  private connectiontAPI = inject(ConnectionAPI);
+  dialog = inject(MatDialog);
+  private snackBar = inject(MatSnackBar);
+  private router = inject(Router);
+
   connection: Connection | null = null;
   now = formatDate(new Date(), 'yyyy-MM-dd', 'en-US');
 
@@ -40,14 +47,7 @@ export class ConnectionComponent {
 
   @Output() connectionChanged: EventEmitter<Connection | null> = new EventEmitter<Connection | null>();
 
-  constructor(
-    private clientPortAPI: ClientPortAPI,
-    private vendorPortAPI: VendorPortAPI,
-    private connectiontAPI: ConnectionAPI,
-    public dialog: MatDialog,
-    private snackBar: MatSnackBar,
-    private router: Router,
-  ) {
+  constructor() {
     effect(() => {
       const mode = this.mode();
       const clientPort = this.clientPort();

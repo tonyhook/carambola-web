@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
@@ -16,11 +16,8 @@ import { Tenant, TenantService } from '../..';
   templateUrl: './tenant-menu.component.html',
 })
 export class TenantMenuComponent {
-  constructor(
-    private router: Router,
-    public tenantService: TenantService,
-  ) {
-  }
+  private router = inject(Router);
+  tenantService = inject(TenantService);
 
   switchTenant(tenant: Tenant) {
     this.tenantService.switchTenant(tenant);
