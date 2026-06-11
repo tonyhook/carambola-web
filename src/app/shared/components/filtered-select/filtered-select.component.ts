@@ -75,9 +75,7 @@ export class FilteredSelectComponent implements OnDestroy, ControlValueAccessor,
 
         if (value !== this.oldValue) {
           this.oldValue = value;
-          setTimeout(() => {
-            this._onChange(value);
-          }, 0);
+          this._onChange(value);
         }
         if (filter !== this.oldFilter) {
           this.oldFilter = filter ?? '';
