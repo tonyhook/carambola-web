@@ -1,4 +1,4 @@
-import { Component, inject, Input, OnInit, signal } from '@angular/core';
+import { Component, inject, input, OnInit, signal } from '@angular/core';
 
 import { AntiFraud, AntiFraudPeriod, AntiFraudRuleAPI } from '../..';
 
@@ -13,13 +13,13 @@ export class AntiFraudComponent implements OnInit {
 
   AntiFraudPeriod = AntiFraudPeriod;
 
-  @Input() antiFraud!: AntiFraud;
+  antiFraud = input.required<AntiFraud>();
   antiFraudDescription = signal('');
 
   ngOnInit() {
-    this.antiFraudRuleAPI.getAntiFraudRule(this.antiFraud.rule).subscribe(antiFraudRule => {
+    this.antiFraudRuleAPI.getAntiFraudRule(this.antiFraud().rule).subscribe(antiFraudRule => {
       let antiFraudDescription = antiFraudRule.detail;
-      switch (this.antiFraud.period) {
+      switch (this.antiFraud().period) {
         case AntiFraudPeriod.AF_PERIOD_SECOND:
           antiFraudDescription = antiFraudDescription.replace('#PERIOD#', '每秒');
           break;
@@ -33,7 +33,7 @@ export class AntiFraudComponent implements OnInit {
           antiFraudDescription = antiFraudDescription.replace('#PERIOD#', '每天');
           break;
       }
-      this.antiFraudDescription.set(antiFraudDescription.replace('#LIMITATION#', String(this.antiFraud.limitation)));
+      this.antiFraudDescription.set(antiFraudDescription.replace('#LIMITATION#', String(this.antiFraud().limitation)));
     });
   }
 
