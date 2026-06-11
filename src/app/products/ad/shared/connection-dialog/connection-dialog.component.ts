@@ -233,13 +233,11 @@ export class ConnectionDialogComponent implements OnInit, AfterViewInit {
           this.formGroupPort.setControl('clientPort', this.formBuilder.control({value: null, disabled: true}, Validators.required), {emitEvent: false,});
         });
       } else {
-        setTimeout(() => {
-          this.clients = [this.client!];
-          this.validClientPorts = [this.clientPort!];
+        this.clients = [this.client!];
+        this.validClientPorts = [this.clientPort!];
 
-          this.formGroupPort.setControl('client', this.formBuilder.control({value: this.client, disabled: true}, Validators.required), {emitEvent: false,});
-          this.formGroupPort.setControl('clientPort', this.formBuilder.control({value: this.clientPort, disabled: true}, Validators.required), {emitEvent: false,});
-        }, 0);
+        this.formGroupPort.setControl('client', this.formBuilder.control({value: this.client, disabled: true}, Validators.required), {emitEvent: false,});
+        this.formGroupPort.setControl('clientPort', this.formBuilder.control({value: this.clientPort, disabled: true}, Validators.required), {emitEvent: false,});
       }
 
       if (!this.vendorPort) {
@@ -266,13 +264,11 @@ export class ConnectionDialogComponent implements OnInit, AfterViewInit {
           this.formGroupPort.setControl('vendorPort', this.formBuilder.control({value: null, disabled: true}, Validators.required), {emitEvent: false,});
         });
       } else {
-        setTimeout(() => {
-          this.vendors = [this.vendor!];
-          this.validVendorPorts = [this.vendorPort!];
+        this.vendors = [this.vendor!];
+        this.validVendorPorts = [this.vendorPort!];
 
-          this.formGroupPort.setControl('vendor', this.formBuilder.control({value: this.vendor, disabled: true}, Validators.required), {emitEvent: false,});
-          this.formGroupPort.setControl('vendorPort', this.formBuilder.control({value: this.vendorPort, disabled: true}, Validators.required), {emitEvent: false,});
-        }, 0);
+        this.formGroupPort.setControl('vendor', this.formBuilder.control({value: this.vendor, disabled: true}, Validators.required), {emitEvent: false,});
+        this.formGroupPort.setControl('vendorPort', this.formBuilder.control({value: this.vendorPort, disabled: true}, Validators.required), {emitEvent: false,});
       }
 
       if (this.connection) {
