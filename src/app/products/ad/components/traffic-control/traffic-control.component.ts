@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 
 import { TrafficControl, TrafficControlIndicator, TrafficControlPeriod } from '../..';
 
@@ -12,6 +12,6 @@ export class TrafficControlComponent {
   TrafficControlIndicator = TrafficControlIndicator;
   TrafficControlPeriod = TrafficControlPeriod;
 
-  @Input() trafficControl!: TrafficControl;
+  trafficControl = input.required<TrafficControl>();
 
 }

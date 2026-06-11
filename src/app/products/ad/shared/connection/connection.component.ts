@@ -1,4 +1,4 @@
-import { Component, effect, EventEmitter, input, Output, inject } from '@angular/core';
+import { Component, effect, input, inject, output } from '@angular/core';
 import { CommonModule, formatDate } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -45,7 +45,7 @@ export class ConnectionComponent {
   clientPortFull: ClientPort | null = null;
   vendorPortFull: VendorPort | null = null;
 
-  @Output() connectionChanged: EventEmitter<Connection | null> = new EventEmitter<Connection | null>();
+  readonly connectionChanged = output<Connection | null>();
 
   constructor() {
     effect(() => {
