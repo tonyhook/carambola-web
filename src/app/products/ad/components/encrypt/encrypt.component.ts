@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -18,6 +18,8 @@ import { MatTabsModule } from '@angular/material/tabs';
   styleUrls: ['./encrypt.component.scss'],
 })
 export class EncryptComponent {
+  private formBuilder = inject(UntypedFormBuilder);
+
   formGroupEncrypt: UntypedFormGroup;
   encrypt_ekey: Uint8Array = Uint8Array.from('');
   encrypt_ikey: Uint8Array = Uint8Array.from('');
@@ -244,9 +246,7 @@ export class EncryptComponent {
     }
   `;
 
-  constructor(
-    private formBuilder: UntypedFormBuilder,
-  ) {
+  constructor() {
     this.formGroupEncrypt = this.formBuilder.group({
       'ekey': ['skU7Ax_NL5pPAFyKdkfZjZz2-VhIN8bjj1rVFOaJ_5o=', Validators.required],
       'ikey': ['arO23ykdNqUQ5LEoQ0FVmPkBd7xB5CO89PDZlSjpFxo=', Validators.required],

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
@@ -9,10 +9,7 @@ import { PerformancePlaceholder, TrafficControl, AdQuery } from '../../../produc
   providedIn: 'root',
 })
 export class TrafficControlAPI {
-
-  constructor(
-    private http: HttpClient
-  ) { }
+  private http = inject(HttpClient);
 
   getTrafficControlList(query: AdQuery<PerformancePlaceholder>): Observable<TrafficControl[]> {
     let params = new HttpParams();

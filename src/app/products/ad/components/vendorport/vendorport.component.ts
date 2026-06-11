@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, effect, OnInit, signal, ViewChild, WritableSignal } from '@angular/core';
+import { AfterViewInit, Component, effect, OnInit, signal, ViewChild, WritableSignal, inject } from '@angular/core';
 import { UntypedFormGroup, UntypedFormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -40,6 +40,15 @@ import { VendorPortDialogComponent, VendorPortDialogData } from '../vendorport-d
   styleUrls: ['./vendorport.component.scss'],
 })
 export class VendorPortManagerComponent implements OnInit, AfterViewInit {
+  private formBuilder = inject(UntypedFormBuilder);
+  private dialog = inject(MatDialog);
+  private tenantService = inject(TenantService);
+  private vendorAPI = inject(VendorAPI);
+  private vendorMediaAPI = inject(VendorMediaAPI);
+  private vendorPortAPI = inject(VendorPortAPI);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+
   PortType = PortType;
 
   displayedColumns: string[] = ['vendor', 'vendorMedia', 'name', 'format', 'connection', 'actions'];
@@ -64,16 +73,7 @@ export class VendorPortManagerComponent implements OnInit, AfterViewInit {
   dataRequest$ = new Subject<AdQuery<VendorPort>>();
   dataSource = new MatTableDataSource<VendorPort>([]);
 
-  constructor(
-    private formBuilder: UntypedFormBuilder,
-    private dialog: MatDialog,
-    private tenantService: TenantService,
-    private vendorAPI: VendorAPI,
-    private vendorMediaAPI: VendorMediaAPI,
-    private vendorPortAPI: VendorPortAPI,
-    private route: ActivatedRoute,
-    private router: Router,
-  ) {
+  constructor() {
     this.formGroupQuery = this.formBuilder.group({
       'vendor': [[], null],
       'vendorMedia': [[], null],
