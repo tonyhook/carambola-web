@@ -1,5 +1,5 @@
 import { NgComponentOutlet } from '@angular/common';
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
@@ -9,7 +9,7 @@ import { RouterModule } from '@angular/router';
 
 import { OpenApplicationAPI } from '../../../core';
 import { AuthService, DrawerService } from '../../../services';
-import { HEADER_EXTENSIONS, HeaderExtension } from './header-extension';
+import { HEADER_EXTENSIONS } from './header-extension';
 
 @Component({
   selector: 'carambola-admin-header',
@@ -25,20 +25,17 @@ import { HEADER_EXTENSIONS, HeaderExtension } from './header-extension';
   styleUrls: ['./header.component.scss'],
 })
 export class HeaderComponent implements OnInit {
-  name = '';
+  authService = inject(AuthService);
+  drawerService = inject(DrawerService);
+  headerExtensions = inject(HEADER_EXTENSIONS);
+  private title = inject(Title);
+  private applicationAPI = inject(OpenApplicationAPI);
 
-  constructor(
-    public authService: AuthService,
-    public drawerService: DrawerService,
-    @Inject(HEADER_EXTENSIONS) public headerExtensions: HeaderExtension[],
-    private title: Title,
-    private applicationAPI: OpenApplicationAPI,
-  ) {
-  }
+  name = signal('');
 
   ngOnInit() {
     this.applicationAPI.getSite().subscribe((site) => {
-      this.name = site.name;
+      this.name.set(site.name);
       this.title.setTitle(site.name);
     });
   }

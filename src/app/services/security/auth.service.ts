@@ -1,4 +1,4 @@
-import { Injectable, signal, WritableSignal } from '@angular/core';
+import { Injectable, signal, WritableSignal, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
@@ -9,15 +9,15 @@ import { MenuService } from '../../services';
   providedIn: 'root',
 })
 export class AuthService {
+  private router = inject(Router);
+  private menuService = inject(MenuService);
+  private security = inject(OpenSecurityAPI);
+  private snackBar = inject(MatSnackBar);
+
   credential: WritableSignal<UserDetails | null> = signal(null);
   redirectUrl = signal<string>('/admin');
 
-  constructor(
-    private router: Router,
-    private menuService: MenuService,
-    private security: OpenSecurityAPI,
-    private snackBar: MatSnackBar,
-  ) {
+  constructor() {
     this.getUserDetails();
   }
 

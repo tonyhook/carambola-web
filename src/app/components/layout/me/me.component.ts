@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -21,13 +21,13 @@ import { AuthService } from '../../../services';
   styleUrls: ['./me.component.scss'],
 })
 export class MeComponent {
+  private userAPI = inject(UserAPI);
+  private authService = inject(AuthService);
+  private formBuilder = inject(UntypedFormBuilder);
+
   formGroup: UntypedFormGroup;
 
-  constructor(
-    private userAPI: UserAPI,
-    private authService: AuthService,
-    private formBuilder: UntypedFormBuilder,
-  ) {
+  constructor() {
     this.formGroup = this.formBuilder.group({
       'password': ['', Validators.required],
     });

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatToolbarModule } from '@angular/material/toolbar';
 
@@ -14,12 +14,10 @@ import { OpenApplicationAPI } from '../../../core';
   styleUrl: './footer.component.scss'
 })
 export class FooterComponent implements OnInit {
+  private applicationAPI = inject(OpenApplicationAPI);
+
   company = '';
   registration: string | null = null;
-
-  constructor(
-    public applicationAPI: OpenApplicationAPI,
-  ) { }
 
   ngOnInit() {
     this.applicationAPI.getSite().subscribe((site) => {

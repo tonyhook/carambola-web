@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnInit, ViewChild, inject } from '@angular/core';
 import { UntypedFormGroup, UntypedFormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { Subject, switchMap } from 'rxjs';
 import { MatBadgeModule } from '@angular/material/badge';
@@ -40,6 +40,10 @@ import { AuthorityDialogComponent } from '../authority-dialog/authority-dialog.c
   styleUrls: ['./authority.component.scss'],
 })
 export class AuthorityManagerComponent implements OnInit, AfterViewInit {
+  private formBuilder = inject(UntypedFormBuilder);
+  private dialog = inject(MatDialog);
+  private authorityAPI = inject(AuthorityAPI);
+
   displayedColumns: string[] = ['name', 'actions'];
   hoverRow: Authority | null = null;
 
@@ -56,11 +60,7 @@ export class AuthorityManagerComponent implements OnInit, AfterViewInit {
   dataRequest$ = new Subject<Query<Authority>>();
   dataSource = new MatTableDataSource<Authority>([]);
 
-  constructor(
-    private formBuilder: UntypedFormBuilder,
-    private dialog: MatDialog,
-    private authorityAPI: AuthorityAPI,
-  ) {
+  constructor() {
     this.formGroupQuery = this.formBuilder.group({
       'search': ['', null],
     });
