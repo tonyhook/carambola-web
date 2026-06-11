@@ -1,4 +1,4 @@
-import { Injectable, OnDestroy, signal } from '@angular/core';
+import { Injectable, OnDestroy, signal, inject } from '@angular/core';
 import { MatDrawerMode } from '@angular/material/sidenav';
 import { BreakpointObserver, Breakpoints, BreakpointState } from '@angular/cdk/layout';
 import { Event, NavigationEnd, Router } from '@angular/router';
@@ -8,6 +8,9 @@ import { Subscription } from 'rxjs';
   providedIn: 'root',
 })
 export class DrawerService implements OnDestroy {
+  private router = inject(Router);
+  private breakpointObserver = inject(BreakpointObserver);
+
   drawerMode: MatDrawerMode = 'over';
   drawerOpen = true;
 
@@ -17,16 +20,13 @@ export class DrawerService implements OnDestroy {
   watcher: Subscription;
   activeMediaQuery = '';
 
-  constructor(
-    breakpointObserver: BreakpointObserver,
-    private router: Router,
-  ) {
+  constructor() {
     this.router.events.subscribe((event: Event) => {
       if (event instanceof NavigationEnd) {
         this.currentUrl.set(event.urlAfterRedirects);
       }
     });
-    const layoutChanges = breakpointObserver.observe([
+    const layoutChanges = this.breakpointObserver.observe([
       Breakpoints.XSmall,
       Breakpoints.Small,
       Breakpoints.Medium,

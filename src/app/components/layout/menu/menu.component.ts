@@ -1,4 +1,4 @@
-import { Component, ViewChild, ElementRef } from '@angular/core';
+import { Component, ViewChild, ElementRef, inject } from '@angular/core';
 import { MatListModule } from '@angular/material/list';
 
 import { MenuService } from '../../../services';
@@ -15,10 +15,8 @@ import { MenuItemComponent } from '../menu-item/menu-item.component';
   styleUrls: ['./menu.component.scss'],
 })
 export class MenuComponent {
-  @ViewChild('appDrawer') appDrawer?: ElementRef;
+  public menuService = inject(MenuService);
 
-  constructor(
-    public menuService: MenuService,
-  ) { }
+  @ViewChild('appDrawer') appDrawer?: ElementRef;
 
 }

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
@@ -9,10 +9,7 @@ import { Menu } from '../..';
   providedIn: 'root',
 })
 export class MenuAPI {
-
-  constructor(
-    private http: HttpClient
-  ) { }
+  private http = inject(HttpClient);
 
   getMenuList(): Observable<Menu[]> {
     return this.http.get<Menu[]>(environment.apipath + '/api/managed/menu', { withCredentials: true });

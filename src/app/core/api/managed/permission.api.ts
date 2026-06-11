@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
@@ -9,10 +9,7 @@ import { Permission } from '../..';
   providedIn: 'root',
 })
 export class PermissionAPI {
-
-  constructor(
-    private http: HttpClient
-  ) { }
+  private http = inject(HttpClient);
 
   getResourceTypeList(): Observable<string[]> {
     return this.http.get<string[]>(environment.apipath + '/api/managed/permission/resourceType', { withCredentials: true });

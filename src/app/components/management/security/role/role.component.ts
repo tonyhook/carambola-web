@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnInit, ViewChild, inject } from '@angular/core';
 import { UntypedFormGroup, UntypedFormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { Subject, switchMap } from 'rxjs';
 import { MatBadgeModule } from '@angular/material/badge';
@@ -42,6 +42,10 @@ import { RoleDialogComponent } from '../role-dialog/role-dialog.component';
   styleUrls: ['./role.component.scss'],
 })
 export class RoleManagerComponent implements OnInit, AfterViewInit {
+  private formBuilder = inject(UntypedFormBuilder);
+  private dialog = inject(MatDialog);
+  private roleAPI = inject(RoleAPI);
+
   displayedColumns: string[] = ['name', 'actions'];
   hoverRow: Role | null = null;
 
@@ -58,11 +62,7 @@ export class RoleManagerComponent implements OnInit, AfterViewInit {
   dataRequest$ = new Subject<Query<Role>>();
   dataSource = new MatTableDataSource<Role>([]);
 
-  constructor(
-    private formBuilder: UntypedFormBuilder,
-    private dialog: MatDialog,
-    private roleAPI: RoleAPI,
-  ) {
+  constructor() {
     this.formGroupQuery = this.formBuilder.group({
       'search': ['', null],
     });
