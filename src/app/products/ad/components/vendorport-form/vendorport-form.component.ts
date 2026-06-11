@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, effect, input, output, signal, WritableSignal } from '@angular/core';
+import { AfterViewInit, Component, effect, input, output, signal, WritableSignal, inject } from '@angular/core';
 import { UntypedFormGroup, UntypedFormBuilder, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
@@ -42,6 +42,13 @@ import { ConnectionComponent, FilteredSelectVendorComponent, FilteredSelectVendo
   styleUrls: ['./vendorport-form.component.scss'],
 })
 export class VendorPortFormComponent implements AfterViewInit {
+  private formBuilder = inject(UntypedFormBuilder);
+  private snackBar = inject(MatSnackBar);
+  private tenantService = inject(TenantService);
+  private vendorAPI = inject(VendorAPI);
+  private vendorMediaAPI = inject(VendorMediaAPI);
+  private vendorPortAPI = inject(VendorPortAPI);
+
   PartnerType = PartnerType;
   PortType = PortType;
 
@@ -68,14 +75,7 @@ export class VendorPortFormComponent implements AfterViewInit {
   connections: Connection[] = [];
   selectedIndex = 0;
 
-  constructor(
-    private formBuilder: UntypedFormBuilder,
-    private snackBar: MatSnackBar,
-    private tenantService: TenantService,
-    private vendorAPI: VendorAPI,
-    private vendorMediaAPI: VendorMediaAPI,
-    private vendorPortAPI: VendorPortAPI,
-  ) {
+  constructor() {
     this.formGroup = this.formBuilder.group({
       'vendor': [null, Validators.required],
       'vendorMedia': [null, Validators.required],

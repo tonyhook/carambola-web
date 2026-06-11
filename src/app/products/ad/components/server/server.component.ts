@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
@@ -30,6 +30,9 @@ import { ServerDialogComponent } from '../server-dialog/server-dialog.component'
   styleUrls: ['./server.component.scss'],
 })
 export class ServerManagerComponent implements OnInit, OnDestroy {
+  private dialog = inject(MatDialog);
+  private serverAPI = inject(ServerAPI);
+
   displayedColumns: string[] = ['status', 'node', 'domain', 'servingTimestamp', 'trackingTimestamp', 'serverAction', 'servingAction', 'trackingAction', 'actions'];
   hoverRow: Server | null = null;
 
@@ -39,11 +42,6 @@ export class ServerManagerComponent implements OnInit, OnDestroy {
   dataSource = new MatTableDataSource<Server>([]);
   refresher: ReturnType<typeof setInterval> | null = null;
   status: Record<number, number> = {};
-
-  constructor(
-    private dialog: MatDialog,
-    private serverAPI: ServerAPI,
-  ) { }
 
   ngOnInit() {
     this.query();

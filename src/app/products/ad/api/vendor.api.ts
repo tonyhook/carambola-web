@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
@@ -10,10 +10,7 @@ import { Vendor } from '../../../products/ad';
   providedIn: 'root',
 })
 export class VendorAPI {
-
-  constructor(
-    private http: HttpClient
-  ) { }
+  private http = inject(HttpClient);
 
   getVendorList(query?: AdQuery<Vendor>): Observable<Vendor[]> {
     let params = new HttpParams();
