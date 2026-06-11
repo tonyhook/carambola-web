@@ -1,4 +1,4 @@
-import { booleanAttribute, Component, DestroyRef, effect, Input, input, OnDestroy, signal, ViewChild, inject, AfterViewInit } from '@angular/core';
+import { booleanAttribute, Component, DestroyRef, effect, input, OnDestroy, signal, ViewChild, inject, AfterViewInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ControlValueAccessor, FormBuilder, FormControl, FormGroup, NG_VALIDATORS, NG_VALUE_ACCESSOR, ReactiveFormsModule, ValidationErrors, Validator, Validators } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -50,13 +50,12 @@ export class FilteredSelectComponent implements AfterViewInit, OnDestroy, Contro
 
   options = input<string[]>([]);
   label = input<string>('');
-  readonly requiredState = signal(false);
-  @Input({ transform: booleanAttribute })
-  set required(value: boolean) {
-    this.requiredState.set(value);
-  }
+  // MatFormFieldControl requires a boolean `required` property, so the signal input
+  // needs a separate field name while preserving the external binding.
+  // eslint-disable-next-line @angular-eslint/no-input-rename
+  readonly requiredInput = input(false, { alias: 'required', transform: booleanAttribute });
   get required(): boolean {
-    return this.requiredState();
+    return this.requiredInput();
   }
 
   @ViewChild('select', { static: true }) select?: MatSelect;
