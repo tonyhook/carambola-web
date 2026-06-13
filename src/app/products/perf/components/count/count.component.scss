@@ -1,0 +1,136 @@
+@use '../../../../shared/styles/management.scss';
+
+.container {
+  flex-direction: column;
+  justify-content: flex-start;
+  overflow: hidden;
+}
+
+// 表格在容器内自己滚动，表头和汇总行才能用 sticky 固定在上下两端
+.table-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  width: 100%;
+}
+
+.mat-mdc-table-sticky {
+  background-color: var(--mat-sys-surface);
+  opacity: 1;
+}
+
+.table-scroll .mat-mdc-table {
+  min-width: 100%;
+  width: max-content;
+}
+
+.mat-column-time {
+  flex: 0 0 180px;
+  min-width: 180px;
+}
+
+.mat-column-client,
+.mat-column-project,
+.mat-column-media {
+  flex: 0 0 140px;
+  min-width: 140px;
+}
+
+.entity-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  justify-content: center;
+  min-width: 0;
+}
+
+.entity-primary {
+  color: rgba(0, 0, 0, 0.87);
+}
+
+.entity-secondary {
+  color: rgba(0, 0, 0, 0.54);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.event-cell {
+  flex: 0 0 104px;
+  justify-content: center;
+  min-width: 104px;
+  text-align: center;
+}
+
+.segment-cell {
+  flex-basis: 220px;
+  min-width: 220px;
+}
+
+.mat-column-payAmount {
+  flex-basis: 340px;
+  min-width: 340px;
+}
+
+.event-cell ::ng-deep .mat-sort-header-container {
+  justify-content: center;
+}
+
+.event-count {
+  line-height: 18px;
+  min-width: 0;
+  padding: 2px 6px;
+}
+
+.event-count ::ng-deep .mdc-button__label {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.event-count-static {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  line-height: 18px;
+}
+
+.event-count-primary {
+  font-size: 14px;
+}
+
+.event-count-raw {
+  color: rgba(0, 0, 0, 0.46);
+  font-size: 11px;
+  line-height: 14px;
+}
+
+.event-count-value {
+  color: rgba(25, 118, 210, 0.86);
+  font-size: 11px;
+  line-height: 14px;
+}
+
+.segment-separator {
+  color: rgba(0, 0, 0, 0.38);
+  padding: 0 2px;
+}
+
+.segment-link {
+  background: none;
+  border: none;
+  border-radius: 4px;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  padding: 0 2px;
+}
+
+.segment-link:hover {
+  background: rgba(0, 0, 0, 0.06);
+  color: rgba(25, 118, 210, 1);
+}
+
+.total-row .mat-mdc-footer-cell {
+  background-color: var(--mat-sys-surface-container);
+  font-weight: 500;
+}

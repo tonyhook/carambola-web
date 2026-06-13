@@ -1,0 +1,53 @@
+<section class="route-editor" [formGroup]="formGroup">
+  <div class="route-fields">
+    <mat-form-field subscriptSizing="dynamic">
+      <mat-label>事件</mat-label>
+      <mat-select formControlName="event">
+        @for (event of eventOptions()?.events ?? []; track event.event) {
+          <mat-option [value]="event.event">{{ getEventLabel(event) }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field subscriptSizing="dynamic">
+      <mat-label>监测方</mat-label>
+      <mat-select formControlName="track" [compareWith]="compareTrack">
+        @for (track of trackList(); track track.id) {
+          <mat-option [value]="track">{{ getTrackLabel(track) }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  @if (formGroup.controls.track.value?.protocolKey; as protocolKeys) {
+    @if (protocolKeys.length > 0) {
+      <div class="route-protocol" [formGroup]="trackProtocolForm">
+        @for (key of protocolKeys; track key) {
+          <mat-form-field subscriptSizing="dynamic">
+            <mat-label>{{ "监测方参数 - " + key }}</mat-label>
+            <input [placeholder]="key" matInput [formControlName]="key" />
+          </mat-form-field>
+        }
+      </div>
+    }
+  }
+
+  @if (!readonly()) {
+    <div class="route-actions">
+      <button type="button" mat-icon-button aria-label="删除路由" matTooltip="删除路由" (click)="remove()">
+        <mat-icon>delete</mat-icon>
+      </button>
+    </div>
+  }
+
+  @if (eventUrl()) {
+    <div class="route-event-url">
+      <div class="route-event-url-header">
+        <span>该事件的媒体方监测链接</span>
+        <button type="button" mat-icon-button aria-label="复制监测链接" matTooltip="复制监测链接" (click)="copyEventUrl()">
+          <mat-icon>content_copy</mat-icon>
+        </button>
+      </div>
+      <div class="route-event-url-text">{{ eventUrl() }}</div>
+    </div>
+  }
+</section>

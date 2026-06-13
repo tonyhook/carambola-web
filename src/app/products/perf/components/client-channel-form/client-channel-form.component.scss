@@ -1,0 +1,64 @@
+@use '../../../../shared/styles/management.scss';
+
+.connection-section {
+  width: 100%;
+  margin: 0 0 1rem 0;
+}
+
+.connection-section .full-width-input {
+  margin: 0 0 1rem 0;
+}
+
+.protocol-hint {
+  color: rgba(0, 0, 0, 0.54);
+  font-size: 0.75rem;
+  margin: 0 0 1rem 0;
+}
+
+.event-url {
+  box-sizing: border-box;
+  margin: 0 0 1rem 0;
+  padding: 0.75rem 0;
+  width: 100%;
+}
+
+.event-url-header {
+  align-items: center;
+  display: flex;
+  font-size: 0.875rem;
+  gap: 1rem;
+  justify-content: space-between;
+  margin: 0 0 0.5rem 0;
+}
+
+.event-url-text {
+  font-family: monospace;
+  line-height: 1.5;
+  max-width: 100%;
+  overflow-x: hidden;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.route-toolbar {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0 4px;
+}
+
+.route-toolbar button {
+  align-items: center;
+  display: inline-flex;
+  gap: 6px;
+}
+
+.route-list {
+  min-height: 160px;
+}
+
+.route-empty {
+  color: rgba(0, 0, 0, 0.54);
+  padding: 24px 0;
+}

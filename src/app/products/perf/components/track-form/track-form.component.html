@@ -1,0 +1,37 @@
+<mat-card class="card-in-container">
+  <mat-card-content>
+    <form class="managed-form" [formGroup]="formGroup">
+      <div class="managed-form-scroll">
+        <mat-tab-group class="tab-in-card">
+          <mat-tab label="监测方属性">
+            <mat-form-field class="full-width-input" subscriptSizing="dynamic">
+              <mat-label>监测方名称</mat-label>
+              <input placeholder="监测方名称" matInput formControlName="name" />
+            </mat-form-field>
+            <mat-form-field class="full-width-input" subscriptSizing="dynamic">
+              <mat-label>监测方编码</mat-label>
+              <input placeholder="监测方编码" matInput formControlName="code" />
+            </mat-form-field>
+            <mat-form-field class="full-width-input" subscriptSizing="dynamic">
+              <mat-label>协议字段</mat-label>
+              <input placeholder="用逗号或空格分隔" matInput formControlName="protocolKey" />
+            </mat-form-field>
+            <mat-form-field class="full-width-input" subscriptSizing="dynamic">
+              <mat-label>备注</mat-label>
+              <textarea matInput placeholder="备注" formControlName="remark"></textarea>
+            </mat-form-field>
+          </mat-tab>
+        </mat-tab-group>
+      </div>
+      <div class="full-width-input flex managed-form-actions">
+        @if (tenantService.isManager()) {
+          <button type="button" class="form-button" mat-stroked-button (click)="saveTrack()">{{ track() === null ? '创建' : '修改' }}</button>
+        }
+        <button type="button" class="form-button cancel" mat-stroked-button (click)="cancelTrack()">取消</button>
+        @if (track() !== null && tenantService.isManager()) {
+          <button type="button" class="form-button delete" mat-stroked-button (click)="removeTrack()">删除</button>
+        }
+      </div>
+    </form>
+  </mat-card-content>
+</mat-card>

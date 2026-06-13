@@ -1,0 +1,70 @@
+<div class="container">
+  <form class="form-in-tab" [formGroup]="formGroupQuery">
+    <div class="full-width-input flex">
+      <mat-form-field subscriptSizing="dynamic">
+        <mat-label>监测关系</mat-label>
+        <input placeholder="搜索" matInput formControlName="search" />
+        @if (searchValue.length > 0) {
+          <button type="button" matSuffix mat-icon-button (click)="clear($event, 'search', '')">
+            <mat-icon>clear</mat-icon>
+          </button>
+        }
+      </mat-form-field>
+      <button type="button" class="form-button" mat-stroked-button (click)="query()">搜索</button>
+      @if (tenantService.isTenantManager() || tenantService.isManager()) {
+        <button type="button" class="form-button new" mat-stroked-button (click)="newClientChannel()">新建</button>
+      }
+    </div>
+  </form>
+  <mat-table matSort [dataSource]="dataSource">
+    <ng-container matColumnDef="project">
+      <mat-header-cell *matHeaderCellDef>产品</mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <div [matBadge]="row.createTime | isNew" matBadgeSize="medium" matBadgeOverlap="false">{{ getProjectLabel(row) }}</div>
+      </mat-cell>
+    </ng-container>
+    <ng-container matColumnDef="mediaCode">
+      <mat-header-cell *matHeaderCellDef>媒体方代码</mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <div class="entity-lines">
+          <div class="entity-primary">{{ getMediaTitle(row) }}</div>
+          <div class="entity-secondary">{{ row.mediaCode }}</div>
+        </div>
+      </mat-cell>
+    </ng-container>
+    <ng-container matColumnDef="routes">
+      <mat-header-cell *matHeaderCellDef>事件路由</mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        @if (getRoutes(row); as routes) {
+          @if (routes.length > 0) {
+            <div class="route-lines">
+              @for (route of routes; track route.id) {
+                <div class="route-line">
+                  <div class="route-primary">
+                    <span class="route-event">{{ getRouteEventName(route) }}</span>
+                    <mat-icon class="route-arrow">arrow_forward</mat-icon>
+                    <span>{{ getRouteTrackTitle(route) }}</span>
+                  </div>
+                  <div class="entity-secondary route-code">{{ route.trackCode }}</div>
+                </div>
+              }
+            </div>
+          }
+        }
+      </mat-cell>
+    </ng-container>
+    <ng-container matColumnDef="actions">
+      <mat-header-cell *matHeaderCellDef></mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        @if (hoverRow === row) {
+          <button mat-icon-button (click)="modifyClientChannel(row)">
+            <mat-icon>settings</mat-icon>
+          </button>
+        }
+      </mat-cell>
+    </ng-container>
+    <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+    <mat-row *matRowDef="let row; columns: displayedColumns" (mouseenter)="mouseenter(row)" (mouseleave)="mouseleave()"></mat-row>
+  </mat-table>
+  <mat-paginator [hidePageSize]="'false'" [pageSize]="50" [pageSizeOptions]="[10, 30, 50]" [showFirstLastButtons]="'true'"></mat-paginator>
+</div>

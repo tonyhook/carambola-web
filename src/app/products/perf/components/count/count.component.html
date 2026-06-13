@@ -1,0 +1,223 @@
+<div class="container">
+  <form class="form-in-tab" [formGroup]="formGroupFilter">
+    <div class="full-width-input flex">
+      <mat-form-field subscriptSizing="dynamic">
+        <mat-label>客户</mat-label>
+        <mat-select formControlName="clientId" panelWidth="">
+          @for (client of clients; track client.id) {
+            <mat-option [value]="client.id">{{ client.name }}</mat-option>
+          }
+        </mat-select>
+        @if (formGroupFilter.controls.clientId.value !== null) {
+          <button type="button" matSuffix mat-icon-button (click)="clear('clientId')">
+            <mat-icon>clear</mat-icon>
+          </button>
+        }
+      </mat-form-field>
+      <mat-form-field subscriptSizing="dynamic">
+        <mat-label>产品</mat-label>
+        <mat-select formControlName="clientProjectId" panelWidth="">
+          @for (project of filteredClientProjects; track project.id) {
+            <mat-option [value]="project.id">{{ project.client?.name }} / {{ project.name }}</mat-option>
+          }
+        </mat-select>
+        @if (formGroupFilter.controls.clientProjectId.value !== null) {
+          <button type="button" matSuffix mat-icon-button (click)="clear('clientProjectId')">
+            <mat-icon>clear</mat-icon>
+          </button>
+        }
+      </mat-form-field>
+      <mat-form-field subscriptSizing="dynamic">
+        <mat-label>媒体方</mat-label>
+        <mat-select formControlName="media" panelWidth="">
+          @for (media of mediaList; track media.id) {
+            <mat-option [value]="getMediaValue(media)">{{ getResourceLabel(media) }}</mat-option>
+          }
+        </mat-select>
+        @if (formGroupFilter.controls.media.value !== null) {
+          <button type="button" matSuffix mat-icon-button (click)="clear('media')">
+            <mat-icon>clear</mat-icon>
+          </button>
+        }
+      </mat-form-field>
+      <mat-form-field subscriptSizing="dynamic">
+        <mat-label>执行方</mat-label>
+        <mat-select formControlName="operator" panelWidth="">
+          @for (operator of operatorOptions; track operator.value) {
+            <mat-option [value]="operator.value">{{ operator.label }}</mat-option>
+          }
+        </mat-select>
+        @if (formGroupFilter.controls.operator.value !== null) {
+          <button type="button" matSuffix mat-icon-button (click)="clear('operator')">
+            <mat-icon>clear</mat-icon>
+          </button>
+        }
+      </mat-form-field>
+    </div>
+    <div class="full-width-input flex">
+      <button type="button" class="form-button" mat-button>统计颗粒度</button>
+      <mat-button-toggle-group [value]="level" (change)="changeLevel($event)">
+        <mat-button-toggle value="client">客户</mat-button-toggle>
+        <mat-button-toggle value="project">产品</mat-button-toggle>
+        <mat-button-toggle value="channel">渠道配对</mat-button-toggle>
+      </mat-button-toggle-group>
+      <button type="button" class="form-button" mat-button>时间颗粒度</button>
+      <mat-button-toggle-group [value]="interval" (change)="changeInterval($event)">
+        <mat-button-toggle value="day">日</mat-button-toggle>
+        <mat-button-toggle value="hour">小时</mat-button-toggle>
+      </mat-button-toggle-group>
+      <mat-form-field subscriptSizing="dynamic">
+        <mat-label>日期范围</mat-label>
+        <mat-date-range-input [rangePicker]="picker">
+          <input matStartDate formControlName="start" placeholder="起始日期">
+          <input matEndDate formControlName="end" placeholder="结束日期">
+        </mat-date-range-input>
+        <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+        <mat-date-range-picker #picker></mat-date-range-picker>
+      </mat-form-field>
+      <button type="button" class="form-button" mat-stroked-button (click)="query()">搜索</button>
+      <mat-form-field subscriptSizing="dynamic">
+        <mat-label>显示列</mat-label>
+        <mat-select multiple panelWidth="" [formControl]="columnControl">
+          @for (column of candidateColumns; track column.key) {
+            <mat-option [value]="column.key">{{ column.label }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </form>
+
+  @if (loading) {
+    <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+  }
+  <div class="table-scroll">
+  <mat-table matSort [dataSource]="dataSource">
+    <ng-container matColumnDef="time">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>时间</mat-header-cell>
+      <mat-cell *matCellDef="let row">{{ row.time }}</mat-cell>
+      <mat-footer-cell *matFooterCellDef>汇总</mat-footer-cell>
+    </ng-container>
+    <ng-container matColumnDef="client">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>客户</mat-header-cell>
+      <mat-cell *matCellDef="let row">{{ row.clientName }}</mat-cell>
+      <mat-footer-cell *matFooterCellDef></mat-footer-cell>
+    </ng-container>
+    <ng-container matColumnDef="project">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>产品</mat-header-cell>
+      <mat-cell *matCellDef="let row">{{ row.clientProjectName }}</mat-cell>
+      <mat-footer-cell *matFooterCellDef></mat-footer-cell>
+    </ng-container>
+    <ng-container matColumnDef="media">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>媒体方</mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <div class="entity-lines">
+          <div class="entity-primary">{{ getMediaDisplayName(row) }}</div>
+          @if (row.operator) {
+            <div class="entity-secondary">{{ row.operator }}</div>
+          }
+          @if (row.mediaCode && indistinctChannelIds.has(row.clientChannelId)) {
+            <div class="entity-secondary">{{ row.mediaCode }}</div>
+          }
+        </div>
+      </mat-cell>
+      <mat-footer-cell *matFooterCellDef></mat-footer-cell>
+    </ng-container>
+    @for (column of metricColumns; track column.key) {
+      <ng-container [matColumnDef]="column.key">
+        <mat-header-cell *matHeaderCellDef mat-sort-header class="event-cell" [class.segment-cell]="column.segments">{{ column.label }}</mat-header-cell>
+        <mat-cell *matCellDef="let row" class="event-cell" [class.segment-cell]="column.segments">
+          @if (column.segments) {
+            <div class="event-count-static">
+              <span class="event-count-primary">
+                @for (segment of column.segments; track segment.event; let first = $first) {
+                  @if (!first) {<span class="segment-separator">/</span>}
+                  @if (getEventRawCount(row, segment.event) > 0) {
+                    <button type="button" class="segment-link" [title]="segment.label" (click)="showRecentEvents(row, segment.event)">{{ formatSegmentValue(row, column, segment) }}</button>
+                  } @else {
+                    <span [title]="segment.label">{{ formatSegmentValue(row, column, segment) }}</span>
+                  }
+                }
+              </span>
+              @if (column.raw) {
+                <span class="event-count-raw">{{ formatSegmentRawCounts(row, column) }}</span>
+              }
+            </div>
+          } @else if (isMetricClickable(row, column)) {
+            <button type="button" mat-button class="event-count" (click)="showMetricEvents(row, column)">
+              <span class="event-count-primary">{{ formatMetricValue(row, column) }}</span>
+              @if (column.raw) {
+                <span class="event-count-raw">{{ getEventRawCount(row, column.event!) }}</span>
+              }
+            </button>
+          } @else {
+            <div class="event-count-static">
+              <span class="event-count-primary">{{ formatMetricValue(row, column) }}</span>
+              @if (column.raw) {
+                <span class="event-count-raw">0</span>
+              }
+            </div>
+          }
+        </mat-cell>
+        <mat-footer-cell *matFooterCellDef class="event-cell" [class.segment-cell]="column.segments">
+          <div class="event-count-static">
+            @if (column.nonAdditive) {
+              <span class="event-count-primary">-</span>
+            } @else if (column.segments && column.sumSegmentsInTotal) {
+              <span class="event-count-primary">{{ formatSegmentSum(total, column) }}</span>
+              @if (column.raw) {
+                <span class="event-count-raw">{{ formatSegmentRawSum(total, column) }}</span>
+              }
+            } @else if (column.segments) {
+              <span class="event-count-primary">{{ formatSegmentValues(total, column) }}</span>
+              @if (column.raw) {
+                <span class="event-count-raw">{{ formatSegmentRawCounts(total, column) }}</span>
+              }
+            } @else {
+              <span class="event-count-primary">{{ formatMetricValue(total, column) }}</span>
+              @if (column.raw) {
+                <span class="event-count-raw">{{ getEventRawCount(total, column.event!) }}</span>
+              }
+            }
+          </div>
+        </mat-footer-cell>
+      </ng-container>
+    }
+    @for (column of eventColumns; track column.key) {
+      <ng-container [matColumnDef]="column.key">
+        <mat-header-cell *matHeaderCellDef mat-sort-header class="event-cell">{{ column.label }}</mat-header-cell>
+        <mat-cell *matCellDef="let row" class="event-cell">
+          @if (getEventRawCount(row, column.event) > 0) {
+            <button type="button" mat-button class="event-count" (click)="showRecentEvents(row, column.event)">
+              <span class="event-count-primary">{{ getEventCount(row, column.event) }}</span>
+              <span class="event-count-raw">{{ getEventRawCount(row, column.event) }}</span>
+              @if (hasEventValue(row, column.event)) {
+                <span class="event-count-value">{{ formatEventValue(row, column.event) }}</span>
+              }
+            </button>
+          } @else {
+            <div class="event-count-static">
+              <span class="event-count-primary">0</span>
+              <span class="event-count-raw">0</span>
+            </div>
+          }
+        </mat-cell>
+        <mat-footer-cell *matFooterCellDef class="event-cell">
+          <div class="event-count-static">
+            <span class="event-count-primary">{{ getEventCount(total, column.event) }}</span>
+            <span class="event-count-raw">{{ getEventRawCount(total, column.event) }}</span>
+            @if (hasEventValue(total, column.event)) {
+              <span class="event-count-value">{{ formatEventValue(total, column.event) }}</span>
+            }
+          </div>
+        </mat-footer-cell>
+      </ng-container>
+    }
+
+    <mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></mat-header-row>
+    <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
+    <mat-footer-row *matFooterRowDef="displayedColumns; sticky: true" class="total-row"></mat-footer-row>
+  </mat-table>
+  </div>
+
+  <mat-paginator [hidePageSize]="'false'" [pageSize]="50" [pageSizeOptions]="[10, 30, 50]" [showFirstLastButtons]="'true'"></mat-paginator>
+</div>

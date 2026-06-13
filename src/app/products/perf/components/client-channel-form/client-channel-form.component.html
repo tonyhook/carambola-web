@@ -1,0 +1,102 @@
+<mat-card class="card-in-container">
+  <mat-card-content>
+    <form class="managed-form" [formGroup]="formGroup">
+      <div class="managed-form-scroll">
+        <mat-tab-group class="tab-in-card">
+          <mat-tab label="监测关系">
+            <mat-form-field class="full-width-input" subscriptSizing="dynamic">
+              <mat-label>产品</mat-label>
+              <mat-select formControlName="clientProject" [compareWith]="compareClientProject">
+                @for (clientProject of clientProjects(); track clientProject.id) {
+                  <mat-option [value]="clientProject">{{ clientProject.client?.name }} / {{ clientProject.name }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+            <section class="connection-section">
+              <mat-form-field class="full-width-input" subscriptSizing="dynamic">
+                <mat-label>媒体方</mat-label>
+                <mat-select formControlName="media" [compareWith]="compareMedia">
+                  @for (media of mediaList(); track media.id) {
+                    <mat-option [value]="media">{{ getResourceLabel(media) }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+              <mat-form-field class="full-width-input" subscriptSizing="dynamic">
+                <mat-label>执行方</mat-label>
+                <input placeholder="用于拆分同媒体下的执行渠道或账户" matInput formControlName="operator" />
+              </mat-form-field>
+              @if (formGroup.controls.media.value?.protocolKey; as mediaProtocolKey) {
+                @if (mediaProtocolKey.length > 0) {
+                  <div class="protocol-grid" [formGroup]="mediaProtocolForm">
+                    @for (key of mediaProtocolKey; track key) {
+                      <mat-form-field subscriptSizing="dynamic">
+                        <mat-label>{{ "媒体方参数 - " + key }}</mat-label>
+                        <input [placeholder]="key" matInput [formControlName]="key" />
+                      </mat-form-field>
+                    }
+                  </div>
+                }
+              }
+              @if (formGroup.controls.media.value?.secretKey; as mediaSecretKey) {
+                @if (mediaSecretKey.length > 0) {
+                  <div class="protocol-grid" [formGroup]="mediaSecretForm">
+                    @for (key of mediaSecretKey; track key) {
+                      <mat-form-field subscriptSizing="dynamic">
+                        <mat-label>{{ "媒体方密钥 - " + key }}</mat-label>
+                        <input [placeholder]="key" matInput [formControlName]="key" />
+                      </mat-form-field>
+                    }
+                  </div>
+                  <p class="protocol-hint">媒体方密钥用于回传转化时签名，不会出现在监测链接里</p>
+                }
+              }
+            </section>
+            <mat-checkbox class="full-width-input" formControlName="filterInvalidId">过滤不合格ID</mat-checkbox>
+            <mat-form-field class="full-width-input" subscriptSizing="dynamic">
+              <mat-label>点击单价 (CPC)</mat-label>
+              <input type="number" min="0" step="0.01" placeholder="留空表示不计费" matInput formControlName="cpc" />
+              <span matTextSuffix>元 / 有效点击</span>
+              <mat-hint>改价立即生效，仅对改价后的新点击计费，历史数据不受影响</mat-hint>
+            </mat-form-field>
+            <mat-form-field class="full-width-input" subscriptSizing="dynamic">
+              <mat-label>备注</mat-label>
+              <textarea matInput formControlName="remark" rows="4"></textarea>
+            </mat-form-field>
+          </mat-tab>
+          <mat-tab label="事件路由">
+            <div class="route-toolbar">
+              <span>{{ routes().length > 0 ? routes().length + ' 条路由' : '至少需要配置一条事件路由' }}</span>
+              @if (!readonly) {
+                <button type="button" mat-stroked-button (click)="addRoute()">
+                  <mat-icon>add</mat-icon>
+                  新增路由
+                </button>
+              }
+            </div>
+            <div class="route-list">
+              @for (route of routes(); track route) {
+                <carambola-perf-client-channel-route-editor
+                  [route]="route"
+                  [media]="formGroup.controls.media.value"
+                  [mediaCode]="eventUrlMediaCode()"
+                  [trackList]="trackList()"
+                  [eventOptions]="mediaEventOptions()"
+                  [readonly]="readonly"
+                  (routeRemoved)="removeRoute($event)" />
+              }
+            </div>
+          </mat-tab>
+        </mat-tab-group>
+      </div>
+      <div class="full-width-input flex managed-form-actions">
+        @if (!readonly) {
+          <button type="button" class="form-button" mat-stroked-button (click)="saveClientChannel()">{{ clientChannel() === null ? '创建' : '修改' }}</button>
+        }
+        <button type="button" class="form-button cancel" mat-stroked-button (click)="cancelClientChannel()">取消</button>
+        @if (clientChannel() !== null && (tenantService.isTenantManager() || tenantService.isManager())) {
+          <button type="button" class="form-button delete" mat-stroked-button (click)="removeClientChannel()">删除</button>
+        }
+      </div>
+    </form>
+  </mat-card-content>
+</mat-card>
