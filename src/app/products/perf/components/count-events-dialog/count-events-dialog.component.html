@@ -1,0 +1,55 @@
+<mat-dialog-content class="dialog-content">
+  @if (events.length === 0 && !loading) {
+    <div class="empty">暂无数据</div>
+  } @else {
+    <div class="events">
+      @for (event of events; track event.id) {
+        <section class="event">
+          <div class="event-header">
+            <div>
+              <span class="header-label">事件</span>
+              <span>{{ event.eventName || event.event }}</span>
+            </div>
+            <div>
+              <span class="header-label">时间</span>
+              <span>{{ event.time | date:'yyyy-MM-dd HH:mm:ss' }}</span>
+            </div>
+            <div>
+              <span class="header-label">事件ID</span>
+              <span>#{{ event.id }}</span>
+            </div>
+            @if (event.amount !== null) {
+              <div>
+                <span class="header-label">{{ getEventValueLabel(event) }}</span>
+                <span>{{ formatEventValue(event) }}</span>
+              </div>
+            }
+            <div>
+              <span class="header-label">媒体方</span>
+              <span>{{ getMediaLabel(event) }}</span>
+            </div>
+          </div>
+          <div class="queries">
+            @for (query of event.queries | keyvalue; track query.key) {
+              <div class="query">
+                <div class="query-key">{{ query.key }}</div>
+                <div class="query-value">{{ query.value }}</div>
+              </div>
+            }
+          </div>
+        </section>
+      }
+    </div>
+  }
+</mat-dialog-content>
+<mat-dialog-actions class="dialog-actions">
+  <mat-paginator
+    [length]="totalElements"
+    [pageIndex]="pageIndex"
+    [pageSize]="pageSize"
+    [pageSizeOptions]="[10, 20, 50]"
+    [showFirstLastButtons]="'true'"
+    (page)="pageChanged($event)">
+  </mat-paginator>
+  <button type="button" mat-stroked-button (click)="close()">关闭</button>
+</mat-dialog-actions>

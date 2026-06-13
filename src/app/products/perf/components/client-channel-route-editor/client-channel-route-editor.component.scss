@@ -1,0 +1,62 @@
+.route-editor {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  box-sizing: border-box;
+  padding: 16px 0;
+  position: relative;
+}
+
+.route-fields,
+.route-protocol {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding-right: 52px;
+}
+
+.route-protocol {
+  margin-top: 12px;
+}
+
+.route-actions {
+  align-items: center;
+  display: flex;
+  gap: 4px;
+  height: 56px;
+  position: absolute;
+  right: 0;
+  top: 16px;
+}
+
+.route-event-url {
+  margin-top: 12px;
+}
+
+.route-event-url-header {
+  align-items: center;
+  color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  font-size: 0.875rem;
+  justify-content: space-between;
+  min-height: 40px;
+}
+
+.route-event-url-text {
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 4px;
+  box-sizing: border-box;
+  font-family: monospace;
+  line-height: 1.5;
+  max-width: 100%;
+  overflow-x: hidden;
+  overflow-wrap: anywhere;
+  padding: 10px 12px;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+@media (max-width: 760px) {
+  .route-fields,
+  .route-protocol {
+    grid-template-columns: 1fr;
+  }
+}

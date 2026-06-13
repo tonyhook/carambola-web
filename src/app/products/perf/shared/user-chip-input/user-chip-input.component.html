@@ -1,0 +1,33 @@
+<mat-form-field class="full-width-input" subscriptSizing="dynamic">
+  <mat-label>{{ label() }}</mat-label>
+  <mat-chip-grid #chipGrid [disabled]="disabled()">
+    @for (username of usernames(); track username) {
+      <mat-chip-row [value]="username" (removed)="remove(username)">
+        {{ username }}
+        @if (!disabled()) {
+          <button matChipRemove>
+            <mat-icon>cancel</mat-icon>
+          </button>
+        }
+      </mat-chip-row>
+    }
+  </mat-chip-grid>
+  <input
+    #inputElement
+    matInput
+    [placeholder]="placeholder()"
+    [formControl]="searchControl"
+    [matChipInputFor]="chipGrid"
+    [matAutocomplete]="autoUser"
+    [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+    (blur)="markTouched()"
+    (matChipInputTokenEnd)="add($event)"
+  />
+  <mat-autocomplete #autoUser="matAutocomplete" (optionSelected)="select($event)">
+    @for (user of filteredUsers(); track user.username) {
+      <mat-option [value]="user.username">
+        {{ user.username }}
+      </mat-option>
+    }
+  </mat-autocomplete>
+</mat-form-field>

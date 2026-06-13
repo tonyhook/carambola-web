@@ -1,0 +1,33 @@
+<mat-card class="card-in-container">
+  <mat-card-content>
+    <form class="managed-form" [formGroup]="formGroup">
+      <div class="managed-form-scroll">
+        <mat-tab-group class="tab-in-card">
+          <mat-tab label="客户属性">
+            <mat-form-field class="full-width-input" subscriptSizing="dynamic">
+              <mat-label>客户名称</mat-label>
+              <input placeholder="客户名称" matInput formControlName="name" />
+            </mat-form-field>
+
+            <carambola-perf-user-chip-input formControlName="managers" label="客户管理员" />
+
+            <mat-form-field class="full-width-input" subscriptSizing="dynamic">
+              <mat-label>备注</mat-label>
+              <textarea matInput formControlName="remark" rows="4"></textarea>
+            </mat-form-field>
+          </mat-tab>
+        </mat-tab-group>
+      </div>
+
+      <div class="full-width-input flex managed-form-actions">
+        @if (!readonly) {
+          <button type="button" class="form-button" mat-stroked-button (click)="saveClient()">{{ client() === null ? '创建' : '修改' }}</button>
+        }
+        <button type="button" class="form-button cancel" mat-stroked-button (click)="cancelClient()">取消</button>
+        @if (client() !== null && (tenantService.isTenantManager() || tenantService.isManager())) {
+          <button type="button" class="form-button delete" mat-stroked-button (click)="removeClient()">删除</button>
+        }
+      </div>
+    </form>
+  </mat-card-content>
+</mat-card>

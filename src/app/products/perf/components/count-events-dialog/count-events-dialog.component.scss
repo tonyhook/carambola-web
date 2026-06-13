@@ -1,0 +1,66 @@
+.dialog-content {
+  height: min(64vh, 640px);
+  min-height: 520px;
+}
+
+.empty {
+  padding: 16px 0;
+}
+
+.events {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 640px;
+  max-width: 80vw;
+}
+
+.event {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  padding-bottom: 12px;
+}
+
+.event:last-child {
+  border-bottom: 0;
+}
+
+.event-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.header-label {
+  color: rgba(0, 0, 0, 0.54);
+  margin-right: 4px;
+}
+
+.queries {
+  display: grid;
+  gap: 6px;
+}
+
+.query {
+  display: grid;
+  grid-template-columns: minmax(120px, 180px) minmax(0, 1fr);
+  gap: 12px;
+}
+
+.query-key {
+  color: rgba(0, 0, 0, 0.54);
+}
+
+.query-value {
+  overflow-wrap: anywhere;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.dialog-actions mat-paginator {
+  background: transparent;
+}

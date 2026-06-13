@@ -1,0 +1,39 @@
+<div class="container">
+  <form class="form-in-tab" [formGroup]="formGroupQuery">
+    <div class="full-width-input flex">
+      <mat-form-field subscriptSizing="dynamic">
+        <mat-label>产品名称</mat-label>
+        <input placeholder="搜索" matInput formControlName="search" />
+        @if (searchValue.length > 0) {
+          <button type="button" matSuffix mat-icon-button (click)="clear($event, 'search', '')"><mat-icon>clear</mat-icon></button>
+        }
+      </mat-form-field>
+      <button type="button" class="form-button" mat-stroked-button (click)="query()">搜索</button>
+      @if (tenantService.isTenantManager() || tenantService.isManager() || tenantService.isClient() || tenantService.isClientSub()) {
+        <button type="button" class="form-button new" mat-stroked-button (click)="newClientProject()">新建</button>
+      }
+    </div>
+  </form>
+
+  <mat-table matSort [dataSource]="dataSource">
+    <ng-container matColumnDef="name">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>产品名称</mat-header-cell>
+      <mat-cell *matCellDef="let row"><div [matBadge]="row.createTime | isNew" matBadgeSize="medium" matBadgeOverlap="false">{{ row.name }}</div></mat-cell>
+    </ng-container>
+    <ng-container matColumnDef="client">
+      <mat-header-cell *matHeaderCellDef>客户</mat-header-cell>
+      <mat-cell *matCellDef="let row">{{ row.client?.name }}</mat-cell>
+    </ng-container>
+    <ng-container matColumnDef="actions">
+      <mat-header-cell *matHeaderCellDef></mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        @if (hoverRow === row) {
+          <button mat-icon-button (click)="modifyClientProject(row)"><mat-icon>settings</mat-icon></button>
+        }
+      </mat-cell>
+    </ng-container>
+    <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+    <mat-row *matRowDef="let row; columns: displayedColumns" (mouseenter)="mouseenter(row)" (mouseleave)="mouseleave()"></mat-row>
+  </mat-table>
+  <mat-paginator [hidePageSize]="'false'" [pageSize]="50" [pageSizeOptions]="[10, 30, 50]" [showFirstLastButtons]="'true'"></mat-paginator>
+</div>
